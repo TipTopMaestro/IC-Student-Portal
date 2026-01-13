@@ -91,7 +91,7 @@
             <!-- Profile Dropdown -->
             <div class="relative">
               <button @click="showProfileMenu = !showProfileMenu" class="flex items-center space-x-3 focus:outline-none">
-                <div class="h-9 w-9 rounded-full bg-gradient-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white font-semibold">
+                <div class="h-9 w-9 rounded-full bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white font-semibold">
                   {{ userInitials }}
                 </div>
                 <div class="hidden md:block text-left">
@@ -149,7 +149,7 @@
     <!-- Notifications Sidebar -->
     <transition name="slide">
       <div v-if="showNotifications" class="fixed inset-0 z-50" @click="showNotifications = false">
-        <div class="absolute inset-0 bg-black bg-opacity-25"></div>
+        <div class="absolute inset-0" style="backdrop-filter: blur(2px); background-color: rgba(0, 0, 0, 0.15);"></div>
         <div @click.stop class="absolute right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
           <div class="p-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
