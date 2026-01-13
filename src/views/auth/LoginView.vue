@@ -1,23 +1,16 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full">
-      <!-- Logo and Header -->
-      <div class="text-center mb-8">
-        <div class="mx-auto mb-4 flex justify-center">
-          <img src="/icsa_logo.png" alt="ICSA Logo" class="h-24 w-24" />
-        </div>
-        <h2 class="text-2xl font-bold text-gray-900">ICSA Student Portal</h2>
-        <p class="mt-1 text-sm text-gray-600">Institute of Computing Student Association</p>
-      </div>
-
-      <!-- Login Form -->
-      <div class="bg-white rounded-2xl shadow-xl p-8">
-        <div class="mb-6">
-          <h3 class="text-xl font-semibold text-gray-900">Sign in to your account</h3>
-          <p class="text-sm text-gray-600 mt-1">Enter your credentials to continue</p>
+  <div class="min-h-screen flex overflow-hidden bg-white">
+    <!-- Left Side - Login Form (40% width) -->
+    <div class="w-full lg:w-[40%] flex items-center justify-center px-4 sm:px-6 lg:px-20 xl:px-24 relative z-10">
+      <div class="max-w-md w-full space-y-8 py-12">
+        <!-- Header -->
+        <div class="text-center">
+          <h2 class="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <p class="mt-2 text-base text-gray-600">Continue with your email and password</p>
         </div>
 
-        <form @submit.prevent="handleLogin" class="space-y-5">
+        <!-- Login Form -->
+        <form @submit.prevent="handleLogin" class="mt-8 space-y-6">
           <!-- Error Message -->
           <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
             {{ error }}
@@ -26,30 +19,35 @@
           <!-- Email/Student ID -->
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-              Student ID or Email
+              Email
             </label>
             <input
               id="email"
               v-model="form.email"
               type="text"
               required
-              class="input-field"
-              placeholder="2021-0001 or student@dnsc.edu.ph"
+              class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-ic-primary focus:border-transparent transition-all"
+              placeholder="email@example.com"
             />
           </div>
 
           <!-- Password -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
+            <div class="flex items-center justify-between mb-2">
+              <label for="password" class="block text-sm font-medium text-gray-700">
+                Password
+              </label>
+              <a href="#" class="text-sm font-medium text-ic-primary hover:text-ic-secondary">
+                Forgot password?
+              </a>
+            </div>
             <div class="relative">
               <input
                 id="password"
                 v-model="form.password"
                 :type="showPassword ? 'text' : 'password'"
                 required
-                class="input-field pr-10"
+                class="appearance-none relative block w-full px-4 py-3 pr-10 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-ic-primary focus:border-transparent transition-all"
                 placeholder="Enter your password"
               />
               <button
@@ -68,54 +66,59 @@
             </div>
           </div>
 
-          <!-- Remember Me & Forgot Password -->
-          <div class="flex items-center justify-between">
-            <div class="flex items-center">
-              <input
-                id="remember"
-                v-model="form.remember"
-                type="checkbox"
-                class="h-4 w-4 text-ic-primary focus:ring-ic-primary border-gray-300 rounded cursor-pointer"
-              />
-              <label for="remember" class="ml-2 block text-sm text-gray-700 cursor-pointer">
-                Remember me
-              </label>
-            </div>
-            <div class="text-sm">
-              <a href="#" class="font-medium text-ic-primary hover:text-primary-900">
-                Forgot password?
-              </a>
-            </div>
-          </div>
-
           <!-- Submit Button -->
           <button
             type="submit"
             :disabled="loading"
-            class="w-full btn-primary py-3 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-ic-primary hover:bg-ic-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ic-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ loading ? 'Signing in...' : 'Sign in' }}
+            {{ loading ? 'Logging in...' : 'Log in' }}
           </button>
         </form>
 
         <!-- Register Link -->
-        <div class="mt-6 text-center">
-          <p class="text-sm text-gray-600">
-            Don't have an account?
-            <router-link to="/register" class="font-medium text-ic-primary hover:text-primary-900">
-              Register here
-            </router-link>
-          </p>
+        <div class="text-center text-sm text-gray-600">
+          Don't have an account?
+          <router-link to="/register" class="font-medium text-ic-primary hover:text-ic-secondary">
+            Sign up
+          </router-link>
         </div>
       </div>
+    </div>
 
-      <!-- Footer -->
-      <div class="mt-8 text-center text-sm text-gray-500">
-        <p>&copy; 2024 Davao del Norte State College. All rights reserved.</p>
+    <!-- Right Side - Curved Split with Image and Branding (Hidden on mobile, 60% width) -->
+    <div class="hidden lg:block relative w-[60%]">
+      <!-- Curved Elliptical Shape -->
+      <div class="absolute inset-0 bg-ic-primary shadow-2xl" 
+           style="clip-path: ellipse(100% 100% at 100% 50%);">
+        <div class="absolute inset-0 overflow-hidden">
+       <img
+         src="/public/ic-building.png"
+         alt="IT building"
+         class="absolute inset-0 w-full h-full object-cover"
+       />
+       <!-- Purple overlay with gradient -->
+       <div class="gradient-overlay"></div>
+     </div>
+        
+        <!-- Content Container -->
+        <div class="relative h-full flex flex-col items-center justify-center text-white px-12">
+          <div class="text-center">
+            <!-- Logo -->
+            <div class="mb-8 flex justify-center">
+              <img src="/icsa_logo.png" alt="ICSA Logo" class="h-45 w-45 drop-shadow-lg" />
+            </div>
+            
+            <!-- Title and Description -->
+            <h1 class="text-5xl font-bold mb-4 drop-shadow-lg">ICSA Student Portal</h1>
+            <p class="text-xl font-medium mb-2 drop-shadow-md">Institute of Computing Student Association</p>
+            <p class="text-xl font-medium drop-shadow-md">Davao del Norte State College</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -158,3 +161,11 @@ const handleLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+.gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(90, 45, 111, 0.69), rgba(90, 45, 111, 1));
+}
+</style>
