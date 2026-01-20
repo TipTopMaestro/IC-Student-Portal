@@ -1,17 +1,9 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">Event Attendance</h1>
-        <p class="text-gray-600 mt-1">Summary of your event attendance records</p>
-      </div>
-      <button class="btn-primary">
-        <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
-        Open Attendance System
-      </button>
+    <div>
+      <h1 class="text-2xl font-semibold text-gray-900">Event Attendance</h1>
+      <p class="text-gray-600 mt-1">Summary of your event attendance records</p>
     </div>
 
     <!-- Summary Cards -->
@@ -69,6 +61,8 @@
             <tr class="bg-gray-50">
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event Name</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time In</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time Out</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             </tr>
           </thead>
@@ -76,12 +70,14 @@
             <tr v-for="event in recentEvents" :key="event.id" class="hover:bg-gray-50">
               <td class="px-4 py-3 text-sm text-gray-900">{{ event.name }}</td>
               <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(event.date) }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600">{{ event.timeIn || '-' }}</td>
+              <td class="px-4 py-3 text-sm text-gray-600">{{ event.timeOut || '-' }}</td>
               <td class="px-4 py-3 text-sm">
                 <span 
                   :class="{
                     'badge-success': event.status === 'present',
-                    'badge-danger': event.status === 'absent',
-                    'badge-info': event.status === 'upcoming'
+                    'badge-warning': event.status === 'incomplete',
+                    'badge-danger': event.status === 'absent'
                   }"
                   class="badge capitalize">
                   {{ event.status }}
@@ -90,15 +86,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <div class="mt-4 text-center">
-        <p class="text-sm text-gray-600">
-          For complete attendance records and detailed management, 
-          <button class="text-ic-primary font-medium hover:underline">
-            open the Attendance Management System
-          </button>
-        </p>
       </div>
     </div>
   </div>
@@ -113,12 +100,12 @@ const attendedEvents = 12
 const attendanceRate = 92
 
 const recentEvents = ref([
-  { id: 1, name: 'IT Summit 2024', date: '2024-01-10', status: 'present' },
-  { id: 2, name: 'Web Development Workshop', date: '2024-01-08', status: 'present' },
-  { id: 3, name: 'Cybersecurity Seminar', date: '2024-01-05', status: 'present' },
-  { id: 4, name: 'Career Fair 2024', date: '2023-12-20', status: 'absent' },
-  { id: 5, name: 'Alumni Homecoming', date: '2023-12-15', status: 'present' },
-  { id: 6, name: 'Tech Talk Series #3', date: '2024-01-15', status: 'upcoming' },
+  { id: 1, name: 'IT Summit 2024', date: '2024-01-10', timeIn: '9:00 AM', timeOut: '5:30 PM', status: 'present' },
+  { id: 2, name: 'Web Development Workshop', date: '2024-01-08', timeIn: '8:45 AM', timeOut: '12:00 PM', status: 'present' },
+  { id: 3, name: 'Cybersecurity Seminar', date: '2024-01-05', timeIn: '10:15 AM', timeOut: '3:45 PM', status: 'present' },
+  { id: 4, name: 'Career Fair 2024', date: '2023-12-20', timeIn: null, timeOut: null, status: 'absent' },
+  { id: 5, name: 'Alumni Homecoming', date: '2023-12-15', timeIn: '2:00 PM', timeOut: '6:30 PM', status: 'present' },
+  { id: 6, name: 'Tech Talk Series #3', date: '2023-12-10', timeIn: '9:30 AM', timeOut: null, status: 'incomplete' },
 ])
 
 const formatDate = (dateString) => {
