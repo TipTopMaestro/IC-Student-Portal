@@ -5,7 +5,7 @@
       <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
         <!-- Avatar -->
         <div class="relative">
-          <div class="h-32 w-32 rounded-full bg-gradient-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold">
+          <div class="h-32 w-32 rounded-full bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold">
             {{ userInitials }}
           </div>
           <button class="absolute bottom-0 right-0 h-10 w-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border-2 border-gray-100">
