@@ -22,9 +22,12 @@
   "homepage": "https://github.com/TipTopMaestro/IC-Student-Portal#readme",
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "jwt-decode": "^4.0.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.26",
-    "vue-router": "^4.6.4"
+    "vue-router": "^4.6.4",
+    "vue3-google-login": "^2.0.34",
+    "vue3-google-signin": "^2.1.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.3",
