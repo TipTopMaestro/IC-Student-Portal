@@ -21,14 +21,9 @@
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
               Email
             </label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="text"
-              required
+            <input id="email" v-model="form.email" type="text" required
               class="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-ic-primary focus:border-transparent transition-all"
-              placeholder="email@example.com"
-            />
+              placeholder="email@example.com" />
           </div>
 
           <!-- Password -->
@@ -42,43 +37,44 @@
               </a>
             </div>
             <div class="relative">
-              <input
-                id="password"
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                required
+              <input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'" required
                 class="appearance-none relative block w-full px-4 py-3 pr-10 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-ic-primary focus:border-transparent transition-all"
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                @click="showPassword = !showPassword"
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
+                placeholder="Enter your password" />
+              <button type="button" @click="showPassword = !showPassword"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
                 <svg v-if="!showPassword" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
                 <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
                 </svg>
               </button>
             </div>
           </div>
 
           <!-- Submit Button -->
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-ic-primary hover:bg-ic-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ic-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
+          <button type="submit" :disabled="loading"
+            class="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-lg shadow-sm text-base font-semibold text-white bg-ic-primary hover:bg-ic-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ic-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all">
             <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
             </svg>
             {{ loading ? 'Logging in...' : 'Log in' }}
           </button>
+
         </form>
+        <!-- Google Login Button-->
+
+        <div class="login-container w-full flex justify-center">
+          <GoogleSignInButton @success="handleLoginSuccess" @error="handleLoginError" />
+        </div>
+
 
         <!-- Register Link -->
         <div class="text-center text-sm text-gray-600">
@@ -93,18 +89,13 @@
     <!-- Right Side - Curved Split with Image and Branding (Hidden on mobile, 60% width) -->
     <div class="hidden lg:block relative w-[60%]">
       <!-- Curved Elliptical Shape -->
-      <div class="absolute inset-0 bg-ic-primary shadow-2xl" 
-           style="clip-path: ellipse(100% 100% at 100% 50%);">
+      <div class="absolute inset-0 bg-ic-primary shadow-2xl" style="clip-path: ellipse(100% 100% at 100% 50%);">
         <div class="absolute inset-0 overflow-hidden">
-       <img
-         src="/public/ic-building.png"
-         alt="IT building"
-         class="absolute inset-0 w-full h-full object-cover"
-       />
-       <!-- Purple overlay with gradient -->
-       <div class="gradient-overlay"></div>
-     </div>
-        
+          <img src="/public/ic-building.png" alt="IT building" class="absolute inset-0 w-full h-full object-cover" />
+          <!-- Purple overlay with gradient -->
+          <div class="gradient-overlay"></div>
+        </div>
+
         <!-- Content Container -->
         <div class="relative h-full flex flex-col items-center justify-center text-white px-12">
           <div class="text-center">
@@ -112,7 +103,7 @@
             <div class="mb-8 flex justify-center">
               <img src="/icsa_logo.png" alt="ICSA Logo" class="h-45 w-45 drop-shadow-lg" />
             </div>
-            
+
             <!-- Title and Description -->
             <h1 class="text-5xl font-bold mb-4 drop-shadow-lg">ICSA Student Portal</h1>
             <p class="text-xl font-medium mb-2 drop-shadow-md">Institute of Computing Student Association</p>
@@ -128,6 +119,19 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
+import { GoogleSignInButton } from "vue3-google-signin";
+
+const handleLoginSuccess = (response) => {
+  const { credential } = response;
+  console.log("Access Token/ID Token:", credential);
+  
+  // NEXT STEP: Send this 'credential' string to your backend 
+  // to verify the user and create a session.
+};
+const handleLoginError = () => {
+  console.error("Login Failed");
+};
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -148,7 +152,7 @@ const handleLogin = async () => {
 
   try {
     const result = await authStore.login(form.value)
-    
+
     if (result.success) {
       router.push('/')
     } else {
