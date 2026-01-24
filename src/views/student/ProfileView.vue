@@ -193,34 +193,70 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const editMode = ref(false)
 
-// Mock student data - will be fetched from API
+// Initialize with user data from auth store
 const studentData = ref({
-  firstName: 'Juan',
-  lastName: 'Dela Cruz',
-  middleName: 'Santos',
-  birthDate: '2002-05-15',
-  gender: 'Male',
-  nationality: 'Filipino',
-  email: 'juan.delacruz@dnsc.edu.ph',
-  mobile: '09123456789',
-  address: 'Tagum City, Davao del Norte',
-  studentId: '2021-0001',
+  firstName: '',
+  lastName: '',
+  middleName: '',
+  birthDate: '',
+  gender: '',
+  nationality: '',
+  email: '',
+  mobile: '',
+  address: '',
+  studentId: '',
   status: 'Active',
-  course: 'Bachelor of Science in Information Technology',
-  yearLevel: '3rd Year',
-  section: 'BSIT-3A',
-  enrollmentDate: '2021-08-15',
-  academicYear: '2024-2025',
+  course: '',
+  yearLevel: '',
+  section: '',
+  enrollmentDate: '',
+  academicYear: '',
   emergencyContact: {
-    name: 'Maria Dela Cruz',
-    relationship: 'Mother',
-    mobile: '09987654321'
+    name: '',
+    relationship: '',
+    mobile: ''
+  }
+})
+
+// Load user profile data
+onMounted(() => {
+  const user = authStore.user
+  if (user && user.profile) {
+    // Map backend data to component data
+    studentData.value = {
+      firstName: user.first_name || user.firstName || '',
+      lastName: user.last_name || user.lastName || '',
+      middleName: user.profile.middle_name || '',
+      birthDate: user.profile.date_of_birth || '',
+      gender: user.profile.gender || '',
+      nationality: user.profile.nationality || '',
+      email: user.email || '',
+      mobile: user.profile.contact_number || '',
+      address: user.profile.address || '',
+      studentId: user.profile.student_id || '',
+      status: user.profile.academic?.enrollment_status || 'Active',
+      course: user.profile.course || '',
+      yearLevel: user.profile.year_level || '',
+      section: user.profile.section || '',
+      enrollmentDate: user.profile.academic?.academic_year || '',
+      academicYear: user.profile.academic?.academic_year || '',
+      emergencyContact: {
+        name: user.profile.emergency_contact?.name || '',
+        relationship: user.profile.emergency_contact?.relationship || '',
+        mobile: user.profile.emergency_contact?.contact_number || ''
+      }
+    }
+  } else if (user) {
+    // Fallback if no profile data
+    studentData.value.firstName = user.first_name || user.firstName || ''
+    studentData.value.lastName = user.last_name || user.lastName || ''
+    studentData.value.email = user.email || ''
   }
 })
 
@@ -229,7 +265,9 @@ const fullName = computed(() => {
 })
 
 const userInitials = computed(() => {
-  return `${studentData.value.firstName[0]}${studentData.value.lastName[0]}`
+  const first = studentData.value.firstName[0] || 'S'
+  const last = studentData.value.lastName[0] || 'U'
+  return `${first}${last}`
 })
 
 const formatDate = (dateString) => {
@@ -242,5 +280,6 @@ const saveProfile = () => {
   // TODO: Call API to save profile
   editMode.value = false
   // Show success notification
+  console.log('Profile saved:', studentData.value)
 }
 </script>

@@ -6,19 +6,59 @@ const MOCK_DELAY = 800 // Simulate network delay
 const MOCK_USERS = [
   {
     id: 1,
-    username: 'student@test.com',
-    email: 'student@test.com',
-    password: 'Test123!', // In real app, never store plain passwords
-    firstName: 'John',
-    lastName: 'Doe',
+    username: 'aparece.alex',
+    email: 'aparece.alex@student.dnsc.edu.ph',
+    password: '123456', // Real test credentials from backend team
+    first_name: 'Alex',
+    last_name: 'Aparece',
+    firstName: 'Alex',
+    lastName: 'Aparece',
     role: 'student',
-    studentId: 'STU-2024-001'
+    groups: ['Students'],
+    is_staff: false,
+    is_superuser: false,
+    
+    // Student Profile Data
+    profile: {
+      student_id: '2021-00123',
+      course: 'Bachelor of Science in Computer Science',
+      course_code: 'BSCS',
+      year_level: '3rd Year',
+      section: 'A',
+      contact_number: '+63 912 345 6789',
+      address: 'Panabo City, Davao del Norte',
+      date_of_birth: '2003-05-15',
+      gender: 'Male',
+      civil_status: 'Single',
+      nationality: 'Filipino',
+      religion: 'Roman Catholic',
+      
+      // Emergency Contact
+      emergency_contact: {
+        name: 'Maria Aparece',
+        relationship: 'Mother',
+        contact_number: '+63 912 345 6780'
+      },
+      
+      // Academic Info
+      academic: {
+        enrollment_status: 'Regular',
+        academic_year: '2024-2025',
+        semester: '2nd Semester',
+        units_enrolled: 21,
+        gpa: 1.75,
+        honors: ['Dean\'s Lister'],
+        scholarship: 'Academic Scholarship'
+      }
+    }
   },
   {
     id: 2,
     username: 'admin@test.com',
     email: 'admin@test.com',
     password: 'Admin123!',
+    first_name: 'Jane',
+    last_name: 'Smith',
     firstName: 'Jane',
     lastName: 'Smith',
     role: 'admin',

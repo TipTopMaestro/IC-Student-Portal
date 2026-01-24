@@ -37,8 +37,11 @@ export const useAuthStore = defineStore('auth', () => {
       
       console.log('🔐 Auth Store: Login response received', response)
       
-      localStorage.setItem('accessToken', response.access)
-      localStorage.setItem('refreshToken', response.refresh)
+      // Backend wraps response in data object
+      const tokens = response.data || response
+      
+      localStorage.setItem('accessToken', tokens.access)
+      localStorage.setItem('refreshToken', tokens.refresh)
       
       console.log('🔐 Auth Store: Fetching current user...')
       await fetchCurrentUser()
@@ -48,7 +51,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: true }
     } catch (err) {
       console.error('❌ Auth Store: Login error:', err)
-      error.value = err.response?.data?.detail || 'Invalid credentials'
+      error.value = err.response?.data?.message || err.response?.data?.detail || 'Invalid credentials'
       return { success: false, error: error.value }
     } finally {
       loading.value = false
@@ -78,7 +81,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const fetchCurrentUser = async () => {
     try {
-      const userData = await authService.getCurrentUser()
+      const response = await authService.getCurrentUser()
+      
+      // Backend wraps response in data object
+      const userData = response.data || response
       
       if (Array.isArray(userData) && userData.length > 0) {
         user.value = userData[0]
