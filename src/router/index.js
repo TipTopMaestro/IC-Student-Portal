@@ -11,15 +11,41 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/auth/RegisterView.vue'),
-      meta: { requiresGuest: true }
+      path: '/admin',
+      component: () => import('@/views/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true, role: 'admin' },
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: () => import('@/views/admin/DashboardView.vue')
+        },
+        {
+          path: 'students',
+          name: 'admin-students',
+          component: () => import('@/views/admin/StudentsView.vue')
+        },
+        {
+          path: 'events',
+          name: 'admin-events',
+          component: () => import('@/views/admin/EventsView.vue')
+        },
+        {
+          path: 'announcements',
+          name: 'admin-announcements',
+          component: () => import('@/views/admin/AnnouncementsView.vue')
+        },
+        {
+          path: 'attendance',
+          name: 'admin-attendance',
+          component: () => import('@/views/admin/AttendanceView.vue')
+        }
+      ]
     },
     {
       path: '/',
       component: () => import('@/views/layouts/StudentLayout.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, role: 'student' },
       children: [
         {
           path: '',
@@ -64,10 +90,22 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      next('/login')
+    } else if (to.meta.role === 'admin' && !authStore.isAdmin) {
+      next('/')
+    } else if (to.meta.role === 'student' && authStore.isAdmin) {
+      next('/admin')
+    } else {
+      next()
+    }
   } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/')
+    if (authStore.isAdmin) {
+      next('/admin')
+    } else {
+      next('/')
+    }
   } else {
     next()
   }

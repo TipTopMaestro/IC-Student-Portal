@@ -1,50 +1,77 @@
 # DNSC Student Portal
 
-A modern, professional student portal web application for Davao del Norte State College (DNSC), built with Vue.js and Tailwind CSS with a strong focus on frontend implementation.
+A modern, professional student portal web application for Davao del Norte State College (DNSC), built with Vue.js and Tailwind CSS. Now fully integrated with the DNSC Systems API backend using JWT authentication.
 
 ## 🎯 Project Overview
 
-This is a **frontend-only** implementation designed to integrate with backend APIs developed by a separate team. The portal serves as a centralized hub for students to access various systems and track their academic information.
+This portal serves as a centralized hub for students and administrators to access various systems and manage academic information. It features complete authentication integration with role-based access control.
+
+## ✨ Latest Updates (January 2026)
+
+### 🔐 Authentication System
+- ✅ **JWT Token Authentication** - Secure login with access/refresh tokens
+- ✅ **Google OAuth Integration** - Sign in with Google
+- ✅ **Auto Token Refresh** - Seamless session management
+- ✅ **Role-Based Access** - Separate interfaces for students and admins
+- ✅ **API Integration Layer** - Axios interceptors for authenticated requests
+
+### 👨‍💼 Admin Portal
+- ✅ **Admin Dashboard** - Statistics and quick actions
+- ✅ **Student Management** - Manage student accounts
+- ✅ **Events Management** - Create and manage events
+- ✅ **Announcements** - Post and manage announcements
+- ✅ **Attendance Upload** - Bulk upload attendance records
 
 ## 🚀 Features
 
-### Core Pages
-- **Dashboard** - Overview of student activities, external systems summary, and quick stats
-- **Profile** - Complete student information management with edit capabilities
-- **Event Attendance** - Track attendance for institutional events and activities
-- **Document Submissions** - View and manage submitted documents and requirements
-- **Announcements** - Stay updated with institutional news and announcements
-- **Academic Calendar** - Visual calendar with important dates and events
-- **External Systems** - Unified access to integrated systems
+### Authentication & Authorization
+- **Unified Login** - Single login page for both students and admins
+- **Google Sign-In** - Quick authentication with Google accounts
+- **Auto-Redirect** - Role-based routing (admin → `/admin`, student → `/`)
+- **Session Management** - Automatic token refresh on expiration
+- **Secure Logout** - Complete token cleanup
 
-### External System Integration (Frontend Views)
-- **Collection Management System** - Fines and payment tracking
-- **Voting System** - Elections and polls participation
-- **Locker System** - Locker assignment and management
-- **Attendance Management** - Event attendance tracking
+### Student Portal
+- **Dashboard** - Overview of activities and external systems
+- **Profile Management** - View and edit student information
+- **Event Attendance** - Track attendance for events
+- **Document Submissions** - Submit and track documents
+- **Announcements** - View institutional updates
+- **Academic Calendar** - Important dates and events
+- **External Systems** - Access to Collection, Voting, Locker systems
+
+### Admin Portal
+- **Dashboard** - System statistics and overview
+- **Student Management** - CRUD operations for students
+- **Events Management** - Create and manage attendance events
+- **Announcements** - Create and publish announcements
+- **Attendance Upload** - Bulk upload attendance data
 
 ### Design Features
 - 🎨 Clean, professional academic aesthetic
 - 💜 Purple (#640D5F) primary color theme
-- 📱 Fully responsive design (desktop & tablet optimized)
+- 📱 Fully responsive design
 - 🔔 Notifications system
 - 👤 User profile management
-- 🌐 Top navigation bar (student) with sidebar-ready structure for future admin dashboard
+- 🔒 Protected routes with role-based guards
 
 ## 🛠️ Technology Stack
 
-- **Frontend Framework**: Vue.js 3
-- **Styling**: Tailwind CSS
+- **Frontend Framework**: Vue.js 3 (Composition API)
+- **Styling**: Tailwind CSS 4
 - **State Management**: Pinia
-- **Routing**: Vue Router
-- **Build Tool**: Vite
+- **Routing**: Vue Router 4
+- **HTTP Client**: Axios
+- **Build Tool**: Vite 7
 - **Icons**: Heroicons (SVG)
+- **Authentication**: JWT + Google OAuth
 
 ## 📦 Installation
 
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn
+- **Internet connection** (to access production API)
 
 ### Setup Instructions
 
@@ -59,17 +86,31 @@ This is a **frontend-only** implementation designed to integrate with backend AP
    npm install
    ```
 
-3. **Run development server**
+3. **Environment is ready!**
+   The `.env` file is already configured to use the **production API**:
+   ```env
+   VITE_API_BASE_URL=https://dnsc-systems-api.onrender.com/
+   VITE_APP_NAME=Student Portal
+   VITE_GOOGLE_CLIENT_ID=your-google-client-id-here
+   ```
+   
+   ✅ **No backend setup needed!**
+
+4. **Run development server**
    ```bash
    npm run dev
    ```
+   Application will be available at `http://localhost:5173/`
 
-4. **Build for production**
+5. **Get test credentials**
+   Contact the backend team for test user credentials
+
+6. **Build for production**
    ```bash
    npm run build
    ```
 
-5. **Preview production build**
+7. **Preview production build**
    ```bash
    npm run preview
    ```
@@ -86,15 +127,24 @@ dnsc-student-portal/
 │   │   └── common/        # Common UI components
 │   ├── composables/       # Vue composables (hooks)
 │   ├── router/            # Vue Router configuration
-│   │   └── index.js       # Route definitions
+│   │   └── index.js       # Route definitions & guards
+│   ├── services/          # API service layer
+│   │   ├── api.js         # Axios instance with interceptors
+│   │   └── authService.js # Authentication API calls
 │   ├── stores/            # Pinia stores
-│   │   └── auth.js        # Authentication store
+│   │   └── auth.js        # Authentication store (JWT)
 │   ├── utils/             # Utility functions
 │   ├── views/             # Page components
 │   │   ├── auth/          # Authentication pages
-│   │   │   ├── LoginView.vue
-│   │   │   └── RegisterView.vue
+│   │   │   └── LoginView.vue
+│   │   ├── admin/         # Admin portal pages
+│   │   │   ├── DashboardView.vue
+│   │   │   ├── StudentsView.vue
+│   │   │   ├── EventsView.vue
+│   │   │   ├── AnnouncementsView.vue
+│   │   │   └── AttendanceView.vue
 │   │   ├── layouts/       # Layout components
+│   │   │   ├── AdminLayout.vue
 │   │   │   └── StudentLayout.vue
 │   │   └── student/       # Student portal pages
 │   │       ├── DashboardView.vue
@@ -106,11 +156,15 @@ dnsc-student-portal/
 │   │       └── ExternalSystemsView.vue
 │   ├── App.vue            # Root component
 │   └── main.js            # Application entry point
+├── sample/                # Reference implementations
+│   ├── dnsc_systems_api/  # Backend API reference
+│   └── collection_management_system/
 ├── index.html             # HTML template
 ├── package.json           # Dependencies and scripts
 ├── tailwind.config.js     # Tailwind configuration
 ├── postcss.config.js      # PostCSS configuration
 ├── vite.config.js         # Vite configuration
+├── AUTHENTICATION_GUIDE.md # Complete auth documentation
 └── README.md              # This file
 ```
 
@@ -124,76 +178,114 @@ dnsc-student-portal/
 
 ## 🔌 Backend Integration
 
-This frontend is designed to be **backend-agnostic** and ready for API integration.
+✅ **Authentication system fully integrated with DNSC Systems API**
 
-### Mock Data
-Currently using mock data in components. Replace with actual API calls in stores and components.
+### Production API (Default)
 
-### API Endpoints (To be implemented by backend team)
+The backend is already deployed and accessible:
+```
+Base URL: https://dnsc-systems-api.onrender.com/
 
-**Authentication**
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user
+Documentation:
+- Swagger: https://dnsc-systems-api.onrender.com/api/docs/swagger/
+- ReDoc: https://dnsc-systems-api.onrender.com/api/docs/redoc/
+```
 
-**Student**
-- `GET /api/student/profile` - Get student profile
-- `PUT /api/student/profile` - Update student profile
-- `GET /api/student/dashboard` - Get dashboard data
+See [PRODUCTION_API_READY.md](./PRODUCTION_API_READY.md) for complete production API guide.
 
-**Attendance**
-- `GET /api/attendance/events` - Get attendance records
-- `GET /api/attendance/summary` - Get attendance summary
+### API Endpoints
 
-**Submissions**
-- `GET /api/submissions` - Get document submissions
-- `POST /api/submissions` - Upload document
-- `GET /api/submissions/required` - Get required documents
+**Authentication** (✅ Integrated)
+- `POST /api/v1/login/` - User login (JWT tokens)
+- `POST /api/v1/token/refresh/` - Refresh access token
+- `POST /api/v1/auth/google/` - Google OAuth login
+- `GET /api/v1/me/` - Get current user
 
-**Announcements**
-- `GET /api/announcements` - Get announcements
-- `GET /api/announcements/:id` - Get single announcement
+**Students** (✅ Backend Ready)
+- `GET /api/v1/students/` - List students
+- `POST /api/v1/students/` - Create student
+- `GET /api/v1/students/:id/` - Get student details
+- `PATCH /api/v1/students/:id/` - Update student
+- `DELETE /api/v1/students/:id/` - Delete student
 
-**Calendar**
-- `GET /api/calendar/events` - Get calendar events
-- `GET /api/calendar/academic-dates` - Get academic dates
+**Events** (✅ Backend Ready)
+- `GET /api/v1/attendance-events/` - List events
+- `POST /api/v1/attendance-events/` - Create event
+- `GET /api/v1/attendance-events/:id/` - Get event details
+- `PATCH /api/v1/attendance-events/:id/` - Update event
+- `DELETE /api/v1/attendance-events/:id/` - Delete event
 
-**External Systems**
-- `GET /api/systems/collection` - Collection system data
-- `GET /api/systems/voting` - Voting system data
-- `GET /api/systems/locker` - Locker system data
-- `GET /api/systems/attendance` - Attendance system data
+**Attendance** (✅ Backend Ready)
+- `GET /api/v1/attendance-records/` - List attendance records
+- `POST /api/v1/attendance-records/` - Create attendance record
+- `GET /api/v1/attendance-records/:id/` - Get record details
+
+**Announcements** (🔨 To Be Created)
+- `GET /api/v1/announcements/` - List announcements
+- `POST /api/v1/announcements/` - Create announcement
+- `GET /api/v1/announcements/:id/` - Get announcement details
+- `PATCH /api/v1/announcements/:id/` - Update announcement
+- `DELETE /api/v1/announcements/:id/` - Delete announcement
+
+### Making API Calls
+
+```javascript
+import api from '@/services/api'
+
+// GET request
+const students = await api.get('api/v1/students/')
+
+// POST request
+await api.post('api/v1/students/', {
+  first_name: 'Juan',
+  last_name: 'Dela Cruz',
+  email: 'juan@dnsc.edu.ph'
+})
+
+// Tokens are automatically attached via interceptor
+// Auto-refresh on 401 errors
+```
 
 ## 🔒 Authentication
 
-The portal uses a token-based authentication system (ready for JWT):
-- Login credentials are sent to the backend
-- Received token is stored in localStorage
-- Token is included in all authenticated API requests
-- Automatic route protection based on authentication status
+✅ **JWT Token Authentication Fully Implemented**
+
+### Features:
+- ✅ Login with username/password
+- ✅ Login with Google OAuth
+- ✅ Automatic token refresh
+- ✅ Role-based routing (admin/student)
+- ✅ Protected routes with guards
+- ✅ Secure token storage
+
+### User Roles:
+- **Student** - Access to student portal (`/`)
+- **Admin** - Access to admin portal (`/admin`)
+
+Auto-detection based on:
+- User groups containing "Admin"
+- `is_staff` or `is_superuser` flags
+
+## 🧪 Testing
+
+### With Backend API Running:
+
+1. Start the backend at `http://127.0.0.1:8000/`
+2. Create test users in Django admin:
+   - **Admin**: username=`admin`, add to "Admin" group
+   - **Student**: username=`student@dnsc.edu.ph`, regular user
+3. Start frontend: `npm run dev`
+4. Login at `http://localhost:5173/login`
+
+### Mock Testing (Without Backend):
+
+The app will show API connection errors but the UI can still be explored.
 
 ## 📱 Responsive Design
 
 - **Desktop**: Optimized for 1024px and above
 - **Tablet**: Optimized for 768px - 1023px
-- **Mobile**: Basic support (can be enhanced if needed)
-
-## 🎯 User Roles
-
-Currently implements:
-- **Student Role** - Full student portal access
-
-Future-ready for:
-- **Admin Role** - Admin dashboard with sidebar navigation
-
-## 🧪 Testing Login
-
-For development/testing purposes, any credentials will work with the mock authentication.
-
-**Example Credentials:**
-- Email: `any@email.com`
-- Password: `anypassword`
+- **Mobile**: Basic support for 375px - 767px
 
 ## 🤝 Contributing
 

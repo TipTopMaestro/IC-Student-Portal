@@ -1,84 +1,122 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { authService } from '@/services/authService'
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
-  const token = ref(localStorage.getItem('auth_token') || null)
+  const loading = ref(false)
+  const error = ref(null)
 
-  const isAuthenticated = computed(() => !!token.value)
+  const isAuthenticated = computed(() => {
+    return !!localStorage.getItem('accessToken') && !!user.value
+  })
 
-  const login = async (credentials) => {
-    // This will connect to backend API
-    // For now, mock authentication
+  const isAdmin = computed(() => {
+    if (!user.value) return false
+    return user.value.groups?.includes('Admin') || 
+           user.value.is_staff || 
+           user.value.is_superuser ||
+           false
+  })
+
+  const isStudent = computed(() => {
+    if (!user.value) return false
+    return !isAdmin.value
+  })
+
+  const login = async (username, password) => {
+    loading.value = true
+    error.value = null
+    
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   body: JSON.stringify(credentials)
-      // })
+      const response = await authService.login(username, password)
       
-      // Mock successful login
-      const mockUser = {
-        id: '2021-0001',
-        studentId: '2021-0001',
-        firstName: 'Juan',
-        lastName: 'Dela Cruz',
-        email: credentials.email,
-        course: 'Bachelor of Science in Information Technology',
-        yearLevel: '3rd Year',
-        section: 'BSIT-3A',
-        avatar: null
-      }
+      localStorage.setItem('accessToken', response.access)
+      localStorage.setItem('refreshToken', response.refresh)
       
-      user.value = mockUser
-      token.value = 'mock_token_' + Date.now()
-      localStorage.setItem('auth_token', token.value)
-      localStorage.setItem('user_data', JSON.stringify(mockUser))
+      await fetchCurrentUser()
       
       return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
+    } catch (err) {
+      error.value = err.response?.data?.detail || 'Invalid credentials'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
     }
   }
 
-  const register = async (userData) => {
-    // This will connect to backend API
+  const loginWithGoogle = async (token) => {
+    loading.value = true
+    error.value = null
+    
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   body: JSON.stringify(userData)
-      // })
+      const response = await authService.loginWithGoogle(token)
+      
+      localStorage.setItem('accessToken', response.access)
+      localStorage.setItem('refreshToken', response.refresh)
+      
+      await fetchCurrentUser()
       
       return { success: true }
-    } catch (error) {
-      return { success: false, error: error.message }
+    } catch (err) {
+      error.value = err.response?.data?.error || 'Google login failed'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchCurrentUser = async () => {
+    try {
+      const userData = await authService.getCurrentUser()
+      
+      if (Array.isArray(userData) && userData.length > 0) {
+        user.value = userData[0]
+      } else {
+        user.value = userData
+      }
+      
+      localStorage.setItem('user_data', JSON.stringify(user.value))
+      
+      return user.value
+    } catch (err) {
+      console.error('Failed to fetch user:', err)
+      throw err
     }
   }
 
   const logout = () => {
+    authService.logout()
     user.value = null
-    token.value = null
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('user_data')
+    error.value = null
   }
 
-  const loadUser = () => {
+  const initialize = async () => {
+    const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
-    if (storedUser) {
-      user.value = JSON.parse(storedUser)
+    
+    if (token && storedUser) {
+      try {
+        user.value = JSON.parse(storedUser)
+        await fetchCurrentUser()
+      } catch (err) {
+        console.error('Failed to initialize auth:', err)
+        logout()
+      }
     }
   }
 
-  // Load user on store initialization
-  loadUser()
-
   return {
     user,
-    token,
+    loading,
+    error,
     isAuthenticated,
+    isAdmin,
+    isStudent,
     login,
-    register,
+    loginWithGoogle,
     logout,
-    loadUser
+    fetchCurrentUser,
+    initialize
   }
 })

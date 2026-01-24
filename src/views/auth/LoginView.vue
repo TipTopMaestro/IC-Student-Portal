@@ -78,10 +78,7 @@
 
         <!-- Register Link -->
         <div class="text-center text-sm text-gray-600">
-          Don't have an account?
-          <router-link to="/register" class="font-medium text-ic-primary hover:text-ic-secondary">
-            Sign up
-          </router-link>
+          Need an account? Contact your administrator
         </div>
       </div>
     </div>
@@ -122,15 +119,32 @@ import { useAuthStore } from '@/stores/auth'
 
 import { GoogleSignInButton } from "vue3-google-signin";
 
-const handleLoginSuccess = (response) => {
+const handleLoginSuccess = async (response) => {
   const { credential } = response;
-  console.log("Access Token/ID Token:", credential);
-  
-  // NEXT STEP: Send this 'credential' string to your backend 
-  // to verify the user and create a session.
+  loading.value = true
+  error.value = ''
+
+  try {
+    const result = await authStore.loginWithGoogle(credential)
+
+    if (result.success) {
+      if (authStore.isAdmin) {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
+    } else {
+      error.value = result.error || 'Google login failed. Please try again.'
+    }
+  } catch (err) {
+    error.value = 'Google login failed. Please try again.'
+  } finally {
+    loading.value = false
+  }
 };
+
 const handleLoginError = () => {
-  console.error("Login Failed");
+  error.value = "Google login failed"
 };
 
 const router = useRouter()
@@ -151,10 +165,14 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
-    const result = await authStore.login(form.value)
+    const result = await authStore.login(form.value.email, form.value.password)
 
     if (result.success) {
-      router.push('/')
+      if (authStore.isAdmin) {
+        router.push('/admin')
+      } else {
+        router.push('/')
+      }
     } else {
       error.value = result.error || 'Invalid credentials. Please try again.'
     }
