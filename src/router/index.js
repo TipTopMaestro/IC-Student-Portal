@@ -90,23 +90,39 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
   
+  console.log('🔀 Router Guard:', { 
+    to: to.path, 
+    from: from.path, 
+    isAuthenticated: authStore.isAuthenticated, 
+    isAdmin: authStore.isAdmin,
+    requiresAuth: to.meta.requiresAuth,
+    role: to.meta.role
+  })
+  
   if (to.meta.requiresAuth) {
     if (!authStore.isAuthenticated) {
+      console.log('🔀 Not authenticated, redirecting to /login')
       next('/login')
     } else if (to.meta.role === 'admin' && !authStore.isAdmin) {
+      console.log('🔀 Not admin, redirecting to /')
       next('/')
     } else if (to.meta.role === 'student' && authStore.isAdmin) {
+      console.log('🔀 Is admin, redirecting to /admin')
       next('/admin')
     } else {
+      console.log('🔀 Allowing navigation')
       next()
     }
   } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
     if (authStore.isAdmin) {
+      console.log('🔀 Authenticated admin on guest page, redirecting to /admin')
       next('/admin')
     } else {
+      console.log('🔀 Authenticated student on guest page, redirecting to /')
       next('/')
     }
   } else {
+    console.log('🔀 No guard conditions, allowing navigation')
     next()
   }
 })

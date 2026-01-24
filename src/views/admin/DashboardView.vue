@@ -1,116 +1,192 @@
 <template>
-  <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p class="text-gray-600 mt-1">Welcome back, {{ user?.username }}!</p>
-      </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="card bg-white p-6 rounded-lg shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Total Students</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.totalStudents }}</p>
-          </div>
-          <div class="bg-blue-100 p-3 rounded-lg">
-            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </div>
+  <div>
+    <!-- Stats Grid -->
+    <div class="mb-12">
+      <div class="grid grid-cols-4 gap-8">
+        <div class="text-center">
+          <div class="text-[28px] font-light mb-1">{{ stats.totalStudents.toLocaleString() }}</div>
+          <div class="text-sm text-[#8e8e8e]">students</div>
         </div>
-      </div>
-
-      <div class="card bg-white p-6 rounded-lg shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Active Events</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.activeEvents }}</p>
-          </div>
-          <div class="bg-green-100 p-3 rounded-lg">
-            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
+        <div class="text-center">
+          <div class="text-[28px] font-light mb-1">{{ stats.activeEvents }}</div>
+          <div class="text-sm text-[#8e8e8e]">events</div>
         </div>
-      </div>
-
-      <div class="card bg-white p-6 rounded-lg shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Announcements</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.announcements }}</p>
-          </div>
-          <div class="bg-purple-100 p-3 rounded-lg">
-            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-          </div>
+        <div class="text-center">
+          <div class="text-[28px] font-light mb-1">{{ stats.announcements }}</div>
+          <div class="text-sm text-[#8e8e8e]">announcements</div>
         </div>
-      </div>
-
-      <div class="card bg-white p-6 rounded-lg shadow">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-600">Attendance Records</p>
-            <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.attendanceRecords }}</p>
-          </div>
-          <div class="bg-yellow-100 p-3 rounded-lg">
-            <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          </div>
+        <div class="text-center">
+          <div class="text-[28px] font-light mb-1">{{ attendanceRate }}%</div>
+          <div class="text-sm text-[#8e8e8e]">attendance</div>
         </div>
       </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <router-link to="/admin/students" class="btn-secondary text-center">
-          Add Student
-        </router-link>
-        <router-link to="/admin/events" class="btn-secondary text-center">
-          Create Event
-        </router-link>
-        <router-link to="/admin/announcements" class="btn-secondary text-center">
-          New Announcement
-        </router-link>
-        <router-link to="/admin/attendance" class="btn-secondary text-center">
-          Upload Attendance
-        </router-link>
+    <div class="mb-12 flex gap-3">
+      <router-link 
+        to="/admin/students" 
+        class="flex-1 py-2 text-center bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
+      >
+        Add Student
+      </router-link>
+      <router-link 
+        to="/admin/events" 
+        class="flex-1 py-2 text-center border border-ic-primary text-ic-primary text-sm font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+      >
+        Create Event
+      </router-link>
+      <router-link 
+        to="/admin/announcements" 
+        class="flex-1 py-2 text-center border border-ic-primary text-ic-primary text-sm font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+      >
+        New Post
+      </router-link>
+    </div>
+
+    <!-- Weekly Attendance -->
+    <div class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-base font-semibold">Weekly Attendance</h2>
+        <button class="text-sm text-ic-primary font-semibold hover:text-ic-secondary">View All</button>
+      </div>
+
+      <div class="space-y-4">
+        <div v-for="day in attendanceTrend" :key="day.label" class="flex items-center gap-4">
+          <div class="w-12 text-sm text-[#8e8e8e] font-light">{{ day.label }}</div>
+          <div class="flex-1 h-1.5 bg-[#efefef] rounded-full overflow-hidden">
+            <div 
+              class="h-full bg-[#262626] rounded-full"
+              :style="{ width: day.percentage + '%' }"
+            ></div>
+          </div>
+          <div class="w-20 text-sm text-right font-light">{{ day.value.toLocaleString() }}</div>
+        </div>
       </div>
     </div>
 
     <!-- Recent Activity -->
-    <div class="bg-white rounded-lg shadow">
-      <div class="p-6 border-b border-gray-200">
-        <h2 class="text-xl font-bold text-gray-900">Recent Activity</h2>
+    <div>
+      <h2 class="text-base font-semibold mb-6">Recent Activity</h2>
+      
+      <div class="space-y-0">
+        <div 
+          v-for="activity in recentActivities" 
+          :key="activity.id" 
+          class="py-4 border-b border-[#efefef] last:border-b-0"
+        >
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#fafafa] flex items-center justify-center shrink-0">
+              <component :is="activity.icon" class="w-4 h-4 text-[#262626]" />
+            </div>
+            <div class="flex-1 min-w-0 pt-0.5">
+              <p class="text-sm leading-4.5">
+                <span class="font-semibold">{{ activity.user }}</span>
+                <span class="font-light"> {{ activity.action }}</span>
+              </p>
+              <p class="text-xs text-[#8e8e8e] mt-1 font-light">{{ activity.time }}</p>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="p-6">
-        <p class="text-gray-500 text-center py-8">
-          No recent activity to display
-        </p>
+
+      <div class="mt-6 text-center">
+        <button class="text-sm text-ic-primary font-semibold hover:text-ic-secondary">
+          Show More
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, h } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const user = computed(() => authStore.user)
 
 const stats = ref({
-  totalStudents: 0,
-  activeEvents: 0,
-  announcements: 0,
-  attendanceRecords: 0
+  totalStudents: 1248,
+  activeStudents: 1102,
+  activeEvents: 12,
+  announcements: 28,
+  attendanceRecords: 892
 })
+
+const attendanceRate = computed(() => {
+  return Math.round((stats.value.activeStudents / stats.value.totalStudents) * 100)
+})
+
+const attendanceTrend = ref([
+  { label: 'Mon', value: 1150, percentage: 92 },
+  { label: 'Tue', value: 1180, percentage: 95 },
+  { label: 'Wed', value: 1095, percentage: 88 },
+  { label: 'Thu', value: 1220, percentage: 98 },
+  { label: 'Fri', value: 1050, percentage: 84 },
+  { label: 'Sat', value: 890, percentage: 71 },
+  { label: 'Sun', value: 0, percentage: 0 }
+])
+
+// Simple icons
+const UserIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
+])
+
+const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' })
+])
+
+const BellIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' })
+])
+
+const CheckIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' })
+])
+
+const recentActivities = ref([
+  {
+    id: 1,
+    user: 'Juan Dela Cruz',
+    action: 'registered as a new student',
+    time: '5 minutes ago',
+    icon: UserIcon
+  },
+  {
+    id: 2,
+    user: 'System',
+    action: 'updated Career Fair event details',
+    time: '1 hour ago',
+    icon: CalendarIcon
+  },
+  {
+    id: 3,
+    user: 'Admin',
+    action: 'posted a new announcement about orientation',
+    time: '3 hours ago',
+    icon: BellIcon
+  },
+  {
+    id: 4,
+    user: 'System',
+    action: 'processed attendance records for CS Department',
+    time: '5 hours ago',
+    icon: CheckIcon
+  },
+  {
+    id: 5,
+    user: 'Maria Santos',
+    action: 'registered as a new student',
+    time: '6 hours ago',
+    icon: UserIcon
+  },
+  {
+    id: 6,
+    user: 'System',
+    action: 'sent weekly report to all administrators',
+    time: '8 hours ago',
+    icon: BellIcon
+  }
+])
 </script>

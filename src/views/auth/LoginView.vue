@@ -165,18 +165,31 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
+    console.log('🔐 Login attempt for:', form.value.email)
     const result = await authStore.login(form.value.email, form.value.password)
+    
+    console.log('🔐 Login result:', result)
 
     if (result.success) {
+      console.log('✅ Login successful, isAdmin:', authStore.isAdmin, 'user:', authStore.user)
+      
+      // Wait a tick for the store to update
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       if (authStore.isAdmin) {
-        router.push('/admin')
+        console.log('➡️ Redirecting to admin dashboard')
+        await router.push('/admin')
+        console.log('✅ Navigation complete')
       } else {
-        router.push('/')
+        console.log('➡️ Redirecting to student dashboard')
+        await router.push('/')
+        console.log('✅ Navigation complete')
       }
     } else {
       error.value = result.error || 'Invalid credentials. Please try again.'
     }
   } catch (err) {
+    console.error('❌ Login error:', err)
     error.value = 'An error occurred. Please try again later.'
   } finally {
     loading.value = false

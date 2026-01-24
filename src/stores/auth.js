@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authService } from '@/services/authService'
+import { authService } from '@/services/authService.wrapper'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -8,7 +8,10 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref(null)
 
   const isAuthenticated = computed(() => {
-    return !!localStorage.getItem('accessToken') && !!user.value
+    const hasToken = !!localStorage.getItem('accessToken')
+    const hasUser = !!user.value
+    console.log('🔐 isAuthenticated check:', { hasToken, hasUser, result: hasToken && hasUser })
+    return hasToken && hasUser
   })
 
   const isAdmin = computed(() => {
@@ -29,15 +32,22 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
+      console.log('🔐 Auth Store: Logging in...')
       const response = await authService.login(username, password)
+      
+      console.log('🔐 Auth Store: Login response received', response)
       
       localStorage.setItem('accessToken', response.access)
       localStorage.setItem('refreshToken', response.refresh)
       
+      console.log('🔐 Auth Store: Fetching current user...')
       await fetchCurrentUser()
+      
+      console.log('🔐 Auth Store: User fetched, isAdmin:', isAdmin.value, 'user:', user.value)
       
       return { success: true }
     } catch (err) {
+      console.error('❌ Auth Store: Login error:', err)
       error.value = err.response?.data?.detail || 'Invalid credentials'
       return { success: false, error: error.value }
     } finally {
