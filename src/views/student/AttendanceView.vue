@@ -2,58 +2,33 @@
   <div class="space-y-6">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900">Event Attendance</h1>
-      <p class="text-gray-600 mt-1">Summary of your event attendance records</p>
+      <h1 class="text-2xl font-semibold text-gray-900">Attendance</h1>
+      <p class="text-gray-500 text-sm mt-0.5">View your event attendance records</p>
     </div>
 
     <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600">Total Events</p>
-            <p class="text-3xl font-semibold text-gray-900 mt-2">{{ totalEvents }}</p>
-          </div>
-          <div class="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <p class="text-xs text-gray-500">Total Events</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalEvents }}</p>
       </div>
 
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600">Attended</p>
-            <p class="text-3xl font-semibold text-gray-900 mt-2">{{ attendedEvents }}</p>
-          </div>
-          <div class="h-12 w-12 bg-green-50 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <p class="text-xs text-gray-500">Attended</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendedEvents }}</p>
       </div>
 
-      <div class="card">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-gray-600">Attendance Rate</p>
-            <p class="text-3xl font-semibold text-gray-900 mt-2">{{ attendanceRate }}%</p>
-          </div>
-          <div class="h-12 w-12 bg-blue-50 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-        </div>
+      <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <p class="text-xs text-gray-500">Rate</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendanceRate }}%</p>
       </div>
     </div>
 
     <!-- Recent Attendance -->
-    <div class="card">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">Recent Events</h2>
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div class="p-5 border-b border-gray-200">
+        <h2 class="text-base font-semibold text-gray-900">Recent Events</h2>
+      </div>
       
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -67,19 +42,16 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="event in recentEvents" :key="event.id" class="hover:bg-gray-50">
+            <tr v-for="event in recentEvents" :key="event.id" class="hover:bg-gray-50 transition-colors">
               <td class="px-4 py-3 text-sm text-gray-900">{{ event.name }}</td>
               <td class="px-4 py-3 text-sm text-gray-600">{{ formatDate(event.date) }}</td>
               <td class="px-4 py-3 text-sm text-gray-600">{{ event.timeIn || '-' }}</td>
               <td class="px-4 py-3 text-sm text-gray-600">{{ event.timeOut || '-' }}</td>
               <td class="px-4 py-3 text-sm">
                 <span 
-                  :class="{
-                    'badge-success': event.status === 'present',
-                    'badge-warning': event.status === 'incomplete',
-                    'badge-danger': event.status === 'absent'
-                  }"
-                  class="badge capitalize">
+                  class="text-xs px-2 py-0.5 rounded-full capitalize"
+                  :class="getStatusClass(event.status)"
+                >
                   {{ event.status }}
                 </span>
               </td>
@@ -111,5 +83,14 @@ const recentEvents = ref([
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+const getStatusClass = (status) => {
+  const classes = {
+    present: 'bg-green-50 text-green-700',
+    incomplete: 'bg-amber-50 text-amber-700',
+    absent: 'bg-red-50 text-red-700'
+  }
+  return classes[status] || 'bg-gray-100 text-gray-700'
 }
 </script>
