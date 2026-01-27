@@ -149,7 +149,7 @@
       <!-- Navigation -->
       <nav class="flex-1 px-3 py-2 space-y-1">
         <router-link
-          to="/"
+          to="/"   
           class="sidebar-link"
           :class="{ 'sidebar-link-active': isActive('/') }"
         >

@@ -47,7 +47,10 @@ api.interceptors.response.use(
     console.error('❌ API Error:', {
       status: error.response?.status,
       url: error.config?.url,
-      message: error.response?.data?.detail || error.message
+      message: error.response?.data?.detail || error.response?.data?.message || error.message,
+      errorType: error.code,
+      hasResponse: !!error.response,
+      responseData: error.response?.data
     })
 
     // Handle 401 - Unauthorized (token expired)

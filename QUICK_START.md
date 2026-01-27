@@ -183,11 +183,29 @@ export const myService = {
 
 ## 🐛 Common Issues
 
-### "Network Error" or "CORS Error"
-**Problem**: Backend not running or CORS not configured
+### "ERR_BLOCKED_BY_CLIENT" or Network Error
+**Problem**: Browser extensions or ad blockers are blocking the API request
 **Solution**: 
-1. Make sure Django backend is running at `http://127.0.0.1:8000/`
-2. Check Django CORS settings allow `http://localhost:5173`
+1. **Disable ad blockers** or privacy extensions (uBlock Origin, AdBlock Plus, Privacy Badger, etc.)
+2. **Whitelist the API domain**: Add `dnsc-systems-api.onrender.com` to your extension's whitelist
+3. **Try incognito/private mode** with extensions disabled
+4. Check browser console for specific error codes
+
+### "Network Error" or "CORS Error"
+**Problem**: Cannot connect to backend API
+**Solution**: 
+1. Check your internet connection
+2. Verify the API is accessible: visit https://dnsc-systems-api.onrender.com/api/docs/swagger/
+3. If using local backend, make sure Django is running at `http://127.0.0.1:8000/`
+4. Check Django CORS settings allow your frontend URL
+
+### "Request Timeout"
+**Problem**: API request is taking too long
+**Solution**: 
+1. Check your internet connection speed
+2. The API might be waking up (free tier services sleep after inactivity)
+3. Try again after 30-60 seconds
+4. If persistent, contact backend team
 
 ### "401 Unauthorized"
 **Problem**: Token expired or invalid

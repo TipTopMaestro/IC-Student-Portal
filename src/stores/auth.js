@@ -51,7 +51,25 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: true }
     } catch (err) {
       console.error('❌ Auth Store: Login error:', err)
-      error.value = err.response?.data?.message || err.response?.data?.detail || 'Invalid credentials'
+      
+      // Handle different error types
+      if (!err.response) {
+        // Network error or request blocked
+        if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
+          error.value = 'Cannot connect to server. Please check your internet connection.'
+        } else if (err.message.includes('timeout')) {
+          error.value = 'Request timed out. Please try again.'
+        } else {
+          error.value = 'Request failed. Please check if ad blockers or browser extensions are blocking the request.'
+        }
+      } else {
+        // Server error response
+        error.value = err.response?.data?.errors?.detail || 
+                     err.response?.data?.message || 
+                     err.response?.data?.detail || 
+                     'Invalid credentials'
+      }
+      
       return { success: false, error: error.value }
     } finally {
       loading.value = false
