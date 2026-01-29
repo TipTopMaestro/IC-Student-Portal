@@ -15,7 +15,12 @@ export const API_CONFIG = {
     REFRESH_TOKEN: '/api/v1/token/refresh/',
     CURRENT_USER: '/api/v1/me/',
     
-    // Students
+    // Fees (replaces 'Students' for clarity)
+    FEES: '/api/v1/fees/',
+    STUDENT_FEES: (userId) => `/api/v1/fees/?student__user=${userId}`,
+    FEE_DETAIL: (id) => `/api/v1/fees/${id}/`,
+    
+    // Student general info
     STUDENTS: '/api/v1/students/',
     STUDENT_DETAIL: (id) => `/api/v1/students/${id}/`,
     
