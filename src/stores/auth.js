@@ -56,11 +56,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (!err.response) {
         // Network error or request blocked
         if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
-          error.value = 'Cannot connect to server. Please check your internet connection.'
+          error.value = 'Cannot connect to server'
         } else if (err.message.includes('timeout')) {
-          error.value = 'Request timed out. Please try again.'
+          error.value = 'Connection timeout'
         } else {
-          error.value = 'Request failed. Please check if ad blockers or browser extensions are blocking the request.'
+          error.value = 'Connection failed'
         }
       } else {
         // Server error response

@@ -1,5 +1,36 @@
+<!-- note: done na majority features ani na page, pero wala pa na test ang pag update sa user sa iyang profile  -->
+
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="card">
+      <div class="flex items-center justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-ic-primary"></div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="card">
+      <div class="text-center py-8">
+        <svg class="mx-auto h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Failed to load profile</h3>
+        <p class="mt-2 text-sm text-gray-500">{{ error }}</p>
+        <button @click="loadProfile" class="mt-4 btn-primary">Try Again</button>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div v-if="successMessage" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center">
+      <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm text-green-700">{{ successMessage }}</p>
+    </div>
+
+    <!-- Profile Content -->
+    <template v-if="!isLoading && !error">
     <!-- Profile Header -->
     <div class="card">
       <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
@@ -22,8 +53,8 @@
           <p class="text-gray-600">{{ studentData.course }}</p>
           <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
             <span class="badge bg-ic-primary text-white">{{ studentData.studentId }}</span>
-            <span class="badge badge-info">{{ studentData.yearLevel }} - {{ studentData.section }}</span>
-            <span class="badge badge-success">Active</span>
+            <span v-if="studentData.yearLevel && studentData.section" class="badge badge-info">{{ studentData.yearLevel }} - {{ studentData.section }}</span>
+            <span class="badge badge-success capitalize">{{ studentData.status }}</span>
           </div>
         </div>
 
@@ -52,42 +83,33 @@
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
           <input v-if="editMode" v-model="studentData.firstName" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.firstName }}</p>
+          <p v-else class="text-gray-900 font-medium">{{ studentData.firstName || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
           <input v-if="editMode" v-model="studentData.lastName" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.lastName }}</p>
+          <p v-else class="text-gray-900 font-medium">{{ studentData.lastName || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Middle Name</label>
-          <input v-if="editMode" v-model="studentData.middleName" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.middleName || 'N/A' }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.middleName || 'N/A' }}</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Date of Birth</label>
-          <input v-if="editMode" v-model="studentData.birthDate" type="date" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ formatDate(studentData.birthDate) }}</p>
+        <div v-if="studentData.suffix">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Suffix</label>
+          <p class="text-gray-900 font-medium">{{ studentData.suffix }}</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Gender</label>
-          <select v-if="editMode" v-model="studentData.gender" class="input-field">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Prefer not to say</option>
-          </select>
-          <p v-else class="text-gray-900 font-medium">{{ studentData.gender }}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Nationality</label>
-          <input v-if="editMode" v-model="studentData.nationality" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.nationality }}</p>
+        <div v-if="studentData.rfid">
+          <label class="block text-sm font-medium text-gray-500 mb-1">RFID</label>
+          <p class="text-gray-900 font-medium">{{ studentData.rfid }}</p>
         </div>
       </div>
 
       <div v-if="editMode" class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-        <button @click="editMode = false" class="btn-secondary">Cancel</button>
-        <button @click="saveProfile" class="btn-primary">Save Changes</button>
+        <button @click="editMode = false" class="btn-secondary" :disabled="isSaving">Cancel</button>
+        <button @click="saveProfile" class="btn-primary" :disabled="isSaving">
+          <span v-if="isSaving">Saving...</span>
+          <span v-else>Save Changes</span>
+        </button>
       </div>
     </div>
 
@@ -104,17 +126,11 @@
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
           <input v-if="editMode" v-model="studentData.email" type="email" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.email }}</p>
+          <p v-else class="text-gray-900 font-medium">{{ studentData.email || 'N/A' }}</p>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Mobile Number</label>
-          <input v-if="editMode" v-model="studentData.mobile" type="tel" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.mobile }}</p>
-        </div>
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-500 mb-1">Address</label>
-          <input v-if="editMode" v-model="studentData.address" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.address }}</p>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Username</label>
+          <p class="text-gray-900 font-medium">{{ studentData.username || 'N/A' }}</p>
         </div>
       </div>
     </div>
@@ -133,132 +149,127 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Student ID</label>
-          <p class="text-gray-900 font-medium">{{ studentData.studentId }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.studentId || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
-          <span class="badge badge-success">{{ studentData.status }}</span>
+          <span class="badge badge-success capitalize">{{ studentData.status || 'N/A' }}</span>
         </div>
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-500 mb-1">Program / Course</label>
-          <p class="text-gray-900 font-medium">{{ studentData.course }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.course || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Year Level</label>
-          <p class="text-gray-900 font-medium">{{ studentData.yearLevel }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.yearLevel || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Section</label>
-          <p class="text-gray-900 font-medium">{{ studentData.section }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.section || 'N/A' }}</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Enrollment Date</label>
-          <p class="text-gray-900 font-medium">{{ formatDate(studentData.enrollmentDate) }}</p>
+        <div v-if="studentData.institute">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Institute</label>
+          <p class="text-gray-900 font-medium">{{ studentData.institute }}</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Academic Year</label>
-          <p class="text-gray-900 font-medium">{{ studentData.academicYear }}</p>
+        <div v-if="studentData.school">
+          <label class="block text-sm font-medium text-gray-500 mb-1">School</label>
+          <p class="text-gray-900 font-medium">{{ studentData.school }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Emergency Contact -->
+    <!-- Groups/Roles -->
     <div class="card">
       <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
         <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
-        Emergency Contact
+        Groups & Roles
       </h2>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Contact Name</label>
-          <input v-if="editMode" v-model="studentData.emergencyContact.name" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.emergencyContact.name }}</p>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-500 mb-1">Relationship</label>
-          <input v-if="editMode" v-model="studentData.emergencyContact.relationship" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.emergencyContact.relationship }}</p>
-        </div>
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-500 mb-1">Contact Number</label>
-          <input v-if="editMode" v-model="studentData.emergencyContact.mobile" type="tel" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.emergencyContact.mobile }}</p>
-        </div>
+      <div class="flex flex-wrap gap-2">
+        <span v-for="group in studentData.groups" :key="group" class="badge badge-info">{{ group }}</span>
+        <span v-if="!studentData.groups || studentData.groups.length === 0" class="text-gray-500">No groups assigned</span>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { getCurrentProfile, updateProfile } from '@/services/studentService'
 
 const authStore = useAuthStore()
 const editMode = ref(false)
+const isLoading = ref(true)
+const isSaving = ref(false)
+const error = ref(null)
+const successMessage = ref(null)
 
 // Initialize with user data from auth store
 const studentData = ref({
+  username: '',
   firstName: '',
   lastName: '',
   middleName: '',
-  birthDate: '',
-  gender: '',
-  nationality: '',
+  suffix: '',
+  rfid: '',
   email: '',
-  mobile: '',
-  address: '',
   studentId: '',
-  status: 'Active',
+  status: 'enrolled',
   course: '',
   yearLevel: '',
   section: '',
-  enrollmentDate: '',
-  academicYear: '',
-  emergencyContact: {
-    name: '',
-    relationship: '',
-    mobile: ''
-  }
+  institute: '',
+  school: '',
+  groups: []
 })
 
-// Load user profile data
-onMounted(() => {
-  const user = authStore.user
-  if (user && user.profile) {
-    // Map backend data to component data
-    studentData.value = {
-      firstName: user.first_name || user.firstName || '',
-      lastName: user.last_name || user.lastName || '',
-      middleName: user.profile.middle_name || '',
-      birthDate: user.profile.date_of_birth || '',
-      gender: user.profile.gender || '',
-      nationality: user.profile.nationality || '',
-      email: user.email || '',
-      mobile: user.profile.contact_number || '',
-      address: user.profile.address || '',
-      studentId: user.profile.student_id || '',
-      status: user.profile.academic?.enrollment_status || 'Active',
-      course: user.profile.course || '',
-      yearLevel: user.profile.year_level || '',
-      section: user.profile.section || '',
-      enrollmentDate: user.profile.academic?.academic_year || '',
-      academicYear: user.profile.academic?.academic_year || '',
-      emergencyContact: {
-        name: user.profile.emergency_contact?.name || '',
-        relationship: user.profile.emergency_contact?.relationship || '',
-        mobile: user.profile.emergency_contact?.contact_number || ''
-      }
-    }
-  } else if (user) {
-    // Fallback if no profile data
-    studentData.value.firstName = user.first_name || user.firstName || ''
-    studentData.value.lastName = user.last_name || user.lastName || ''
-    studentData.value.email = user.email || ''
-  }
+// Load user profile data from API
+onMounted(async () => {
+  await loadProfile()
 })
+
+const loadProfile = async () => {
+  isLoading.value = true
+  error.value = null
+  
+  const result = await getCurrentProfile()
+  
+  if (result.success) {
+    const data = result.data
+    // Map backend student data to component format
+    const student = data.student || {}
+    
+    studentData.value = {
+      username: data.username || '',
+      firstName: student.s_fname || data.first_name || '',
+      lastName: student.s_lname || data.last_name || '',
+      middleName: student.s_mname || '',
+      suffix: student.s_suffix || '',
+      rfid: student.s_rfid || '',
+      email: data.email || '',
+      studentId: student.s_studentID || '',
+      status: student.s_status || 'enrolled',
+      course: student.program_name || '',
+      yearLevel: student.s_lvl ? `Year ${student.s_lvl}` : '',
+      section: student.s_set || '',
+      institute: data.institute?.institute_name || '',
+      school: data.institute?.school?.school_name || '',
+      groups: data.groups || []
+    }
+    
+    // Update auth store with latest data
+    authStore.user = data
+  } else {
+    error.value = result.error
+    console.error('Failed to load profile:', result.error)
+  }
+  
+  isLoading.value = false
+}
 
 const fullName = computed(() => {
   return `${studentData.value.firstName} ${studentData.value.middleName ? studentData.value.middleName + ' ' : ''}${studentData.value.lastName}`
@@ -276,10 +287,33 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-const saveProfile = () => {
-  // TODO: Call API to save profile
-  editMode.value = false
-  // Show success notification
-  console.log('Profile saved:', studentData.value)
+const saveProfile = async () => {
+  isSaving.value = true
+  error.value = null
+  successMessage.value = null
+  
+  // Only send fields that the API accepts (first_name, last_name, email)
+  const result = await updateProfile({
+    firstName: studentData.value.firstName,
+    lastName: studentData.value.lastName,
+    email: studentData.value.email
+  })
+  
+  if (result.success) {
+    successMessage.value = 'Profile updated successfully!'
+    editMode.value = false
+    
+    // Reload profile to get latest data
+    await loadProfile()
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      successMessage.value = null
+    }, 3000)
+  } else {
+    error.value = result.error
+  }
+  
+  isSaving.value = false
 }
 </script>

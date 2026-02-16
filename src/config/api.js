@@ -33,8 +33,8 @@ export const API_CONFIG = {
     ANNOUNCEMENT_DETAIL: (id) => `/api/v1/announcements/${id}/`,
   },
   
-  // Request timeout
-  TIMEOUT: 30000, // 30 seconds
+  // Request timeout (increased for Render.com free tier cold starts)
+  TIMEOUT: 120000, // 120 seconds (2 minutes)
   
   // Mock delay (for development)
   MOCK_DELAY: 800,

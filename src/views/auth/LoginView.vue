@@ -134,10 +134,10 @@ const handleLoginSuccess = async (response) => {
         router.push('/')
       }
     } else {
-      error.value = result.error || 'Google login failed. Please try again.'
+      error.value = result.error || 'Google login failed'
     }
   } catch (err) {
-    error.value = 'Google login failed. Please try again.'
+    error.value = 'Google login failed'
   } finally {
     loading.value = false
   }
@@ -186,11 +186,11 @@ const handleLogin = async () => {
         console.log('✅ Navigation complete')
       }
     } else {
-      error.value = result.error || 'Invalid credentials. Please try again.'
+      error.value = result.error || 'Invalid credentials'
     }
   } catch (err) {
     console.error('❌ Login error:', err)
-    error.value = 'An error occurred. Please try again later.'
+    error.value = 'Login failed'
   } finally {
     loading.value = false
   }

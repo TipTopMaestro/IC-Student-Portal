@@ -338,9 +338,35 @@ const showMobileMenu = ref(false)
 const userInitials = computed(() => {
   const user = authStore.user
   if (!user) return 'U'
+  
+  // Try student nested object first (backend format)
+  if (user.student?.s_fname && user.student?.s_lname) {
+    return `${user.student.s_fname.charAt(0)}${user.student.s_lname.charAt(0)}`.toUpperCase()
+  }
+  
+  // Try full_name
+  if (user.full_name) {
+    const names = user.full_name.trim().split(' ').filter(n => n.length > 0)
+    const suffixes = ['jr', 'jr.', 'sr', 'sr.', 'ii', 'iii', 'iv']
+    const namesParts = names.filter(n => !suffixes.includes(n.toLowerCase()))
+    
+    if (namesParts.length >= 2) {
+      const firstName = namesParts[0]
+      const lastName = namesParts[namesParts.length - 1]
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+    } else if (namesParts.length === 1) {
+      return namesParts[0].substring(0, 2).toUpperCase()
+    }
+  }
+  
+  // Fallback to first_name/last_name
   const firstName = user.first_name || user.firstName || ''
   const lastName = user.last_name || user.lastName || ''
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'U'
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  }
+  
+  return 'U'
 })
 
 const isActive = (path) => {

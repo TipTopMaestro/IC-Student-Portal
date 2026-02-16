@@ -1,3 +1,6 @@
+<!-- note: - done na ang pag fetch sa data gikan sa backend, integrate nalang ang pag submit sa user ug payment ug view reciept and approval of pending payments -->
+
+
 <template>
   <div class="space-y-6">
     <!-- Header -->
@@ -6,6 +9,41 @@
       <p class="text-gray-500 text-sm mt-0.5">Manage your department fees</p>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="isLoading" class="space-y-6">
+      <!-- Summary Cards Skeleton -->
+      <div class="grid grid-cols-3 gap-3">
+        <div v-for="i in 3" :key="i" class="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+          <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
+      
+      <!-- Filters Skeleton -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+        <div class="flex gap-3">
+          <div class="h-10 bg-gray-200 rounded w-32"></div>
+          <div class="h-10 bg-gray-200 rounded w-32"></div>
+        </div>
+      </div>
+      
+      <!-- Fees List Skeleton -->
+      <div class="space-y-3">
+        <div v-for="i in 3" :key="i" class="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
+              <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+              <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+            </div>
+            <div class="h-8 bg-gray-200 rounded w-16"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content (only show when not loading) -->
+    <template v-else>
     <!-- Summary Cards -->
     <div class="grid grid-cols-3 gap-3">
       <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -33,9 +71,9 @@
         </select>
         <select v-model="filterSemester" class="text-sm border-gray-300 rounded-lg focus:ring-ic-primary focus:border-ic-primary">
           <option value="all">All Semesters</option>
-          <option value="1st-2024">1st Semester 2024</option>
-          <option value="2nd-2024">2nd Semester 2024</option>
-          <option value="summer-2024">Summer 2024</option>
+          <option v-for="semester in availableSemesters" :key="semester" :value="semester">
+            {{ semester }}
+          </option>
         </select>
         <button @click="resetFilters" class="text-sm text-gray-600 hover:text-gray-900">Reset</button>
       </div>
@@ -61,7 +99,10 @@
             </div>
             <p class="text-xs text-gray-500">{{ fee.category }} • {{ fee.semester }}</p>
             <div class="flex items-center gap-4 mt-2">
-              <p class="text-lg font-semibold text-gray-900">₱{{ fee.amount.toLocaleString() }}</p>
+              <div>
+                <p class="text-lg font-semibold text-gray-900">₱{{ fee.totalAmount.toLocaleString() }}</p>
+                <p v-if="fee.amount > 0 && fee.amount < fee.totalAmount" class="text-xs text-amber-600">Balance: ₱{{ fee.amount.toLocaleString() }}</p>
+              </div>
               <p class="text-xs text-gray-500">Due {{ fee.dueDate }}</p>
             </div>
           </div>
@@ -94,6 +135,7 @@
         <p class="text-sm text-gray-500">No fees found</p>
       </div>
     </div>
+    </template>
 
     <!-- Payment Modal -->
     <div v-if="showPaymentModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -195,7 +237,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { getStudentFees, submitPayment as submitPaymentAPI } from '@/services/feeService'
+
+// Loading and error states
+const isLoading = ref(true)
+const error = ref(null)
 
 // Filters
 const filterStatus = ref('all')
@@ -211,93 +258,89 @@ const isDragging = ref(false)
 const isSubmitting = ref(false)
 const fileInput = ref(null)
 
-// Dummy data - will be fetched from API
-const fees = ref([
-  {
-    id: 1,
-    description: 'Department Shirt',
-    category: 'Uniform',
-    amount: 450,
-    semester: '1st Semester 2024',
-    dueDate: 'Jan 30, 2024',
-    status: 'unpaid',
-    isOverdue: false
-  },
-  {
-    id: 2,
-    description: 'IT Club Membership',
-    category: 'Organization',
-    amount: 300,
-    semester: '1st Semester 2024',
-    dueDate: 'Feb 15, 2024',
-    status: 'paid',
-    isOverdue: false
-  },
-  {
-    id: 3,
-    description: 'Tech Summit Registration',
-    category: 'Events',
-    amount: 250,
-    semester: '1st Semester 2024',
-    dueDate: 'Feb 20, 2024',
-    status: 'pending',
-    isOverdue: false
-  },
-  {
-    id: 4,
-    description: 'ID Replacement',
-    category: 'Miscellaneous',
-    amount: 100,
-    semester: '1st Semester 2024',
-    dueDate: 'Mar 1, 2024',
-    status: 'unpaid',
-    isOverdue: false
-  },
-  {
-    id: 5,
-    description: 'Workshop Materials',
-    category: 'Events',
-    amount: 350,
-    semester: '2nd Semester 2024',
-    dueDate: 'Mar 10, 2024',
-    status: 'paid',
-    isOverdue: false
-  },
-  {
-    id: 6,
-    description: 'Activity Fee',
-    category: 'Department',
-    amount: 500,
-    semester: '2nd Semester 2024',
-    dueDate: 'Mar 15, 2024',
-    status: 'pending',
-    isOverdue: false
+// Fees data
+const fees = ref([])
+
+// Format date helper
+const formatDate = (dateString) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Map backend fee data to frontend format
+const mapFeeData = (backendFee) => {
+  return {
+    id: backendFee.id,
+    description: backendFee.category_name,
+    category: backendFee.category_name,
+    amount: parseFloat(backendFee.balance) || 0,
+    totalAmount: parseFloat(backendFee.total_amount) || 0,
+    semester: `${backendFee.semester} Semester ${backendFee.academic_year}`,
+    dueDate: formatDate(backendFee.due_date),
+    status: backendFee.status,
+    isOverdue: new Date(backendFee.due_date) < new Date() && backendFee.status !== 'paid'
   }
-])
+}
+
+// Load fees from API
+const loadFees = async () => {
+  isLoading.value = true
+  error.value = null
+  
+  try {
+    console.log('💰 FeesView: Loading fees...')
+    const result = await getStudentFees()
+    console.log('💰 FeesView: Result from service:', result)
+    
+    if (result.success) {
+      console.log('💰 FeesView: Mapping', result.data.length, 'fees')
+      fees.value = result.data.map(mapFeeData)
+      console.log('💰 FeesView: Mapped fees:', fees.value)
+    } else {
+      console.error('❌ FeesView: Failed to load fees:', result.error)
+      error.value = result.error
+    }
+  } catch (err) {
+    error.value = 'Failed to load fees'
+    console.error('❌ FeesView: Error loading fees:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
 
 // Computed properties
+const availableSemesters = computed(() => {
+  const semesters = [...new Set(fees.value.map(fee => fee.semester))]
+  return semesters.sort()
+})
+
 const filteredFees = computed(() => {
   return fees.value.filter(fee => {
     const statusMatch = filterStatus.value === 'all' || fee.status === filterStatus.value
-    const semesterMatch = filterSemester.value === 'all' || fee.semester === filterSemester.value.replace('-', ' ')
+    const semesterMatch = filterSemester.value === 'all' || fee.semester === filterSemester.value
     return statusMatch && semesterMatch
   })
 })
 
 const totalFees = computed(() => {
-  return fees.value.reduce((sum, fee) => sum + fee.amount, 0)
+  return fees.value.reduce((sum, fee) => sum + fee.totalAmount, 0)
 })
 
 const paidFees = computed(() => {
   return fees.value
     .filter(fee => fee.status === 'paid')
-    .reduce((sum, fee) => sum + fee.amount, 0)
+    .reduce((sum, fee) => sum + fee.totalAmount, 0)
 })
 
 const outstandingFees = computed(() => {
   return fees.value
-    .filter(fee => fee.status === 'unpaid')
+    .filter(fee => fee.status !== 'paid')
     .reduce((sum, fee) => sum + fee.amount, 0)
+})
+
+// Initialize on mount
+onMounted(() => {
+  loadFees()
 })
 
 // Methods
@@ -362,20 +405,33 @@ const submitPayment = async () => {
   
   isSubmitting.value = true
   
-  // Simulate API call
-  setTimeout(() => {
-    // Update fee status to pending
-    const feeIndex = fees.value.findIndex(f => f.id === selectedFee.value.id)
-    if (feeIndex !== -1) {
-      fees.value[feeIndex].status = 'pending'
+  try {
+    const formData = new FormData()
+    formData.append('receipt', uploadedFile.value)
+    if (paymentNotes.value) {
+      formData.append('notes', paymentNotes.value)
     }
     
-    isSubmitting.value = false
-    closePaymentModal()
+    const result = await submitPaymentAPI(selectedFee.value.id, formData)
     
-    // Show success notification (you can integrate with a toast library)
-    alert('Payment receipt submitted successfully! It will be reviewed by the collection management team.')
-  }, 2000)
+    if (result.success || result.useMockData) {
+      // Update fee status to pending
+      const feeIndex = fees.value.findIndex(f => f.id === selectedFee.value.id)
+      if (feeIndex !== -1) {
+        fees.value[feeIndex].status = 'pending'
+      }
+      
+      closePaymentModal()
+      alert('Payment receipt submitted successfully! It will be reviewed by the collection management team.')
+    } else {
+      alert(result.error || 'Failed to submit payment')
+    }
+  } catch (err) {
+    console.error('Error submitting payment:', err)
+    alert('Failed to submit payment')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 const viewReceipt = (fee) => {
