@@ -1,3 +1,12 @@
+# - wednesday progress
+   1. Receipt modal overflow — now scrollable with max-h-[90vh]
+   2. Sidebar initials 'U' → 'AA' — student fallback search added to fetchCurrentUser()
+   3. Dashboard real fee data — replaced hardcoded fees with API data
+   4. Dashboard loading state — skeleton loaders while data fetches
+   5. Fees pagination — server-side with page controls
+   6. Pay button → CMS redirect — opens Collection Management System (URL configurable via VITE_CMS_URL in .env)
+
+
 # DNSC Student Portal
 
 A modern, professional student portal web application for Davao del Norte State College (DNSC), built with Vue.js and Tailwind CSS. Now fully integrated with the DNSC Systems API backend using JWT authentication.

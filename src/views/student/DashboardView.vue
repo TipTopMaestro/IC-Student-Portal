@@ -6,6 +6,47 @@
       <p class="text-gray-500 text-sm mt-0.5">{{ currentDate }}</p>
     </div>
 
+    <!-- Loading State -->
+    <template v-if="isLoading">
+      <!-- Stats Skeleton -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div v-for="i in 4" :key="i" class="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
+          <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+        </div>
+      </div>
+      <!-- Content Skeleton -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 space-y-4">
+          <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div v-for="j in 2" :key="j" class="flex items-start gap-3 mb-4">
+              <div class="h-10 w-10 bg-gray-200 rounded-full shrink-0"></div>
+              <div class="flex-1">
+                <div class="h-3 bg-gray-200 rounded w-1/4 mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                <div class="h-3 bg-gray-200 rounded w-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-purple-50 border border-purple-100 rounded-xl p-5 animate-pulse">
+            <div class="h-10 bg-purple-200 rounded w-1/2 mb-4"></div>
+            <div class="h-3 bg-purple-200 rounded w-full mb-2"></div>
+            <div class="h-3 bg-purple-200 rounded w-3/4 mb-4"></div>
+            <div class="h-10 bg-purple-300 rounded w-full"></div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div v-for="i in 3" :key="i" class="h-10 bg-gray-200 rounded w-full mb-2"></div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Content (only show when not loading) -->
+    <template v-else>
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div class="bg-white border border-gray-200 rounded-xl p-4">
@@ -183,17 +224,19 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { getStudentFees } from '@/services/feeService'
 
 const authStore = useAuthStore()
 
 // User info
-const firstName = computed(() => authStore.user?.first_name || authStore.user?.firstName || 'Student')
+const firstName = computed(() => authStore.user?.student?.s_fname || authStore.user?.first_name || authStore.user?.firstName || 'Student')
 
 // Greeting based on time
 const greeting = computed(() => {
@@ -214,8 +257,9 @@ const currentDate = computed(() => {
 })
 
 // Quick stats
+const isLoading = ref(true)
 const attendanceRate = ref(92)
-const unpaidFees = ref(2)
+const unpaidFees = ref(0)
 const upcomingEvents = ref(3)
 const totalAnnouncements = ref(8)
 
@@ -223,12 +267,36 @@ const totalAnnouncements = ref(8)
 const totalEvents = ref(13)
 const attendedEvents = ref(12)
 
-// Pending fees
-const totalUnpaidAmount = ref(700)
-const pendingFeesList = ref([
-  { id: 1, name: 'Department Shirt', amount: 450 },
-  { id: 2, name: 'Tech Summit', amount: 250 }
-])
+// Pending fees (loaded from API)
+const totalUnpaidAmount = ref(0)
+const pendingFeesList = ref([])
+
+const loadFeeStats = async () => {
+  const studentId = authStore.user?.student?.id
+  if (!studentId) { isLoading.value = false; return }
+  try {
+    const result = await getStudentFees(studentId, { perPage: 100 })
+    if (result.success) {
+      const allFees = result.data
+      const pending = allFees.filter(f => f.status !== 'paid')
+      unpaidFees.value = pending.length
+      totalUnpaidAmount.value = pending.reduce((sum, f) => sum + (parseFloat(f.balance) || 0), 0)
+      pendingFeesList.value = pending.slice(0, 3).map(f => ({
+        id: f.id,
+        name: f.category_name,
+        amount: parseFloat(f.balance) || 0
+      }))
+    }
+  } catch (e) {
+    console.warn('Could not load fee stats:', e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadFeeStats()
+})
 
 // Recent announcements
 const recentAnnouncements = ref([

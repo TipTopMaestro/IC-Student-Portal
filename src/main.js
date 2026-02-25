@@ -11,6 +11,14 @@ const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+
+// Handle session expiry: redirect to login when auth tokens become invalid
+window.addEventListener('auth:session-expired', () => {
+  if (router.currentRoute.value.path !== '/login') {
+    router.push('/login')
+  }
+})
+
 let clientID = '189816827593-igu6ajdje3revunfdaphl0n8huv5fnti.apps.googleusercontent.com';
 app.use(GoogleSignInPlugin,
     { 

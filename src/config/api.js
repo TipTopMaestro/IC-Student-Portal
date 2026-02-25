@@ -1,10 +1,12 @@
 // API Configuration
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
+
 export const API_CONFIG = {
-  // Base URL for the backend API
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  // When mock is off, use empty BASE_URL so requests go to Vite's proxy (same origin → no CORS)
+  BASE_URL: USE_MOCK ? '' : '',
   
-  // Use mock API for development (set to false when backend is ready)
-  USE_MOCK: import.meta.env.VITE_USE_MOCK_API !== 'false',
+  // Use mock API for development (set VITE_USE_MOCK_API=true to enable)
+  USE_MOCK,
   
   // API Endpoints
   ENDPOINTS: {

@@ -80,16 +80,19 @@ api.interceptors.response.use(
         } catch (refreshError) {
           console.error('❌ Token refresh failed:', refreshError)
           
-          // Clear auth data and redirect to login
+          // Clear auth data and notify app of session expiry
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
           localStorage.removeItem('user_data')
-          window.location.href = '/login'
+          window.dispatchEvent(new Event('auth:session-expired'))
           return Promise.reject(refreshError)
         }
       } else {
-        // No refresh token, redirect to login
-        window.location.href = '/login'
+        // No refresh token, notify app of session expiry
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('user_data')
+        window.dispatchEvent(new Event('auth:session-expired'))
       }
     }
 

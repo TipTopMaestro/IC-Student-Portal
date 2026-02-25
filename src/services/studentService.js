@@ -13,6 +13,37 @@ export const getCurrentProfile = async () => {
     const response = await api.get('api/v1/me/')
     // Backend wraps response in { status_code, message, data: {...}, errors }
     const userData = response.data.data || response.data
+
+    // If student is not linked to user account, try fetching from students endpoint
+    if (!userData.student && userData.username) {
+      try {
+        // Extract last name from username (format: "lastname.firstname")
+        const nameParts = userData.username.split('.')
+        if (nameParts.length >= 1) {
+          const searchTerm = nameParts[0]
+          const studentsResp = await api.get('api/v1/students/', {
+            params: { search: searchTerm }
+          })
+          const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
+          // Find exact match by comparing name parts from username
+          const match = studentsData.find(s => {
+            const fname = (s.s_fname || '').toLowerCase()
+            const lname = (s.s_lname || '').toLowerCase()
+            return (
+              (lname === nameParts[0]?.toLowerCase() && fname === nameParts[1]?.toLowerCase()) ||
+              (fname === nameParts[0]?.toLowerCase() && lname === nameParts[1]?.toLowerCase())
+            )
+          })
+          if (match) {
+            console.log('📋 Found student record via search fallback:', match)
+            userData.student = match
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch student data as fallback:', err)
+      }
+    }
+
     return {
       success: true,
       data: userData

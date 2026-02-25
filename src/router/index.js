@@ -92,8 +92,12 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
+
+  if (!authStore.initialized) {
+    await authStore.initialize()
+  }
   
   console.log('🔀 Router Guard:', { 
     to: to.path, 

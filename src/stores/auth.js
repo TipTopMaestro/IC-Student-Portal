@@ -1,11 +1,20 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { authService } from '@/services/authService.wrapper'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(false)
   const error = ref(null)
+  const initialized = ref(false)
+
+  // Listen for session expiry events from API interceptor
+  const handleSessionExpired = () => {
+    console.log('🔐 Session expired, clearing auth state')
+    user.value = null
+    error.value = null
+  }
+  window.addEventListener('auth:session-expired', handleSessionExpired)
 
   const isAuthenticated = computed(() => {
     const hasToken = !!localStorage.getItem('accessToken')
@@ -109,6 +118,33 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         user.value = userData
       }
+
+      // If student is not linked to user account, try fetching via search
+      if (!user.value.student && user.value.username) {
+        try {
+          const { default: api } = await import('@/services/api')
+          const nameParts = user.value.username.split('.')
+          if (nameParts.length >= 2) {
+            const studentsResp = await api.get('api/v1/students/', {
+              params: { search: nameParts[0] }
+            })
+            const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
+            const match = studentsData.find(s => {
+              const fname = (s.s_fname || '').toLowerCase()
+              const lname = (s.s_lname || '').toLowerCase()
+              return (
+                (lname === nameParts[0].toLowerCase() && fname === nameParts[1].toLowerCase()) ||
+                (fname === nameParts[0].toLowerCase() && lname === nameParts[1].toLowerCase())
+              )
+            })
+            if (match) {
+              user.value = { ...user.value, student: match }
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch student data fallback:', e)
+        }
+      }
       
       localStorage.setItem('user_data', JSON.stringify(user.value))
       
@@ -126,6 +162,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const initialize = async () => {
+    if (initialized.value) return
+
     const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
     
@@ -138,12 +176,15 @@ export const useAuthStore = defineStore('auth', () => {
         logout()
       }
     }
+
+    initialized.value = true
   }
 
   return {
     user,
     loading,
     error,
+    initialized,
     isAuthenticated,
     isAdmin,
     isStudent,
