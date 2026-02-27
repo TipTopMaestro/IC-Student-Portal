@@ -135,10 +135,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { getCurrentProfile } from '@/services/studentService'
+import api from '@/services/api'
 
-const authStore = useAuthStore()
 const isLoading = ref(true)
 const error = ref(null)
 
@@ -161,10 +159,9 @@ const loadProfile = async () => {
   isLoading.value = true
   error.value = null
 
-  const result = await getCurrentProfile()
-
-  if (result.success) {
-    const data = result.data
+  try {
+    const response = await api.get('api/v1/me/')
+    const data = response.data.data || response.data
 
     profileData.value = {
       username: data.username || '',
@@ -176,10 +173,9 @@ const loadProfile = async () => {
       school: data.institute?.school?.school_name || '',
       groups: data.groups || []
     }
-
-    authStore.user = data
-  } else {
-    error.value = result.error
+  } catch (err) {
+    console.error('Failed to load admin profile:', err)
+    error.value = err.response?.data?.message || 'Failed to load profile'
   }
 
   isLoading.value = false
