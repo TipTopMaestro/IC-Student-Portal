@@ -1,131 +1,163 @@
 <template>
-  <div class="flex h-screen bg-white">
-    <!-- Sidebar -->
-    <aside 
-      class="sidebar fixed left-0 top-0 h-screen border-r border-[#dbdbdb] flex flex-col bg-white z-50 group/sidebar"
-      @mouseenter="sidebarExpanded = true"
-      @mouseleave="sidebarExpanded = false"
+  <div class="min-h-screen bg-white">
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 safe-area-top">
+      <div class="flex items-center justify-between h-14 px-4">
+        <div class="flex items-center gap-2">
+          <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
+          <span class="text-base font-semibold text-gray-900">ICSA Admin</span>
+        </div>
+        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg">
+          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div 
+      v-if="showMobileMenu" 
+      class="md:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+      @click="showMobileMenu = false"
     >
-      <!-- Logo -->
-      <div class="h-20 flex items-center px-3 pt-6 pb-2">
-        <router-link to="/admin" class="flex items-center w-full px-3 py-3 -mx-3 hover:bg-[#fafafa] rounded-xl transition-all duration-200">
-          <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <img src="/icsa_logo.png" alt="Logo" class="w-6 h-6" />
-          </div>
-          <span 
-            :class="[
-              'ml-4 text-base whitespace-nowrap overflow-hidden transition-all duration-200',
-              sidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
-            ]"
+      <div 
+        @click.stop
+        class="absolute right-0 top-0 bottom-0 w-64 bg-white shadow-xl"
+      >
+        <!-- Menu Header -->
+        <div class="flex items-center justify-between h-14 px-4 border-b border-gray-200">
+          <span class="text-base font-semibold text-gray-900">Menu</span>
+          <button @click="showMobileMenu = false" class="p-2 hover:bg-gray-100 rounded-lg">
+            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Menu Items -->
+        <nav class="p-4 space-y-1 overflow-y-auto" style="max-height: calc(100vh - 56px);">
+          <router-link
+            v-for="item in navItems"
+            :key="item.path"
+            :to="item.path"
+            @click="showMobileMenu = false"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+            :class="isActiveRoute(item.path) ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
           >
-            ICSA Admin
-          </span>
-        </router-link>
+            <component 
+              :is="item.icon" 
+              class="w-5 h-5"
+            />
+            <span class="text-sm">{{ item.name }}</span>
+          </router-link>
+
+          <router-link
+            to="/admin/profile"
+            @click="showMobileMenu = false"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+            :class="isActiveRoute('/admin/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+          >
+            <div class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
+              {{ userInitials }}
+            </div>
+            <span class="text-sm">Profile</span>
+          </router-link>
+
+          <div class="my-4 border-t border-gray-200"></div>
+
+          <button 
+            @click="handleLogout" 
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="text-sm">Logout</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Desktop Sidebar -->
+    <aside class="hidden md:flex fixed left-0 top-0 h-screen w-18 hover:w-61 bg-white border-r border-gray-200 flex-col transition-all duration-300 ease-out z-50 group">
+      <!-- Logo -->
+      <div class="flex items-center px-6 py-3">
+        <div class="w-7 h-7 shrink-0 flex items-center justify-center">
+          <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
+        </div>
+        <span class="ml-4 text-xl font-semibold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">ICSA Admin</span>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 pt-2 overflow-y-auto">
+      <nav class="flex-1 px-3 py-2 space-y-1">
         <router-link
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="nav-item flex items-center w-full px-3 py-3 -mx-3 mb-1 hover:bg-[#fafafa] rounded-xl transition-all duration-200"
+          class="sidebar-link"
+          :class="{ 'sidebar-link-active': isActiveRoute(item.path) }"
         >
-          <component 
-            :is="item.icon" 
-            :class="[
-              'w-7 h-7 shrink-0',
-              isActiveRoute(item.path) ? 'stroke-[2.5]' : 'stroke-2'
-            ]" 
-          />
-          <span 
-            :class="[
-              'ml-4 text-base whitespace-nowrap overflow-hidden transition-all duration-200',
-              isActiveRoute(item.path) ? 'font-semibold' : 'font-normal',
-              sidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
-            ]"
-          >
-            {{ item.name }}
-          </span>
+          <div class="w-7 h-7 shrink-0 flex items-center justify-center">
+            <component 
+              :is="item.icon" 
+              class="w-7 h-7"
+              :stroke-width="isActiveRoute(item.path) ? 2.5 : 2"
+            />
+          </div>
+          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{{ item.name }}</span>
+        </router-link>
+
+        <router-link
+          to="/admin/profile"
+          class="sidebar-link"
+          :class="{ 'sidebar-link-active': isActiveRoute('/admin/profile') }"
+        >
+          <div class="w-7 h-7 shrink-0 flex items-center justify-center">
+            <div class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
+              {{ userInitials }}
+            </div>
+          </div>
+          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
         </router-link>
       </nav>
 
-      <!-- Profile -->
-      <div class="border-t border-[#dbdbdb] px-3 py-4">
-        <div class="relative">
-          <button
-            @click.stop="showProfileMenu = !showProfileMenu"
-            class="flex items-center w-full px-3 py-3 -mx-3 hover:bg-[#fafafa] rounded-xl transition-all duration-200"
-          >
-            <div class="w-7 h-7 shrink-0 rounded-full bg-[#e0e0e0] flex items-center justify-center text-xs font-medium">
-              {{ userInitials }}
-            </div>
-            <span 
-              :class="[
-                'ml-4 text-sm text-left whitespace-nowrap overflow-hidden transition-all duration-200',
-                sidebarExpanded ? 'opacity-100 w-auto' : 'opacity-0 w-0'
-              ]"
-            >
-              {{ userName }}
-            </span>
-          </button>
-
-          <!-- Profile Dropdown -->
-          <div
-            v-if="showProfileMenu"
-            v-click-outside="() => showProfileMenu = false"
-            class="absolute bottom-full left-3 right-3 mb-2 bg-white rounded-xl shadow-[0_0_5px_1px_rgba(0,0,0,0.0975)] py-2 z-100"
-          >
-            <button
-              @click="handleLogout"
-              class="w-full px-4 py-2 text-sm text-left hover:bg-[#fafafa] transition-colors rounded-lg"
-            >
-              Log out
-            </button>
+      <!-- Logout -->
+      <div class="px-3 pb-6">
+        <button @click="handleLogout" class="sidebar-link w-full text-left">
+          <div class="w-7 h-7 shrink-0 flex items-center justify-center">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
           </div>
-        </div>
+          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Logout</span>
+        </button>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main 
-      :class="[
-        'flex-1 overflow-y-auto transition-all duration-200',
-        sidebarExpanded ? 'ml-61' : 'ml-18'
-      ]"
-    >
-      <!-- Top Bar -->
-      <div class="sticky top-0 z-40 bg-white border-b border-[#dbdbdb]">
-        <div class="h-15 px-6 flex items-center">
-          <div class="flex-1">
-            <h1 class="text-2xl font-light">{{ currentPageTitle }}</h1>
-          </div>
-          
-          <!-- Search & Actions -->
-          <div class="flex items-center gap-6">
-            <div class="relative">
-              <input
-                type="text"
-                placeholder="Search"
-                class="w-67 h-9 pl-4 pr-10 text-sm bg-[#efefef] rounded-lg border-0 focus:outline-none focus:ring-0 placeholder:text-[#8e8e8e]"
-              />
-              <svg class="w-4 h-4 absolute right-3 top-2.5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-
-            <button class="relative p-2 hover:bg-[#fafafa] rounded-lg transition-colors">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span class="absolute top-2 right-2 w-1.5 h-1.5 bg-[#ed4956] rounded-full"></span>
-            </button>
-          </div>
-        </div>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
+      <div class="flex items-center h-16 px-2">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          class="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors"
+          :class="isActiveRoute(item.path) ? 'text-ic-primary' : 'text-gray-600'"
+        >
+          <component 
+            :is="item.icon" 
+            class="w-5 h-5"
+            :stroke-width="isActiveRoute(item.path) ? 2.5 : 2"
+          />
+          <span class="text-xs" :class="isActiveRoute(item.path) ? 'font-medium' : 'font-normal'">{{ item.name }}</span>
+        </router-link>
       </div>
+    </nav>
 
-      <!-- Page Content -->
-      <div class="max-w-233.75 mx-auto px-5 py-8">
+    <!-- Main Content -->
+    <main class="md:ml-18 pt-14 pb-20 md:pt-0 md:pb-0">
+      <div class="max-w-233.75 mx-auto px-4 py-6">
         <RouterView />
       </div>
     </main>
@@ -142,27 +174,26 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const user = computed(() => authStore.user)
-const showProfileMenu = ref(false)
-const sidebarExpanded = ref(false)
+const showMobileMenu = ref(false)
 
 // Icons - keeping them simple and clean
-const HomeIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+const HomeIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' })
 ])
 
-const UsersIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+const UsersIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
 ])
 
-const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' })
 ])
 
-const MegaphoneIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+const MegaphoneIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' })
 ])
 
-const ClipboardIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+const ClipboardIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' })
 ])
 
@@ -174,14 +205,9 @@ const navItems = [
   { name: 'Attendance', path: '/admin/attendance', icon: ClipboardIcon }
 ]
 
-const currentPageTitle = computed(() => {
-  const item = navItems.find(item => item.path === route.path)
-  return item ? item.name : 'Admin'
-})
-
 const userName = computed(() => {
   if (user.value) {
-    return `${user.value.firstName || ''} ${user.value.lastName || ''}`.trim() || user.value.username
+    return `${user.value.first_name || user.value.firstName || ''} ${user.value.last_name || user.value.lastName || ''}`.trim() || user.value.username
   }
   return 'Admin'
 })
@@ -209,9 +235,11 @@ const userInitials = computed(() => {
     }
   }
   
-  // Fallback to firstName/lastName
-  if (user.value.firstName && user.value.lastName) {
-    return `${user.value.firstName[0]}${user.value.lastName[0]}`.toUpperCase()
+  // Fallback to first_name/last_name or firstName/lastName
+  const firstName = user.value.first_name || user.value.firstName || ''
+  const lastName = user.value.last_name || user.value.lastName || ''
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
   }
   
   return 'AD'
@@ -224,60 +252,41 @@ const isActiveRoute = (path) => {
   return route.path.startsWith(path)
 }
 
-const handleLogout = () => {
-  showProfileMenu.value = false
-  authStore.logout()
+const handleLogout = async () => {
+  showMobileMenu.value = false
+  await authStore.logout()
   router.push('/login')
-}
-
-// Click outside directive
-const vClickOutside = {
-  mounted(el, binding) {
-    el.clickOutsideEvent = (event) => {
-      if (!(el === event.target || el.contains(event.target))) {
-        binding.value(event)
-      }
-    }
-    document.addEventListener('click', el.clickOutsideEvent)
-  },
-  unmounted(el) {
-    document.removeEventListener('click', el.clickOutsideEvent)
-  }
 }
 </script>
 
 <style scoped>
-/* Sidebar width transitions */
-.sidebar {
-  width: 72px;
-  transition: width 0.2s cubic-bezier(0.2, 0, 0, 1);
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  color: #000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
-.sidebar:hover {
-  width: 244px;
+.sidebar-link:hover {
+  background-color: #fafafa;
 }
 
-/* Instagram-style scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #dbdbdb;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #c7c7c7;
-}
-
-/* Remove default focus styles, add custom */
-input:focus {
+.sidebar-link:focus {
   outline: none;
+}
+
+.sidebar-link-active {
+  font-weight: 600;
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 </style>

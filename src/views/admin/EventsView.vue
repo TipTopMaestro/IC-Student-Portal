@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-light mb-1">Events</h1>
-        <p class="text-sm text-[#8e8e8e]">{{ events.length }} events scheduled</p>
+        <h1 class="text-2xl font-semibold text-gray-900 mb-1">Events</h1>
+        <p class="text-sm text-gray-500">{{ events.length }} events scheduled</p>
       </div>
       <button 
         @click="showCreateEventModal = true"
@@ -20,7 +20,7 @@
         @click="filterStatus = 'all'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'all' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         All Events
@@ -29,7 +29,7 @@
         @click="filterStatus = 'upcoming'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'upcoming' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'upcoming' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         Upcoming
@@ -38,7 +38,7 @@
         @click="filterStatus = 'ongoing'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'ongoing' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'ongoing' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         Ongoing
@@ -47,7 +47,7 @@
         @click="filterStatus = 'completed'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'completed' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'completed' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         Completed
@@ -59,7 +59,7 @@
       <div 
         v-for="event in filteredEvents" 
         :key="event.id"
-        class="border border-[#dbdbdb] rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
+        class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
       >
         <!-- Event Image/Banner -->
         <div class="aspect-video bg-gradient-to-br from-ic-primary to-ic-secondary flex items-center justify-center">
@@ -89,19 +89,19 @@
 
           <!-- Event Meta -->
           <div class="space-y-2 mb-4">
-            <div class="flex items-center gap-2 text-sm text-[#8e8e8e]">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span>{{ event.date }}</span>
             </div>
-            <div class="flex items-center gap-2 text-sm text-[#8e8e8e]">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{{ event.time }}</span>
             </div>
-            <div class="flex items-center gap-2 text-sm text-[#8e8e8e]">
+            <div class="flex items-center gap-2 text-sm text-gray-500">
               <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -114,13 +114,13 @@
           <div class="flex items-center gap-2">
             <button 
               @click="viewEvent(event)"
-              class="flex-1 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+              class="flex-1 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               View Details
             </button>
             <button 
               @click="editEvent(event)"
-              class="p-2 border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+              class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
@@ -133,10 +133,10 @@
 
     <!-- Empty State -->
     <div v-if="filteredEvents.length === 0" class="text-center py-16">
-      <svg class="w-16 h-16 mx-auto text-[#dbdbdb] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
-      <p class="text-sm text-[#8e8e8e] mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
+      <p class="text-sm text-gray-500 mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
       <button 
         @click="showCreateEventModal = true"
         class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
@@ -154,7 +154,7 @@
       <div class="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-semibold">Create New Event</h2>
-          <button @click="showCreateEventModal = false" class="p-1 hover:bg-[#fafafa] rounded-lg">
+          <button @click="showCreateEventModal = false" class="p-1 hover:bg-gray-50 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -163,54 +163,54 @@
 
         <form @submit.prevent="handleCreateEvent" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#262626] mb-2">Event Title</label>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Event Title</label>
             <input 
               v-model="newEvent.title"
               type="text" 
               required
-              class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               placeholder="Career Fair 2024"
             />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-[#262626] mb-2">Start Date</label>
+              <label class="block text-sm font-medium text-gray-900 mb-2">Start Date</label>
               <input 
                 v-model="newEvent.startDate"
                 type="date" 
                 required
-                class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#262626] mb-2">End Date</label>
+              <label class="block text-sm font-medium text-gray-900 mb-2">End Date</label>
               <input 
                 v-model="newEvent.endDate"
                 type="date" 
                 required
-                class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               />
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-[#262626] mb-2">Location</label>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Location</label>
             <input 
               v-model="newEvent.location"
               type="text" 
               required
-              class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               placeholder="DNSC Gymnasium"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-[#262626] mb-2">Status</label>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Status</label>
             <select 
               v-model="newEvent.status"
               required
-              class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
             >
               <option value="upcoming">Upcoming</option>
               <option value="ongoing">Ongoing</option>
@@ -222,7 +222,7 @@
             <button 
               type="button"
               @click="showCreateEventModal = false"
-              class="flex-1 px-4 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+              class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
@@ -246,7 +246,7 @@
       <div class="bg-white rounded-xl max-w-md w-full p-6">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-semibold">Event Details</h2>
-          <button @click="showViewModal = false" class="p-1 hover:bg-[#fafafa] rounded-lg">
+          <button @click="showViewModal = false" class="p-1 hover:bg-gray-50 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -271,19 +271,19 @@
 
           <div class="space-y-3">
             <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <span>{{ selectedEvent.date }}</span>
             </div>
             <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>{{ selectedEvent.time }}</span>
             </div>
             <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-gray-500"fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -294,7 +294,7 @@
 
         <button 
           @click="showViewModal = false"
-          class="w-full mt-6 px-4 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+          class="w-full mt-6 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Close
         </button>

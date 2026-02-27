@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-light mb-1">Announcements</h1>
-        <p class="text-sm text-[#8e8e8e]">{{ announcements.length }} announcements published</p>
+        <h1 class="text-2xl font-semibold text-gray-900 mb-1">Announcements</h1>
+        <p class="text-sm text-gray-500">{{ announcements.length }} announcements published</p>
       </div>
       <button 
         @click="showCreateModal = true"
@@ -20,7 +20,7 @@
         @click="filterStatus = 'all'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'all' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         All Posts
@@ -29,7 +29,7 @@
         @click="filterStatus = 'published'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'published' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'published' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         Published
@@ -38,7 +38,7 @@
         @click="filterStatus = 'draft'"
         :class="[
           'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'draft' ? 'bg-[#262626] text-white' : 'border border-[#dbdbdb] hover:bg-[#fafafa]'
+          filterStatus === 'draft' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
         Drafts
@@ -50,7 +50,7 @@
       <div 
         v-for="announcement in filteredAnnouncements" 
         :key="announcement.id"
-        class="border border-[#dbdbdb] rounded-lg p-4 hover:bg-[#fafafa] transition-colors"
+        class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
       >
         <div class="flex items-start gap-4">
           <!-- Icon -->
@@ -65,7 +65,7 @@
             <div class="flex items-start justify-between mb-2">
               <div class="flex-1">
                 <h3 class="text-base font-semibold mb-1">{{ announcement.title }}</h3>
-                <p class="text-sm text-[#8e8e8e] line-clamp-2">{{ announcement.content }}</p>
+                <p class="text-sm text-gray-500 line-clamp-2">{{ announcement.content }}</p>
               </div>
               <span 
                 :class="[
@@ -77,7 +77,7 @@
               </span>
             </div>
 
-            <div class="flex items-center gap-4 text-xs text-[#8e8e8e] mb-3">
+            <div class="flex items-center gap-4 text-xs text-gray-500 mb-3">
               <div class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -96,19 +96,19 @@
             <div class="flex items-center gap-2">
               <button 
                 @click="viewAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium border border-[#dbdbdb] rounded-lg hover:bg-white transition-colors"
+                class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 View
               </button>
               <button 
                 @click="editAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium border border-[#dbdbdb] rounded-lg hover:bg-white transition-colors"
+                class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Edit
               </button>
               <button 
                 @click="deleteAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium text-[#ed4956] border border-[#ed4956] rounded-lg hover:bg-red-50 transition-colors"
+                class="px-3 py-1.5 text-xs font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 transition-colors"
               >
                 Delete
               </button>
@@ -120,10 +120,10 @@
 
     <!-- Empty State -->
     <div v-if="filteredAnnouncements.length === 0" class="text-center py-16">
-      <svg class="w-16 h-16 mx-auto text-[#dbdbdb] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
       </svg>
-      <p class="text-sm text-[#8e8e8e] mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} announcements found</p>
+      <p class="text-sm text-gray-500 mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} announcements found</p>
       <button 
         @click="showCreateModal = true"
         class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
@@ -141,7 +141,7 @@
       <div class="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-semibold">{{ editMode ? 'Edit' : 'Create' }} Announcement</h2>
-          <button @click="closeCreateModal" class="p-1 hover:bg-[#fafafa] rounded-lg">
+          <button @click="closeCreateModal" class="p-1 hover:bg-gray-50 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -150,43 +150,43 @@
 
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-[#262626] mb-2">Title</label>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Title</label>
             <input 
               v-model="formData.title"
               type="text" 
               required
-              class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               placeholder="Important Update: Class Schedule Changes"
             />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-[#262626] mb-2">Content</label>
+            <label class="block text-sm font-medium text-gray-900 mb-2">Content</label>
             <textarea 
               v-model="formData.content"
               required
               rows="6"
-              class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary resize-none"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary resize-none"
               placeholder="Write your announcement here..."
             ></textarea>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-[#262626] mb-2">Date</label>
+              <label class="block text-sm font-medium text-gray-900 mb-2">Date</label>
               <input 
                 v-model="formData.date"
                 type="date" 
                 required
-                class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium text-[#262626] mb-2">Status</label>
+              <label class="block text-sm font-medium text-gray-900 mb-2">Status</label>
               <select 
                 v-model="formData.status"
                 required
-                class="w-full px-4 py-2 text-sm border border-[#dbdbdb] rounded-lg focus:outline-none focus:border-ic-primary"
+                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
@@ -198,7 +198,7 @@
             <button 
               type="button"
               @click="closeCreateModal"
-              class="flex-1 px-4 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+              class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
@@ -222,7 +222,7 @@
       <div class="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-xl font-semibold">Announcement Details</h2>
-          <button @click="showViewModal = false" class="p-1 hover:bg-[#fafafa] rounded-lg">
+          <button @click="showViewModal = false" class="p-1 hover:bg-gray-50 rounded-lg">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -243,7 +243,7 @@
 
           <h3 class="text-lg font-semibold">{{ selectedAnnouncement.title }}</h3>
 
-          <div class="flex items-center gap-4 text-sm text-[#8e8e8e]">
+          <div class="flex items-center gap-4 text-sm text-gray-500">
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -258,14 +258,14 @@
             </div>
           </div>
 
-          <div class="pt-4 border-t border-[#efefef]">
+          <div class="pt-4 border-t border-gray-100">
             <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ selectedAnnouncement.content }}</p>
           </div>
         </div>
 
         <button 
           @click="showViewModal = false"
-          class="w-full mt-6 px-4 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+          class="w-full mt-6 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Close
         </button>
@@ -280,20 +280,20 @@
     >
       <div class="bg-white rounded-xl max-w-sm w-full p-6">
         <h2 class="text-xl font-semibold mb-4">Delete Announcement?</h2>
-        <p class="text-sm text-[#8e8e8e] mb-6">
-          Are you sure you want to delete "<span class="font-medium text-[#262626]">{{ selectedAnnouncement.title }}</span>"? This action cannot be undone.
+        <p class="text-sm text-gray-500 mb-6">
+          Are you sure you want to delete "<span class="font-medium text-gray-900">{{ selectedAnnouncement.title }}</span>"? This action cannot be undone.
         </p>
 
         <div class="flex gap-3">
           <button 
             @click="showDeleteModal = false"
-            class="flex-1 px-4 py-2 text-sm font-medium border border-[#dbdbdb] rounded-lg hover:bg-[#fafafa] transition-colors"
+            class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button 
             @click="confirmDelete"
-            class="flex-1 px-4 py-2 text-sm font-semibold bg-[#ed4956] text-white rounded-lg hover:bg-[#d32f2f] transition-colors"
+            class="flex-1 px-4 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           >
             Delete
           </button>

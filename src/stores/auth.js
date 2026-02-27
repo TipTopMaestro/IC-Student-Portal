@@ -25,7 +25,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAdmin = computed(() => {
     if (!user.value) return false
-    return user.value.groups?.includes('Admin') || 
+    const hasAdminGroup = user.value.groups?.some(
+      g => typeof g === 'string' && g.toLowerCase().includes('admin')
+    )
+    return hasAdminGroup || 
            user.value.is_staff || 
            user.value.is_superuser ||
            false
