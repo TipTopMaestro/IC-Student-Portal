@@ -173,17 +173,12 @@ const handleLogin = async () => {
     if (result.success) {
       console.log('✅ Login successful, isAdmin:', authStore.isAdmin, 'user:', authStore.user)
       
-      // Wait a tick for the store to update
-      await new Promise(resolve => setTimeout(resolve, 100))
-      
       if (authStore.isAdmin) {
         console.log('➡️ Redirecting to admin dashboard')
         await router.push('/admin')
-        console.log('✅ Navigation complete')
       } else {
         console.log('➡️ Redirecting to student dashboard')
         await router.push('/')
-        console.log('✅ Navigation complete')
       }
     } else {
       error.value = result.error || 'Invalid credentials'

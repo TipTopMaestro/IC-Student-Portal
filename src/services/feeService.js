@@ -23,7 +23,7 @@ export const getStudentFees = async (studentId, { page = 1, perPage = 10 } = {})
     if (studentId) {
       params.student_id = studentId
     }
-    const response = await api.get('api/v1/fees/', { params })
+    const response = await api.get('/api/v1/fees/', { params })
     console.log('💰 Raw API response:', response.data)
     
     // Backend wraps response in { status_code, message, data: { current_page, per_page, total_pages, total_items, data: [...] } }
@@ -111,7 +111,7 @@ export const getPaymentSubmissions = async (studentId) => {
       params.student_id = studentId
       params.per_page = 100
     }
-    const response = await api.get('api/v1/payment-submissions/', { params })
+    const response = await api.get('/api/v1/payment-submissions/', { params })
     const data = response.data.data?.data || response.data.data || response.data || []
     return {
       success: true,
@@ -147,7 +147,7 @@ export const submitPayment = async (submissionData) => {
       formData.append(`items[${i}]amount_paid`, item.amount_paid)
     })
 
-    const response = await api.post('api/v1/payment-submissions/', formData, {
+    const response = await api.post('/api/v1/payment-submissions/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     return {
@@ -172,7 +172,7 @@ export const submitPayment = async (submissionData) => {
  */
 export const getPaymentReceipt = async (submissionId) => {
   try {
-    const response = await api.get(`api/v1/payment-submissions/${submissionId}/`)
+    const response = await api.get(`/api/v1/payment-submissions/${submissionId}/`)
     const data = response.data.data || response.data
     return {
       success: true,

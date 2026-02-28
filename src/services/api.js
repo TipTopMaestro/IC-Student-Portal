@@ -9,6 +9,24 @@ const api = axios.create({
   }
 })
 
+// Token refresh queue — prevents race conditions when multiple 401s fire simultaneously
+let isRefreshing = false
+let refreshSubscribers = []
+
+const onRefreshed = (newToken) => {
+  refreshSubscribers.forEach(callback => callback(newToken))
+  refreshSubscribers = []
+}
+
+const onRefreshFailed = (error) => {
+  refreshSubscribers.forEach(callback => callback(null, error))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = (callback) => {
+  refreshSubscribers.push(callback)
+}
+
 // Request interceptor - Add auth token to requests
 api.interceptors.request.use(
   (config) => {
@@ -57,8 +75,23 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
+      // If already refreshing, queue this request to retry after refresh completes
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber((newToken, refreshError) => {
+            if (refreshError) {
+              reject(refreshError)
+            } else {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
+              resolve(api(originalRequest))
+            }
+          })
+        })
+      }
+
       const refreshToken = localStorage.getItem('refreshToken')
       if (refreshToken) {
+        isRefreshing = true
         try {
           console.log('🔄 Attempting to refresh token...')
           
@@ -76,9 +109,16 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${access}`
 
           console.log('✅ Token refreshed successfully')
+          
+          // Notify all queued requests
+          onRefreshed(access)
+          
           return api(originalRequest)
         } catch (refreshError) {
           console.error('❌ Token refresh failed:', refreshError)
+          
+          // Notify all queued requests of failure
+          onRefreshFailed(refreshError)
           
           // Clear auth data and notify app of session expiry
           localStorage.removeItem('accessToken')
@@ -86,6 +126,8 @@ api.interceptors.response.use(
           localStorage.removeItem('user_data')
           window.dispatchEvent(new Event('auth:session-expired'))
           return Promise.reject(refreshError)
+        } finally {
+          isRefreshing = false
         }
       } else {
         // No refresh token, notify app of session expiry

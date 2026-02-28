@@ -261,8 +261,10 @@ const loadProfile = async () => {
       groups: data.groups || []
     }
     
-    // Update auth store with latest data
-    authStore.user = data
+    // Link student record to auth store if found
+    if (data.student) {
+      authStore.linkStudentRecord(data.student)
+    }
   } else {
     error.value = result.error
     console.error('Failed to load profile:', result.error)

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { authService } from '@/services/authService.wrapper'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -7,20 +7,41 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref(null)
   const initialized = ref(false)
+  // Reactive token flag — keeps isAuthenticated truly reactive
+  const hasToken = ref(!!localStorage.getItem('accessToken'))
+
+  // Sync reactive flag whenever we modify localStorage tokens
+  const setTokens = (access, refresh) => {
+    if (access) localStorage.setItem('accessToken', access)
+    if (refresh) localStorage.setItem('refreshToken', refresh)
+    hasToken.value = true
+  }
+
+  const clearTokens = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user_data')
+    hasToken.value = false
+  }
 
   // Listen for session expiry events from API interceptor
   const handleSessionExpired = () => {
     console.log('🔐 Session expired, clearing auth state')
     user.value = null
     error.value = null
+    hasToken.value = false
+    // Redirect to login if not already there
+    const currentPath = window.location.pathname
+    if (currentPath !== '/login') {
+      window.location.href = '/login'
+    }
   }
   window.addEventListener('auth:session-expired', handleSessionExpired)
 
   const isAuthenticated = computed(() => {
-    const hasToken = !!localStorage.getItem('accessToken')
     const hasUser = !!user.value
-    console.log('🔐 isAuthenticated check:', { hasToken, hasUser, result: hasToken && hasUser })
-    return hasToken && hasUser
+    console.log('🔐 isAuthenticated check:', { hasToken: hasToken.value, hasUser, result: hasToken.value && hasUser })
+    return hasToken.value && hasUser
   })
 
   const isAdmin = computed(() => {
@@ -52,8 +73,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Backend wraps response in data object
       const tokens = response.data || response
       
-      localStorage.setItem('accessToken', tokens.access)
-      localStorage.setItem('refreshToken', tokens.refresh)
+      setTokens(tokens.access, tokens.refresh)
       
       console.log('🔐 Auth Store: Fetching current user...')
       await fetchCurrentUser()
@@ -95,8 +115,10 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authService.loginWithGoogle(token)
       
-      localStorage.setItem('accessToken', response.access)
-      localStorage.setItem('refreshToken', response.refresh)
+      // Backend wraps response in data object
+      const tokens = response.data || response
+      
+      setTokens(tokens.access, tokens.refresh)
       
       await fetchCurrentUser()
       
@@ -121,33 +143,6 @@ export const useAuthStore = defineStore('auth', () => {
       } else {
         user.value = userData
       }
-
-      // If student is not linked to user account, try fetching via search
-      if (!user.value.student && user.value.username) {
-        try {
-          const { default: api } = await import('@/services/api')
-          const nameParts = user.value.username.split('.')
-          if (nameParts.length >= 2) {
-            const studentsResp = await api.get('api/v1/students/', {
-              params: { search: nameParts[0] }
-            })
-            const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
-            const match = studentsData.find(s => {
-              const fname = (s.s_fname || '').toLowerCase()
-              const lname = (s.s_lname || '').toLowerCase()
-              return (
-                (lname === nameParts[0].toLowerCase() && fname === nameParts[1].toLowerCase()) ||
-                (fname === nameParts[0].toLowerCase() && lname === nameParts[1].toLowerCase())
-              )
-            })
-            if (match) {
-              user.value = { ...user.value, student: match }
-            }
-          }
-        } catch (e) {
-          console.warn('Could not fetch student data fallback:', e)
-        }
-      }
       
       localStorage.setItem('user_data', JSON.stringify(user.value))
       
@@ -158,10 +153,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Link student record to user (called from student-side code only).
+   * Kept separate from fetchCurrentUser to avoid coupling auth with student logic.
+   */
+  const linkStudentRecord = (studentData) => {
+    if (user.value && studentData) {
+      user.value = { ...user.value, student: studentData }
+      localStorage.setItem('user_data', JSON.stringify(user.value))
+    }
+  }
+
   const logout = () => {
     authService.logout()
     user.value = null
     error.value = null
+    hasToken.value = false
   }
 
   const initialize = async () => {
@@ -170,9 +177,20 @@ export const useAuthStore = defineStore('auth', () => {
     const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
     
-    if (token && storedUser) {
+    if (token) {
+      hasToken.value = true
+      
+      // Restore cached user immediately for fast UI render
+      if (storedUser) {
+        try {
+          user.value = JSON.parse(storedUser)
+        } catch (e) {
+          console.warn('Failed to parse stored user data:', e)
+        }
+      }
+      
+      // Always refresh from API to ensure data is current
       try {
-        user.value = JSON.parse(storedUser)
         await fetchCurrentUser()
       } catch (err) {
         console.error('Failed to initialize auth:', err)
@@ -195,6 +213,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithGoogle,
     logout,
     fetchCurrentUser,
+    linkStudentRecord,
     initialize
   }
 })

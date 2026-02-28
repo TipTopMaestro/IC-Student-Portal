@@ -93,6 +93,12 @@ const router = createRouter({
           component: () => import('@/views/student/ExternalSystemsView.vue')
         }
       ]
+    },
+    // Catch-all: redirect unknown paths based on auth state
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      redirect: '/'
     }
   ]
 })

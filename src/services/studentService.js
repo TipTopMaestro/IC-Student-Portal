@@ -10,7 +10,7 @@ import api from './api'
  */
 export const getCurrentProfile = async () => {
   try {
-    const response = await api.get('api/v1/me/')
+    const response = await api.get('/api/v1/me/')
     // Backend wraps response in { status_code, message, data: {...}, errors }
     const userData = response.data.data || response.data
 
@@ -21,7 +21,7 @@ export const getCurrentProfile = async () => {
         const nameParts = userData.username.split('.')
         if (nameParts.length >= 1) {
           const searchTerm = nameParts[0]
-          const studentsResp = await api.get('api/v1/students/', {
+          const studentsResp = await api.get('/api/v1/students/', {
             params: { search: searchTerm }
           })
           const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
@@ -72,7 +72,7 @@ export const updateProfile = async (profileData) => {
       email: profileData.email
     }
 
-    const response = await api.patch('api/v1/me/', payload)
+    const response = await api.patch('/api/v1/me/', payload)
     const userData = response.data.data || response.data
     return {
       success: true,
@@ -94,7 +94,7 @@ export const updateProfile = async (profileData) => {
  */
 export const getStudentById = async (studentId) => {
   try {
-    const response = await api.get(`api/v1/students/${studentId}/`)
+    const response = await api.get(`/api/v1/students/${studentId}/`)
     return {
       success: true,
       data: response.data
@@ -115,7 +115,7 @@ export const getStudentById = async (studentId) => {
  */
 export const listStudents = async (params = {}) => {
   try {
-    const response = await api.get('api/v1/students/', { params })
+    const response = await api.get('/api/v1/students/', { params })
     return {
       success: true,
       data: response.data
