@@ -110,7 +110,7 @@ If you need to use mock data for development:
 
 - ✅ Real API is now active
 - ✅ Credentials verified: `aparece.alex` / `123456`
-- ⏳ Admin credentials pending
+- ⏳ Admin credentials: `Etriii` / `123456`
 - 📝 All API requests are logged in console for debugging
 - 🔒 Tokens stored securely in localStorage
 - 🔄 Auto token refresh implemented

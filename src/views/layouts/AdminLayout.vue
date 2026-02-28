@@ -80,7 +80,7 @@
     </div>
 
     <!-- Desktop Sidebar -->
-    <aside class="hidden md:flex fixed left-0 top-0 h-screen w-18 hover:w-61 bg-white border-r border-gray-200 flex-col transition-all duration-300 ease-out z-50 group">
+    <aside class="hidden md:flex fixed left-0 top-0 h-screen w-18 hover:w-61 bg-white flex-col transition-all duration-300 ease-out z-50 group">
       <!-- Logo -->
       <div class="flex items-center px-6 py-3">
         <div class="w-7 h-7 shrink-0 flex items-center justify-center">

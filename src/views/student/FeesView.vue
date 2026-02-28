@@ -82,7 +82,7 @@
     <!-- Fees List -->
     <div class="space-y-3">
       <div 
-        v-for="fee in filteredFees" 
+        v-for="fee in paginatedFees" 
         :key="fee.id" 
         class="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors"
       >
@@ -101,7 +101,7 @@
             <div class="flex items-center gap-4 mt-2">
               <div>
                 <p class="text-lg font-semibold text-gray-900">₱{{ fee.totalAmount.toLocaleString() }}</p>
-                <p v-if="fee.amount > 0 && fee.amount < fee.totalAmount" class="text-xs text-amber-600">Balance: ₱{{ fee.amount.toLocaleString() }}</p>
+                <p v-if="fee.balance > 0 && fee.balance < fee.totalAmount" class="text-xs text-amber-600">Balance: ₱{{ fee.balance.toLocaleString() }}</p>
               </div>
               <p class="text-xs text-gray-500">{{ fee.dueDate }}</p>
             </div>
@@ -130,7 +130,7 @@
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
         <p class="text-xs text-gray-500">
-          Page {{ currentPage }} of {{ totalPages }} ({{ totalItems }} total)
+          Page {{ currentPage }} of {{ totalPages }} ({{ filteredFees.length }} total)
         </p>
         <div class="flex items-center gap-1">
           <button 
@@ -198,7 +198,7 @@
         <div class="p-6 text-center space-y-4">
           <div>
             <h3 class="text-lg font-semibold text-gray-900">Pay via Collection Management System</h3>
-            <p class="text-sm text-gray-500 mt-2">To submit your payment for <strong>{{ selectedFee?.description }}</strong> (₱{{ selectedFee?.amount.toLocaleString() }}), you will be redirected to the Collection Management System.</p>
+            <p class="text-sm text-gray-500 mt-2">To submit your payment for <strong>{{ selectedFee?.description }}</strong> (₱{{ selectedFee?.balance.toLocaleString() }}), you will be redirected to the Collection Management System.</p>
             <p class="text-xs text-gray-400 mt-2">You will need to log in with your CMS credentials.</p>
           </div>
         </div>
@@ -273,7 +273,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getStudentFees, getPaymentSubmissions } from '@/services/feeService'
 
@@ -298,15 +298,13 @@ const selectedFee = ref(null)
 const showReceiptModal = ref(false)
 const selectedSubmission = ref(null)
 
-// Fees and submissions data
-const fees = ref([])
+// All fees (fetched once for accurate summaries)
+const allFees = ref([])
 const submissions = ref([])
 
-// Pagination state
+// Client-side pagination
 const currentPage = ref(1)
-const totalPages = ref(1)
-const totalItems = ref(0)
-const perPage = ref(10)
+const perPage = 10
 
 // Get current student ID
 const studentId = computed(() => {
@@ -323,40 +321,39 @@ const formatDate = (dateString) => {
 
 // Map backend fee data to frontend format
 const mapFeeData = (backendFee) => {
+  const totalAmount = parseFloat(backendFee.total_amount) || 0
+  const balance = parseFloat(backendFee.balance) || 0
   return {
     id: backendFee.id,
     description: backendFee.category_name,
     category: backendFee.category_name,
-    amount: parseFloat(backendFee.balance) || 0,
-    totalAmount: parseFloat(backendFee.total_amount) || 0,
-    semester: `${backendFee.semester} Semester ${backendFee.academic_year}`,
+    balance,
+    totalAmount,
+    paidAmount: totalAmount - balance,
+    semester: `${backendFee.semester || ''} Semester ${backendFee.academic_year || ''}`.trim(),
     dueDate: formatDate(backendFee.due_date),
     status: backendFee.status,
     isOverdue: backendFee.due_date && new Date(backendFee.due_date) < new Date() && backendFee.status !== 'paid'
   }
 }
 
-// Load fees and submissions from API
-const loadFees = async (page = 1) => {
+// Load all fees and submissions from API
+const loadFees = async () => {
   isLoading.value = true
   error.value = null
   
   try {
     const sid = studentId.value
-    console.log('💰 FeesView: Loading fees for student:', sid, 'page:', page)
+    console.log('💰 FeesView: Loading all fees for student:', sid)
     
+    // Fetch ALL fees in one call for accurate summaries + client-side pagination
     const [feesResult, subsResult] = await Promise.all([
-      getStudentFees(sid, { page, perPage: perPage.value }),
-      page === 1 ? getPaymentSubmissions(sid) : Promise.resolve(null)
+      getStudentFees(sid, { page: 1, perPage: 200 }),
+      getPaymentSubmissions(sid)
     ])
     
     if (feesResult.success) {
-      fees.value = feesResult.data.map(mapFeeData)
-      if (feesResult.pagination) {
-        currentPage.value = feesResult.pagination.currentPage
-        totalPages.value = feesResult.pagination.totalPages
-        totalItems.value = feesResult.pagination.totalItems
-      }
+      allFees.value = feesResult.data.map(mapFeeData)
     } else {
       error.value = feesResult.error
     }
@@ -372,40 +369,55 @@ const loadFees = async (page = 1) => {
   }
 }
 
-const goToPage = (page) => {
-  if (page >= 1 && page <= totalPages.value) {
-    loadFees(page)
-  }
-}
+// Reset to page 1 when filters change
+watch([filterStatus, filterSemester], () => {
+  currentPage.value = 1
+})
 
-// Computed properties
+// Computed: available semesters from ALL fees
 const availableSemesters = computed(() => {
-  const semesters = [...new Set(fees.value.map(fee => fee.semester))]
+  const semesters = [...new Set(allFees.value.map(fee => fee.semester))]
   return semesters.sort()
 })
 
+// Computed: filtered fees (across ALL data, not just current page)
 const filteredFees = computed(() => {
-  return fees.value.filter(fee => {
+  return allFees.value.filter(fee => {
     const statusMatch = filterStatus.value === 'all' || fee.status === filterStatus.value
     const semesterMatch = filterSemester.value === 'all' || fee.semester === filterSemester.value
     return statusMatch && semesterMatch
   })
 })
 
+// Client-side pagination
+const totalPages = computed(() => Math.ceil(filteredFees.value.length / perPage) || 1)
+
+const paginatedFees = computed(() => {
+  const start = (currentPage.value - 1) * perPage
+  return filteredFees.value.slice(start, start + perPage)
+})
+
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+  }
+}
+
+// Summary cards — computed from ALL fees (not just current page)
 const totalFees = computed(() => {
-  return fees.value.reduce((sum, fee) => sum + fee.totalAmount, 0)
+  return allFees.value.reduce((sum, fee) => sum + fee.totalAmount, 0)
 })
 
 const paidFees = computed(() => {
-  return fees.value
-    .filter(fee => fee.status === 'paid')
-    .reduce((sum, fee) => sum + fee.totalAmount, 0)
+  // Paid = sum of (totalAmount - balance) for each fee
+  return allFees.value.reduce((sum, fee) => sum + fee.paidAmount, 0)
 })
 
 const outstandingFees = computed(() => {
-  return fees.value
+  // Outstanding = sum of remaining balance for all non-paid fees
+  return allFees.value
     .filter(fee => fee.status !== 'paid')
-    .reduce((sum, fee) => sum + fee.amount, 0)
+    .reduce((sum, fee) => sum + fee.balance, 0)
 })
 
 const paginationPages = computed(() => {

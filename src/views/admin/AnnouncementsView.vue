@@ -4,214 +4,84 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900 mb-1">Announcements</h1>
-        <p class="text-sm text-gray-500">{{ announcements.length }} announcements published</p>
+        <p class="text-sm text-gray-500">Manage announcements for students</p>
       </div>
-      <button 
-        @click="showCreateModal = true"
-        class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
-      >
-        New Announcement
-      </button>
     </div>
 
-    <!-- Filters -->
-    <div class="flex items-center gap-3 mb-6">
-      <button 
-        @click="filterStatus = 'all'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        All Posts
-      </button>
-      <button 
-        @click="filterStatus = 'published'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'published' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        Published
-      </button>
-      <button 
-        @click="filterStatus = 'draft'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'draft' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        Drafts
-      </button>
+    <!-- Loading State -->
+    <div v-if="isLoading" class="py-16 text-center">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-ic-primary mx-auto mb-3"></div>
+      <p class="text-sm text-gray-500">Loading announcements...</p>
     </div>
 
-    <!-- Announcements List -->
-    <div class="space-y-3">
-      <div 
-        v-for="announcement in filteredAnnouncements" 
-        :key="announcement.id"
-        class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-      >
-        <div class="flex items-start gap-4">
-          <!-- Icon -->
-          <div class="w-10 h-10 shrink-0 rounded-full bg-purple-50 flex items-center justify-center">
-            <svg class="w-5 h-5 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-          </div>
+    <!-- Not Available / Error State -->
+    <div v-else-if="notAvailable" class="text-center py-16 border border-gray-200 rounded-lg">
 
-          <!-- Content -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-start justify-between mb-2">
-              <div class="flex-1">
-                <h3 class="text-base font-semibold mb-1">{{ announcement.title }}</h3>
-                <p class="text-sm text-gray-500 line-clamp-2">{{ announcement.content }}</p>
-              </div>
-              <span 
-                :class="[
-                  'ml-4 px-2 py-1 text-xs font-medium rounded shrink-0',
-                  announcement.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'
-                ]"
-              >
-                {{ announcement.status.charAt(0).toUpperCase() + announcement.status.slice(1) }}
-              </span>
+      <h3 class="text-base font-semibold text-gray-900 mb-2">Coming Soon</h3>
+      
+    </div>
+
+    <!-- Announcements List (if endpoint works in the future) -->
+    <template v-else>
+      <div class="space-y-3">
+        <div 
+          v-for="announcement in announcements" 
+          :key="announcement.id"
+          class="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-all cursor-pointer"
+          @click="viewAnnouncement(announcement)"
+        >
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 shrink-0 rounded-full bg-blue-50 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              </svg>
             </div>
-
-            <div class="flex items-center gap-4 text-xs text-gray-500 mb-3">
-              <div class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>{{ announcement.date }}</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-base font-semibold mb-1">{{ announcement.title || 'Untitled' }}</h3>
+              <p v-if="announcement.content || announcement.body || announcement.description" class="text-sm text-gray-500 line-clamp-2 mb-2">
+                {{ announcement.content || announcement.body || announcement.description }}
+              </p>
+              <div class="flex items-center gap-3 text-xs text-gray-500">
+                <span v-if="formatDate(announcement)">{{ formatDate(announcement) }}</span>
+                <span v-if="announcement.author || announcement.created_by" class="flex items-center gap-1">
+                  <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                  {{ announcement.author || announcement.created_by }}
+                </span>
               </div>
-              <div class="flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span>{{ announcement.author }}</span>
-              </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex items-center gap-2">
-              <button 
-                @click="viewAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                View
-              </button>
-              <button 
-                @click="editAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Edit
-              </button>
-              <button 
-                @click="deleteAnnouncement(announcement)"
-                class="px-3 py-1.5 text-xs font-medium text-red-500 border border-red-500 rounded-lg hover:bg-red-50 transition-colors"
-              >
-                Delete
-              </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div v-if="filteredAnnouncements.length === 0" class="text-center py-16">
-      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-      </svg>
-      <p class="text-sm text-gray-500 mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} announcements found</p>
-      <button 
-        @click="showCreateModal = true"
-        class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
-      >
-        Create First Announcement
-      </button>
-    </div>
+      <!-- Empty (API works but no data) -->
+      <div v-if="announcements.length === 0 && !isLoading" class="text-center py-16 border border-gray-200 rounded-lg">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+        </svg>
+        <p class="text-sm text-gray-500">No announcements yet</p>
+      </div>
 
-    <!-- Create/Edit Modal -->
-    <div 
-      v-if="showCreateModal"
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showCreateModal = false"
-    >
-      <div class="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-semibold">{{ editMode ? 'Edit' : 'Create' }} Announcement</h2>
-          <button @click="closeCreateModal" class="p-1 hover:bg-gray-50 rounded-lg">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between mt-6">
+        <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage <= 1 || isLoading"
+            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button 
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage >= totalPages || isLoading"
+            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
           </button>
         </div>
-
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Title</label>
-            <input 
-              v-model="formData.title"
-              type="text" 
-              required
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              placeholder="Important Update: Class Schedule Changes"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Content</label>
-            <textarea 
-              v-model="formData.content"
-              required
-              rows="6"
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary resize-none"
-              placeholder="Write your announcement here..."
-            ></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-2">Date</label>
-              <input 
-                v-model="formData.date"
-                type="date" 
-                required
-                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-2">Status</label>
-              <select 
-                v-model="formData.status"
-                required
-                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="flex gap-3 pt-4">
-            <button 
-              type="button"
-              @click="closeCreateModal"
-              class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit"
-              class="flex-1 px-4 py-2 text-sm font-semibold bg-ic-primary text-white rounded-lg hover:bg-ic-secondary transition-colors"
-            >
-              {{ editMode ? 'Update' : 'Create' }} Announcement
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </template>
 
     <!-- View Modal -->
     <div 
@@ -230,36 +100,17 @@
         </div>
 
         <div class="space-y-4">
-          <div>
-            <span 
-              :class="[
-                'inline-block px-2 py-1 text-xs font-medium rounded',
-                selectedAnnouncement.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'
-              ]"
-            >
-              {{ selectedAnnouncement.status.charAt(0).toUpperCase() + selectedAnnouncement.status.slice(1) }}
+          <h3 class="text-lg font-semibold">{{ selectedAnnouncement.title }}</h3>
+          <div class="flex items-center gap-3 text-sm text-gray-500">
+            <span v-if="formatDate(selectedAnnouncement)">{{ formatDate(selectedAnnouncement) }}</span>
+            <span v-if="selectedAnnouncement.author || selectedAnnouncement.created_by">
+              · {{ selectedAnnouncement.author || selectedAnnouncement.created_by }}
             </span>
           </div>
-
-          <h3 class="text-lg font-semibold">{{ selectedAnnouncement.title }}</h3>
-
-          <div class="flex items-center gap-4 text-sm text-gray-500">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{{ selectedAnnouncement.date }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span>{{ selectedAnnouncement.author }}</span>
-            </div>
-          </div>
-
           <div class="pt-4 border-t border-gray-100">
-            <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ selectedAnnouncement.content }}</p>
+            <p class="text-sm leading-relaxed whitespace-pre-wrap">
+              {{ selectedAnnouncement.content || selectedAnnouncement.body || selectedAnnouncement.description || 'No content' }}
+            </p>
           </div>
         </div>
 
@@ -271,69 +122,70 @@
         </button>
       </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div 
-      v-if="selectedAnnouncement && showDeleteModal"
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showDeleteModal = false"
-    >
-      <div class="bg-white rounded-xl max-w-sm w-full p-6">
-        <h2 class="text-xl font-semibold mb-4">Delete Announcement?</h2>
-        <p class="text-sm text-gray-500 mb-6">
-          Are you sure you want to delete "<span class="font-medium text-gray-900">{{ selectedAnnouncement.title }}</span>"? This action cannot be undone.
-        </p>
-
-        <div class="flex gap-3">
-          <button 
-            @click="showDeleteModal = false"
-            class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button 
-            @click="confirmDelete"
-            class="flex-1 px-4 py-2 text-sm font-semibold bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { listAnnouncements } from '@/services/announcementService'
 
-const filterStatus = ref('all')
-const showCreateModal = ref(false)
+const currentPage = ref(1)
+
+const isLoading = ref(false)
+const notAvailable = ref(false)
+const announcements = ref([])
+const totalPages = ref(1)
+
 const showViewModal = ref(false)
-const showDeleteModal = ref(false)
 const selectedAnnouncement = ref(null)
-const editMode = ref(false)
 
-const formData = ref({
-  title: '',
-  content: '',
-  date: new Date().toISOString().split('T')[0],
-  status: 'draft'
-})
-
-const handleSubmit = () => {
-  console.log('Submitting announcement:', formData.value)
-  closeCreateModal()
+const formatDate = (item) => {
+  const dateStr = item.date || item.created_at || item.published_at
+  if (!dateStr) return null
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
-const closeCreateModal = () => {
-  showCreateModal.value = false
-  editMode.value = false
-  formData.value = {
-    title: '',
-    content: '',
-    date: new Date().toISOString().split('T')[0],
-    status: 'draft'
+const loadAnnouncements = async () => {
+  isLoading.value = true
+  notAvailable.value = false
+
+  try {
+    const params = { page: currentPage.value, per_page: 20 }
+    const result = await listAnnouncements(params)
+
+    if (result.success) {
+      const responseData = result.data.data || result.data
+      const pageData = responseData.data || responseData
+
+      if (Array.isArray(pageData)) {
+        announcements.value = pageData
+      } else if (Array.isArray(pageData?.data)) {
+        announcements.value = pageData.data
+      } else {
+        announcements.value = []
+      }
+
+      totalPages.value = responseData.total_pages || pageData.total_pages || 1
+    } else {
+      // If it's a 404, the endpoint doesn't exist yet
+      if (result.error?.includes('404') || result.error?.includes('Not Found') || result.error === 'Failed to load announcements') {
+        notAvailable.value = true
+      } else {
+        notAvailable.value = true
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load announcements:', err)
+    notAvailable.value = true
   }
+
+  isLoading.value = false
+}
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  loadAnnouncements()
 }
 
 const viewAnnouncement = (announcement) => {
@@ -341,69 +193,7 @@ const viewAnnouncement = (announcement) => {
   showViewModal.value = true
 }
 
-const editAnnouncement = (announcement) => {
-  selectedAnnouncement.value = announcement
-  editMode.value = true
-  formData.value = {
-    title: announcement.title,
-    content: announcement.content,
-    date: announcement.date,
-    status: announcement.status
-  }
-  showCreateModal.value = true
-}
-
-const deleteAnnouncement = (announcement) => {
-  selectedAnnouncement.value = announcement
-  showDeleteModal.value = true
-}
-
-const confirmDelete = () => {
-  console.log('Deleting announcement:', selectedAnnouncement.value)
-  showDeleteModal.value = false
-  selectedAnnouncement.value = null
-}
-
-// Mock data
-const announcements = ref([
-  {
-    id: 1,
-    title: 'Important: Class Schedule Changes',
-    content: 'Due to the upcoming foundation day celebration, there will be changes in the class schedule for next week. Please check your emails for the updated schedule.',
-    date: '2024-01-20',
-    author: 'Admin',
-    status: 'published'
-  },
-  {
-    id: 2,
-    title: 'ICSA Meeting - February 1',
-    content: 'All ICSA members are required to attend the general assembly on February 1, 2024 at 2:00 PM in Computer Lab 1.',
-    date: '2024-01-22',
-    author: 'ICSA President',
-    status: 'published'
-  },
-  {
-    id: 3,
-    title: 'Coding Competition Registration Open',
-    content: 'Registration for the annual coding competition is now open! Visit the CS office to register. Limited slots available.',
-    date: '2024-01-18',
-    author: 'Faculty',
-    status: 'published'
-  },
-  {
-    id: 4,
-    title: 'Scholarship Application Deadline',
-    content: 'Reminder: The deadline for scholarship applications is February 15, 2024. Make sure to submit all required documents.',
-    date: '2024-01-15',
-    author: 'Admin',
-    status: 'draft'
-  }
-])
-
-const filteredAnnouncements = computed(() => {
-  if (filterStatus.value === 'all') {
-    return announcements.value
-  }
-  return announcements.value.filter(a => a.status === filterStatus.value)
+onMounted(() => {
+  loadAnnouncements()
 })
 </script>

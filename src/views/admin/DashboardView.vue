@@ -7,22 +7,27 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-3 gap-3">
       <div class="bg-white border border-gray-200 rounded-xl p-4">
         <div class="text-xs text-gray-500">Students</div>
-        <div class="text-2xl font-semibold text-gray-900 mt-1">{{ stats.totalStudents.toLocaleString() }}</div>
+        <div class="text-2xl font-semibold text-gray-900 mt-1">
+          <span v-if="statsLoading" class="inline-block w-12 h-7 bg-gray-100 rounded animate-pulse"></span>
+          <span v-else>{{ stats.totalStudents.toLocaleString() }}</span>
+        </div>
       </div>
       <div class="bg-white border border-gray-200 rounded-xl p-4">
         <div class="text-xs text-gray-500">Events</div>
-        <div class="text-2xl font-semibold text-gray-900 mt-1">{{ stats.activeEvents }}</div>
+        <div class="text-2xl font-semibold text-gray-900 mt-1">
+          <span v-if="statsLoading" class="inline-block w-12 h-7 bg-gray-100 rounded animate-pulse"></span>
+          <span v-else>{{ stats.totalEvents }}</span>
+        </div>
       </div>
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <div class="text-xs text-gray-500">Announcements</div>
-        <div class="text-2xl font-semibold text-gray-900 mt-1">{{ stats.announcements }}</div>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <div class="text-xs text-gray-500">Attendance</div>
-        <div class="text-2xl font-semibold text-gray-900 mt-1">{{ attendanceRate }}%</div>
+        <div class="text-xs text-gray-500">Attendance Records</div>
+        <div class="text-2xl font-semibold text-gray-900 mt-1">
+          <span v-if="statsLoading" class="inline-block w-12 h-7 bg-gray-100 rounded animate-pulse"></span>
+          <span v-else>{{ stats.totalAttendance.toLocaleString() }}</span>
+        </div>
       </div>
     </div>
 
@@ -34,166 +39,137 @@
           to="/admin/students" 
           class="flex-1 py-2 text-center bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
         >
-          Add Student
+          View Students
         </router-link>
         <router-link 
           to="/admin/events" 
           class="flex-1 py-2 text-center border border-ic-primary text-ic-primary text-sm font-semibold rounded-lg hover:bg-purple-50 transition-colors"
         >
-          Create Event
+          View Events
         </router-link>
         <router-link 
           to="/admin/announcements" 
           class="flex-1 py-2 text-center border border-ic-primary text-ic-primary text-sm font-semibold rounded-lg hover:bg-purple-50 transition-colors"
         >
-          New Post
+          View Announcements
         </router-link>
       </div>
     </div>
 
-    <!-- Weekly Attendance -->
+    <!-- Recent Events -->
     <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-base font-semibold text-gray-900">Weekly Attendance</h2>
-        <button class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">View All</button>
+        <h2 class="text-base font-semibold text-gray-900">Recent Events</h2>
+        <router-link to="/admin/events" class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">View All</router-link>
       </div>
 
-      <div class="space-y-4">
-        <div v-for="day in attendanceTrend" :key="day.label" class="flex items-center gap-4">
-          <div class="w-12 text-sm text-gray-500">{{ day.label }}</div>
-          <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div 
-              class="h-full bg-ic-primary rounded-full"
-              :style="{ width: day.percentage + '%' }"
-            ></div>
-          </div>
-          <div class="w-20 text-sm text-gray-900 text-right">{{ day.value.toLocaleString() }}</div>
-        </div>
+      <div v-if="recentEvents.length === 0 && !statsLoading" class="text-sm text-gray-500 py-4 text-center">
+        No events found
       </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
-      <h2 class="text-base font-semibold text-gray-900 mb-4">Recent Activity</h2>
-      
-      <div class="space-y-0">
+      <div v-else class="space-y-0">
         <div 
-          v-for="activity in recentActivities" 
-          :key="activity.id" 
-          class="py-4 border-b border-gray-100 last:border-b-0"
+          v-for="event in recentEvents" 
+          :key="event.id" 
+          class="py-3 border-b border-gray-100 last:border-b-0"
         >
           <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-              <component :is="activity.icon" class="w-4 h-4 text-gray-900" />
+            <div class="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
-            <div class="flex-1 min-w-0 pt-0.5">
-              <p class="text-sm text-gray-900 leading-4.5">
-                <span class="font-semibold">{{ activity.user }}</span>
-                <span> {{ activity.action }}</span>
-              </p>
-              <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">{{ getEventName(event) }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">{{ formatDate(event) }}</p>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="mt-6 text-center">
-        <button class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">
-          Show More
-        </button>
+    <!-- Recent Announcements -->
+    <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Recent Announcements</h2>
+        <router-link to="/admin/announcements" class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">View All</router-link>
+      </div>
+      <div class="text-center py-6">
+        <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+          </svg>
+        </div>
+        <p class="text-sm font-medium text-gray-500">Coming Soon</p>
+        <p class="text-xs text-gray-400 mt-1">Announcements feature is not yet available</p>
       </div>
     </div>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed, h } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { ref, onMounted } from 'vue'
+import { listStudents } from '@/services/studentService'
+import { listInstituteEvents, listAttendanceRecords } from '@/services/eventService'
 
-const authStore = useAuthStore()
-const user = computed(() => authStore.user)
+const statsLoading = ref(true)
 
 const stats = ref({
-  totalStudents: 1248,
-  activeStudents: 1102,
-  activeEvents: 12,
-  announcements: 28,
-  attendanceRecords: 892
+  totalStudents: 0,
+  totalEvents: 0,
+  totalAttendance: 0
 })
 
-const attendanceRate = computed(() => {
-  return Math.round((stats.value.activeStudents / stats.value.totalStudents) * 100)
+const recentEvents = ref([])
+
+const formatDate = (item) => {
+  const dateStr = item.start_date || item.date || item.created_at || item.published_at
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+const getEventName = (event) => {
+  return event.attendance_event?.event_name || event.event_name || event.name || 'Unnamed Event'
+}
+
+// Extract total count from a paginated API response
+const extractTotal = (result) => {
+  if (!result.success) return 0
+  const d = result.data?.data || result.data
+  return d?.total_items ?? d?.data?.total_items ?? 0
+}
+
+// Extract array items from response
+const extractItems = (result) => {
+  if (!result.success) return []
+  const d = result.data?.data || result.data
+  const items = d?.data || d
+  return Array.isArray(items) ? items : (items?.data || [])
+}
+
+const loadDashboard = async () => {
+  statsLoading.value = true
+
+  const [studentsRes, eventsRes, attendanceRes] = await Promise.allSettled([
+    listStudents({ per_page: 5 }),
+    listInstituteEvents({ per_page: 5 }),
+    listAttendanceRecords({ per_page: 1 })
+  ])
+
+  const studentsResult = studentsRes.status === 'fulfilled' ? studentsRes.value : { success: false }
+  const eventsResult = eventsRes.status === 'fulfilled' ? eventsRes.value : { success: false }
+  const attendanceResult = attendanceRes.status === 'fulfilled' ? attendanceRes.value : { success: false }
+
+  stats.value.totalStudents = extractTotal(studentsResult)
+  stats.value.totalEvents = extractTotal(eventsResult)
+  stats.value.totalAttendance = extractTotal(attendanceResult)
+
+  recentEvents.value = extractItems(eventsResult).slice(0, 5)
+
+  statsLoading.value = false
+}
+
+onMounted(() => {
+  loadDashboard()
 })
-
-const attendanceTrend = ref([
-  { label: 'Mon', value: 1150, percentage: 92 },
-  { label: 'Tue', value: 1180, percentage: 95 },
-  { label: 'Wed', value: 1095, percentage: 88 },
-  { label: 'Thu', value: 1220, percentage: 98 },
-  { label: 'Fri', value: 1050, percentage: 84 },
-  { label: 'Sat', value: 890, percentage: 71 },
-  { label: 'Sun', value: 0, percentage: 0 }
-])
-
-// Simple icons
-const UserIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
-])
-
-const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' })
-])
-
-const BellIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' })
-])
-
-const CheckIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': '2' }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' })
-])
-
-const recentActivities = ref([
-  {
-    id: 1,
-    user: 'Juan Dela Cruz',
-    action: 'registered as a new student',
-    time: '5 minutes ago',
-    icon: UserIcon
-  },
-  {
-    id: 2,
-    user: 'System',
-    action: 'updated Career Fair event details',
-    time: '1 hour ago',
-    icon: CalendarIcon
-  },
-  {
-    id: 3,
-    user: 'Admin',
-    action: 'posted a new announcement about orientation',
-    time: '3 hours ago',
-    icon: BellIcon
-  },
-  {
-    id: 4,
-    user: 'System',
-    action: 'processed attendance records for CS Department',
-    time: '5 hours ago',
-    icon: CheckIcon
-  },
-  {
-    id: 5,
-    user: 'Maria Santos',
-    action: 'registered as a new student',
-    time: '6 hours ago',
-    icon: UserIcon
-  },
-  {
-    id: 6,
-    user: 'System',
-    action: 'sent weekly report to all administrators',
-    time: '8 hours ago',
-    icon: BellIcon
-  }
-])
 </script>

@@ -4,238 +4,118 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-semibold text-gray-900 mb-1">Events</h1>
-        <p class="text-sm text-gray-500">{{ events.length }} events scheduled</p>
+        <p class="text-sm text-gray-500">{{ totalItems }} events</p>
       </div>
-      <button 
-        @click="showCreateEventModal = true"
-        class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
-      >
-        Create Event
-      </button>
     </div>
 
     <!-- Filters -->
     <div class="flex items-center gap-3 mb-6">
       <button 
-        @click="filterStatus = 'all'"
+        v-for="status in ['all', 'upcoming', 'ongoing', 'completed']"
+        :key="status"
+        @click="filterStatus = status"
         :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'all' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
+          'px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize',
+          filterStatus === status ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
-        All Events
-      </button>
-      <button 
-        @click="filterStatus = 'upcoming'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'upcoming' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        Upcoming
-      </button>
-      <button 
-        @click="filterStatus = 'ongoing'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'ongoing' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        Ongoing
-      </button>
-      <button 
-        @click="filterStatus = 'completed'"
-        :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
-          filterStatus === 'completed' ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        Completed
+        {{ status === 'all' ? 'All Events' : status }}
       </button>
     </div>
 
-    <!-- Events Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div 
-        v-for="event in filteredEvents" 
-        :key="event.id"
-        class="border border-gray-200 rounded-lg overflow-hidden hover:shadow-sm transition-shadow"
-      >
-        <!-- Event Image/Banner -->
-        <div class="aspect-video bg-gradient-to-br from-ic-primary to-ic-secondary flex items-center justify-center">
-          <svg class="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
+    <!-- Loading State -->
+    <div v-if="isLoading && events.length === 0" class="py-16 text-center">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-ic-primary mx-auto mb-3"></div>
+      <p class="text-sm text-gray-500">Loading events...</p>
+    </div>
 
-        <!-- Event Details -->
-        <div class="p-4">
-          <!-- Status Badge -->
-          <div class="mb-3">
+    <!-- Error State -->
+    <div v-else-if="error" class="py-12 text-center">
+      <svg class="mx-auto h-10 w-10 text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm text-gray-900 font-medium mb-1">Failed to load events</p>
+      <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
+      <button @click="loadEvents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+        Try Again
+      </button>
+    </div>
+
+    <!-- Events List -->
+    <template v-else>
+      <div class="space-y-3" :class="{ 'opacity-60': isLoading }">
+        <div 
+          v-for="event in displayedEvents" 
+          :key="event.id"
+          class="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-all cursor-pointer"
+          @click="viewEvent(event)"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start gap-4 flex-1 min-w-0">
+              <!-- Event Icon -->
+              <div class="w-11 h-11 shrink-0 rounded-lg bg-purple-50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+
+              <!-- Event Details -->
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-semibold text-gray-900 mb-1">{{ getEventName(event) }}</h3>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                  <span v-if="formatDateRange(event)">{{ formatDateRange(event) }}</span>
+                  <span v-if="event.academic_year" class="flex items-center gap-1">
+                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                    AY {{ event.academic_year }}
+                  </span>
+                  <span v-if="event.semester" class="flex items-center gap-1">
+                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                    {{ event.semester }} Semester
+                  </span>
+                </div>
+                <p v-if="getDescription(event)" class="text-sm text-gray-500 mt-1.5 line-clamp-1">{{ getDescription(event) }}</p>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
             <span 
-              :class="[
-                'inline-block px-2 py-1 text-xs font-medium rounded',
-                event.status === 'upcoming' && 'bg-blue-50 text-blue-600',
-                event.status === 'ongoing' && 'bg-green-50 text-green-600',
-                event.status === 'completed' && 'bg-gray-100 text-gray-600'
-              ]"
+              :class="['inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full shrink-0 capitalize', getStatusClass(event)]"
             >
-              {{ event.status.charAt(0).toUpperCase() + event.status.slice(1) }}
+              {{ getEventStatus(event) }}
             </span>
           </div>
-
-          <!-- Event Title -->
-          <h3 class="text-base font-semibold mb-2 line-clamp-2">{{ event.title }}</h3>
-
-          <!-- Event Meta -->
-          <div class="space-y-2 mb-4">
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{{ event.date }}</span>
-            </div>
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{{ event.time }}</span>
-            </div>
-            <div class="flex items-center gap-2 text-sm text-gray-500">
-              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span class="truncate">{{ event.location }}</span>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center gap-2">
-            <button 
-              @click="viewEvent(event)"
-              class="flex-1 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              View Details
-            </button>
-            <button 
-              @click="editEvent(event)"
-              class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Empty State -->
-    <div v-if="filteredEvents.length === 0" class="text-center py-16">
-      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <p class="text-sm text-gray-500 mb-4">No {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
-      <button 
-        @click="showCreateEventModal = true"
-        class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors"
-      >
-        Create First Event
-      </button>
-    </div>
+      <!-- Empty State -->
+      <div v-if="displayedEvents.length === 0 && !isLoading" class="text-center py-16 border border-gray-200 rounded-lg">
+        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-sm text-gray-500">No {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
+      </div>
 
-    <!-- Create Event Modal -->
-    <div 
-      v-if="showCreateEventModal"
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showCreateEventModal = false"
-    >
-      <div class="bg-white rounded-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-semibold">Create New Event</h2>
-          <button @click="showCreateEventModal = false" class="p-1 hover:bg-gray-50 rounded-lg">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+      <!-- Pagination -->
+      <div v-if="totalPages > 1" class="flex items-center justify-between mt-6">
+        <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="goToPage(currentPage - 1)"
+            :disabled="currentPage <= 1 || isLoading"
+            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <button 
+            @click="goToPage(currentPage + 1)"
+            :disabled="currentPage >= totalPages || isLoading"
+            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
           </button>
         </div>
-
-        <form @submit.prevent="handleCreateEvent" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Event Title</label>
-            <input 
-              v-model="newEvent.title"
-              type="text" 
-              required
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              placeholder="Career Fair 2024"
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-2">Start Date</label>
-              <input 
-                v-model="newEvent.startDate"
-                type="date" 
-                required
-                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-900 mb-2">End Date</label>
-              <input 
-                v-model="newEvent.endDate"
-                type="date" 
-                required
-                class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Location</label>
-            <input 
-              v-model="newEvent.location"
-              type="text" 
-              required
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-              placeholder="DNSC Gymnasium"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Status</label>
-            <select 
-              v-model="newEvent.status"
-              required
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-            >
-              <option value="upcoming">Upcoming</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-
-          <div class="flex gap-3 pt-4">
-            <button 
-              type="button"
-              @click="showCreateEventModal = false"
-              class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit"
-              class="flex-1 px-4 py-2 text-sm font-semibold bg-ic-primary text-white rounded-lg hover:bg-ic-secondary transition-colors"
-            >
-              Create Event
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </template>
 
     <!-- View Event Modal -->
     <div 
@@ -255,39 +135,28 @@
 
         <div class="space-y-4">
           <div>
-            <span 
-              :class="[
-                'inline-block px-2 py-1 text-xs font-medium rounded',
-                selectedEvent.status === 'upcoming' && 'bg-blue-50 text-blue-600',
-                selectedEvent.status === 'ongoing' && 'bg-green-50 text-green-600',
-                selectedEvent.status === 'completed' && 'bg-gray-100 text-gray-600'
-              ]"
-            >
-              {{ selectedEvent.status.charAt(0).toUpperCase() + selectedEvent.status.slice(1) }}
+            <span :class="['inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full capitalize', getStatusClass(selectedEvent)]">
+              {{ getEventStatus(selectedEvent) }}
             </span>
           </div>
 
-          <h3 class="text-lg font-semibold">{{ selectedEvent.title }}</h3>
+          <h3 class="text-lg font-semibold">{{ getEventName(selectedEvent) }}</h3>
 
-          <div class="space-y-3">
-            <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="space-y-3 text-sm">
+            <div v-if="formatDateRange(selectedEvent)" class="flex items-center gap-3 text-gray-600">
+              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>{{ selectedEvent.date }}</span>
+              <span>{{ formatDateRange(selectedEvent) }}</span>
             </div>
-            <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div v-if="selectedEvent.academic_year" class="flex items-center gap-3 text-gray-600">
+              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
-              <span>{{ selectedEvent.time }}</span>
+              <span>AY {{ selectedEvent.academic_year }} · {{ selectedEvent.semester }} Semester</span>
             </div>
-            <div class="flex items-center gap-3 text-sm">
-              <svg class="w-5 h-5 text-gray-500"fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>{{ selectedEvent.location }}</span>
+            <div v-if="getDescription(selectedEvent)" class="pt-3 border-t border-gray-100">
+              <p class="text-gray-600 leading-relaxed">{{ getDescription(selectedEvent) }}</p>
             </div>
           </div>
         </div>
@@ -304,34 +173,102 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
 
 const filterStatus = ref('all')
+const currentPage = ref(1)
 
-const showCreateEventModal = ref(false)
+const isLoading = ref(false)
+const error = ref(null)
+const events = ref([])
+const totalItems = ref(0)
+const totalPages = ref(1)
+
 const showViewModal = ref(false)
 const selectedEvent = ref(null)
 
-const newEvent = ref({
-  title: '',
-  startDate: '',
-  endDate: '',
-  time: '',
-  location: '',
-  status: 'upcoming'
+// Field accessors — handles both institute-attendance-event and attendance-events structures
+const getEventName = (event) => {
+  return event.attendance_event?.event_name || event.event_name || 'Unnamed Event'
+}
+
+const getDescription = (event) => {
+  return event.attendance_event?.description || event.description || null
+}
+
+const getEventStatus = (event) => {
+  // Prioritize date-based calculation over backend event_status
+  const now = new Date()
+  const start = event.start_date ? new Date(event.start_date) : null
+  const end = event.end_date ? new Date(event.end_date) : null
+  if (end && now > end) return 'completed'
+  if (start && now >= start) return 'ongoing'
+  if (start) return 'upcoming'
+  // Fallback to backend status if no dates available
+  if (event.event_status) return event.event_status
+  return 'upcoming'
+}
+
+const getStatusClass = (event) => {
+  const status = getEventStatus(event)
+  if (status === 'upcoming') return 'bg-blue-50 text-blue-600'
+  if (status === 'ongoing') return 'bg-green-50 text-green-600'
+  return 'bg-gray-100 text-gray-600'
+}
+
+const formatDateRange = (event) => {
+  const start = event.start_date
+  const end = event.end_date
+  if (!start) return null
+  const opts = { year: 'numeric', month: 'short', day: 'numeric' }
+  const startStr = new Date(start).toLocaleDateString('en-US', opts)
+  if (!end || end === start) return startStr
+  const endStr = new Date(end).toLocaleDateString('en-US', opts)
+  return `${startStr} – ${endStr}`
+}
+
+const displayedEvents = computed(() => {
+  if (filterStatus.value === 'all') return events.value
+  return events.value.filter(e => getEventStatus(e) === filterStatus.value)
 })
 
-const handleCreateEvent = () => {
-  console.log('Creating event:', newEvent.value)
-  showCreateEventModal.value = false
-  newEvent.value = {
-    title: '',
-    startDate: '',
-    endDate: '',
-    time: '',
-    location: '',
-    status: 'upcoming'
+const loadEvents = async () => {
+  isLoading.value = true
+  error.value = null
+
+  try {
+    // Use institute-attendance-event for richer data (dates, academic year, semester, status)
+    const response = await api.get('/api/v1/institute-attendance-event/', {
+      params: { page: currentPage.value, per_page: 50 }
+    })
+
+    const result = response.data
+    const responseData = result.data || result
+    const pageData = responseData.data || responseData
+
+    if (Array.isArray(pageData)) {
+      events.value = pageData
+    } else if (Array.isArray(pageData?.data)) {
+      events.value = pageData.data
+    } else {
+      events.value = []
+    }
+
+    totalItems.value = responseData.total_items || events.value.length
+    totalPages.value = responseData.total_pages || 1
+  } catch (err) {
+    console.error('Failed to load events:', err)
+    error.value = err.response?.data?.message || 'Failed to load events'
   }
+
+  isLoading.value = false
+}
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+  loadEvents()
 }
 
 const viewEvent = (event) => {
@@ -339,78 +276,7 @@ const viewEvent = (event) => {
   showViewModal.value = true
 }
 
-const editEvent = (event) => {
-  console.log('Edit event:', event)
-}
-
-// Mock data - replace with API call
-const events = ref([
-  {
-    id: 1,
-    title: 'Career Fair 2024',
-    date: 'January 25, 2024',
-    startDate: '2024-01-25',
-    endDate: '2024-01-25',
-    time: '9:00 AM - 5:00 PM',
-    location: 'DNSC Gymnasium',
-    status: 'upcoming'
-  },
-  {
-    id: 2,
-    title: 'ICSA General Assembly',
-    date: 'January 20, 2024',
-    startDate: '2024-01-20',
-    endDate: '2024-01-20',
-    time: '2:00 PM - 4:00 PM',
-    location: 'Computer Lab 1',
-    status: 'ongoing'
-  },
-  {
-    id: 3,
-    title: 'Tech Talk: AI and Machine Learning',
-    date: 'January 15, 2024',
-    startDate: '2024-01-15',
-    endDate: '2024-01-15',
-    time: '10:00 AM - 12:00 PM',
-    location: 'AVR Room',
-    status: 'completed'
-  },
-  {
-    id: 4,
-    title: 'Coding Bootcamp',
-    date: 'February 1-3, 2024',
-    startDate: '2024-02-01',
-    endDate: '2024-02-03',
-    time: '8:00 AM - 5:00 PM',
-    location: 'Computer Lab 2 & 3',
-    status: 'upcoming'
-  },
-  {
-    id: 5,
-    title: 'Sports Fest Opening',
-    date: 'January 18, 2024',
-    startDate: '2024-01-18',
-    endDate: '2024-01-18',
-    time: '7:00 AM - 10:00 AM',
-    location: 'Covered Court',
-    status: 'completed'
-  },
-  {
-    id: 6,
-    title: 'Web Development Workshop',
-    date: 'February 10-14, 2024',
-    startDate: '2024-02-10',
-    endDate: '2024-02-14',
-    time: '1:00 PM - 5:00 PM',
-    location: 'Computer Lab 1',
-    status: 'upcoming'
-  }
-])
-
-const filteredEvents = computed(() => {
-  if (filterStatus.value === 'all') {
-    return events.value
-  }
-  return events.value.filter(event => event.status === filterStatus.value)
+onMounted(() => {
+  loadEvents()
 })
 </script>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService.wrapper'
+import api from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -142,6 +143,36 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = userData[0]
       } else {
         user.value = userData
+      }
+
+      // If user has no linked student record and isn't admin, try to find it
+      // This runs once per login/session so individual pages don't need to
+      if (!user.value.student && user.value.username) {
+        const hasAdminGroup = user.value.groups?.some(
+          g => typeof g === 'string' && g.toLowerCase().includes('admin')
+        )
+        if (!hasAdminGroup && !user.value.is_staff && !user.value.is_superuser) {
+          try {
+            const nameParts = user.value.username.split('.')
+            if (nameParts.length >= 2) {
+              const resp = await api.get('/api/v1/students/', { params: { search: nameParts[0] } })
+              const students = resp.data.data?.data || resp.data.data || []
+              const match = students.find(s => {
+                const fname = (s.s_fname || '').toLowerCase()
+                const lname = (s.s_lname || '').toLowerCase()
+                return (
+                  (lname === nameParts[0]?.toLowerCase() && fname === nameParts[1]?.toLowerCase()) ||
+                  (fname === nameParts[0]?.toLowerCase() && lname === nameParts[1]?.toLowerCase())
+                )
+              })
+              if (match) {
+                user.value = { ...user.value, student: match }
+              }
+            }
+          } catch (e) {
+            console.warn('Could not link student record during init:', e)
+          }
+        }
       }
       
       localStorage.setItem('user_data', JSON.stringify(user.value))
