@@ -1,334 +1,139 @@
-# - wednesday progress
-   1. Receipt modal overflow — now scrollable with max-h-[90vh]
-   2. Sidebar initials 'U' → 'AA' — student fallback search added to fetchCurrentUser()
-   3. Dashboard real fee data — replaced hardcoded fees with API data
-   4. Dashboard loading state — skeleton loaders while data fetches
-   5. Fees pagination — server-side with page controls
-   6. Pay button → CMS redirect — opens Collection Management System (URL configurable via VITE_CMS_URL in .env)
-
-
 # DNSC Student Portal
 
-A modern, professional student portal web application for Davao del Norte State College (DNSC), built with Vue.js and Tailwind CSS. Now fully integrated with the DNSC Systems API backend using JWT authentication.
+A student portal for Davao del Norte State College (DNSC) built with Vue 3 and Tailwind CSS. It connects to the [DNSC Systems API](https://dnsc-systems-api.onrender.com/api/docs/swagger/) for authentication, student records, fees, attendance, and more.
 
-## 🎯 Project Overview
-
-This portal serves as a centralized hub for students and administrators to access various systems and manage academic information. It features complete authentication integration with role-based access control.
-
-## ✨ Latest Updates (January 2026)
-
-### 🔐 Authentication System
-- ✅ **JWT Token Authentication** - Secure login with access/refresh tokens
-- ✅ **Google OAuth Integration** - Sign in with Google
-- ✅ **Auto Token Refresh** - Seamless session management
-- ✅ **Role-Based Access** - Separate interfaces for students and admins
-- ✅ **API Integration Layer** - Axios interceptors for authenticated requests
-
-### 👨‍💼 Admin Portal
-- ✅ **Admin Dashboard** - Statistics and quick actions
-- ✅ **Student Management** - Manage student accounts
-- ✅ **Events Management** - Create and manage events
-- ✅ **Announcements** - Post and manage announcements
-- ✅ **Attendance Upload** - Bulk upload attendance records
-
-## 🚀 Features
-
-### Authentication & Authorization
-- **Unified Login** - Single login page for both students and admins
-- **Google Sign-In** - Quick authentication with Google accounts
-- **Auto-Redirect** - Role-based routing (admin → `/admin`, student → `/`)
-- **Session Management** - Automatic token refresh on expiration
-- **Secure Logout** - Complete token cleanup
-
-### Student Portal
-- **Dashboard** - Overview of activities and external systems
-- **Profile Management** - View and edit student information
-- **Event Attendance** - Track attendance for events
-- **Document Submissions** - Submit and track documents
-- **Announcements** - View institutional updates
-- **Academic Calendar** - Important dates and events
-- **External Systems** - Access to Collection, Voting, Locker systems
-
-### Admin Portal
-- **Dashboard** - System statistics and overview
-- **Student Management** - CRUD operations for students
-- **Events Management** - Create and manage attendance events
-- **Announcements** - Create and publish announcements
-- **Attendance Upload** - Bulk upload attendance data
-
-### Design Features
-- 🎨 Clean, professional academic aesthetic
-- 💜 Purple (#640D5F) primary color theme
-- 📱 Fully responsive design
-- 🔔 Notifications system
-- 👤 User profile management
-- 🔒 Protected routes with role-based guards
-
-## 🛠️ Technology Stack
-
-- **Frontend Framework**: Vue.js 3 (Composition API)
-- **Styling**: Tailwind CSS 4
-- **State Management**: Pinia
-- **Routing**: Vue Router 4
-- **HTTP Client**: Axios
-- **Build Tool**: Vite 7
-- **Icons**: Heroicons (SVG)
-- **Authentication**: JWT + Google OAuth
-
-## 📦 Installation
+## Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
-- **Internet connection** (to access production API)
 
-### Setup Instructions
+- [Node.js](https://nodejs.org/) v16+
+- npm (comes with Node.js)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/TipTopMaestro/IC-Student-Portal.git
-   cd IC-Student-Portal
-   ```
+### Setup
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment is ready!**
-   The `.env` file is already configured to use the **production API**:
-   ```env
-   VITE_API_BASE_URL=https://dnsc-systems-api.onrender.com/
-   VITE_APP_NAME=Student Portal
-   VITE_GOOGLE_CLIENT_ID=your-google-client-id-here
-   ```
-   
-   ✅ **No backend setup needed!**
-
-4. **Run development server**
-   ```bash
-   npm run dev
-   ```
-   Application will be available at `http://localhost:5173/`
-
-5. **Get test credentials**
-   Contact the backend team for test user credentials
-
-6. **Build for production**
-   ```bash
-   npm run build
-   ```
-
-7. **Preview production build**
-   ```bash
-   npm run preview
-   ```
-
-## 📁 Project Structure
-
-```
-dnsc-student-portal/
-├── public/                 # Static assets
-├── src/
-│   ├── assets/            # Stylesheets and images
-│   │   └── main.css       # Main Tailwind CSS file
-│   ├── components/        # Reusable Vue components
-│   │   └── common/        # Common UI components
-│   ├── composables/       # Vue composables (hooks)
-│   ├── router/            # Vue Router configuration
-│   │   └── index.js       # Route definitions & guards
-│   ├── services/          # API service layer
-│   │   ├── api.js         # Axios instance with interceptors
-│   │   └── authService.js # Authentication API calls
-│   ├── stores/            # Pinia stores
-│   │   └── auth.js        # Authentication store (JWT)
-│   ├── utils/             # Utility functions
-│   ├── views/             # Page components
-│   │   ├── auth/          # Authentication pages
-│   │   │   └── LoginView.vue
-│   │   ├── admin/         # Admin portal pages
-│   │   │   ├── DashboardView.vue
-│   │   │   ├── StudentsView.vue
-│   │   │   ├── EventsView.vue
-│   │   │   ├── AnnouncementsView.vue
-│   │   │   └── AttendanceView.vue
-│   │   ├── layouts/       # Layout components
-│   │   │   ├── AdminLayout.vue
-│   │   │   └── StudentLayout.vue
-│   │   └── student/       # Student portal pages
-│   │       ├── DashboardView.vue
-│   │       ├── ProfileView.vue
-│   │       ├── AttendanceView.vue
-│   │       ├── SubmissionsView.vue
-│   │       ├── AnnouncementsView.vue
-│   │       ├── CalendarView.vue
-│   │       └── ExternalSystemsView.vue
-│   ├── App.vue            # Root component
-│   └── main.js            # Application entry point
-├── sample/                # Reference implementations
-│   ├── dnsc_systems_api/  # Backend API reference
-│   └── collection_management_system/
-├── index.html             # HTML template
-├── package.json           # Dependencies and scripts
-├── tailwind.config.js     # Tailwind configuration
-├── postcss.config.js      # PostCSS configuration
-├── vite.config.js         # Vite configuration
-├── AUTHENTICATION_GUIDE.md # Complete auth documentation
-└── README.md              # This file
+```bash
+git clone https://github.com/TipTopMaestro/IC-Student-Portal.git
+cd IC-Student-Portal
+npm install
 ```
 
-## 🎨 Color Palette
+Copy or edit the `.env` file in the project root:
 
-- **Primary Purple**: #640D5F
-- **Secondary**: #D91656
-- **Accent**: #EE66A6
-- **Light**: #FFBFDD
-- **Backgrounds**: Gray-50 to Gray-900 scale
-
-## 🔌 Backend Integration
-
-✅ **Authentication system fully integrated with DNSC Systems API**
-
-### Production API (Default)
-
-The backend is already deployed and accessible:
-```
-Base URL: https://dnsc-systems-api.onrender.com/
-
-Documentation:
-- Swagger: https://dnsc-systems-api.onrender.com/api/docs/swagger/
-- ReDoc: https://dnsc-systems-api.onrender.com/api/docs/redoc/
+```env
+VITE_API_BASE_URL=https://dnsc-systems-api.onrender.com
+VITE_APP_NAME=Student Portal
+VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
+VITE_USE_MOCK_API=false
+VITE_CMS_URL=http://localhost:5174
 ```
 
-See [PRODUCTION_API_READY.md](./PRODUCTION_API_READY.md) for complete production API guide.
+| Variable | Description |
+|---|---|
+| `VITE_API_BASE_URL` | Backend API base URL. Requests are proxied through Vite during development to avoid CORS issues. |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth 2.0 client ID for the "Sign in with Google" button. |
+| `VITE_USE_MOCK_API` | Set to `true` to use built-in mock data instead of the real API. |
+| `VITE_CMS_URL` | URL for the Collection Management System (payment redirect). |
 
-### API Endpoints
+### Run
 
-**Authentication** (✅ Integrated)
-- `POST /api/v1/login/` - User login (JWT tokens)
-- `POST /api/v1/token/refresh/` - Refresh access token
-- `POST /api/v1/auth/google/` - Google OAuth login
-- `GET /api/v1/me/` - Get current user
-
-**Students** (✅ Backend Ready)
-- `GET /api/v1/students/` - List students
-- `POST /api/v1/students/` - Create student
-- `GET /api/v1/students/:id/` - Get student details
-- `PATCH /api/v1/students/:id/` - Update student
-- `DELETE /api/v1/students/:id/` - Delete student
-
-**Events** (✅ Backend Ready)
-- `GET /api/v1/attendance-events/` - List events
-- `POST /api/v1/attendance-events/` - Create event
-- `GET /api/v1/attendance-events/:id/` - Get event details
-- `PATCH /api/v1/attendance-events/:id/` - Update event
-- `DELETE /api/v1/attendance-events/:id/` - Delete event
-
-**Attendance** (✅ Backend Ready)
-- `GET /api/v1/attendance-records/` - List attendance records
-- `POST /api/v1/attendance-records/` - Create attendance record
-- `GET /api/v1/attendance-records/:id/` - Get record details
-
-**Announcements** (🔨 To Be Created)
-- `GET /api/v1/announcements/` - List announcements
-- `POST /api/v1/announcements/` - Create announcement
-- `GET /api/v1/announcements/:id/` - Get announcement details
-- `PATCH /api/v1/announcements/:id/` - Update announcement
-- `DELETE /api/v1/announcements/:id/` - Delete announcement
-
-### Making API Calls
-
-```javascript
-import api from '@/services/api'
-
-// GET request
-const students = await api.get('api/v1/students/')
-
-// POST request
-await api.post('api/v1/students/', {
-  first_name: 'Juan',
-  last_name: 'Dela Cruz',
-  email: 'juan@dnsc.edu.ph'
-})
-
-// Tokens are automatically attached via interceptor
-// Auto-refresh on 401 errors
+```bash
+npm run dev          # Start dev server at http://localhost:5173
+npm run build        # Production build to dist/
+npm run preview      # Preview the production build locally
 ```
 
-## 🔒 Authentication
+> The backend is hosted on Render's free tier, so the first request after a period of inactivity may take up to 2 minutes while the server spins up.
 
-✅ **JWT Token Authentication Fully Implemented**
+## Features
 
-### Features:
-- ✅ Login with username/password
-- ✅ Login with Google OAuth
-- ✅ Automatic token refresh
-- ✅ Role-based routing (admin/student)
-- ✅ Protected routes with guards
-- ✅ Secure token storage
+### Student Portal (`/`)
 
-### User Roles:
-- **Student** - Access to student portal (`/`)
-- **Admin** - Access to admin portal (`/admin`)
+- **Dashboard** — Fee summary, quick links to external systems, skeleton loading states
+- **Profile** — View student information pulled from the API
+- **Fees** — Paginated fee list with receipt modal; "Pay" redirects to the CMS
+- **Attendance** — View attendance records for events
+- **Submissions** — Submit and track documents
+- **Announcements** — Institutional updates
+- **Calendar** — Academic calendar and important dates
+- **External Systems** — Links to Collection, Voting, Locker, and Attendance systems
 
-Auto-detection based on:
-- User groups containing "Admin"
-- `is_staff` or `is_superuser` flags
+### Admin Portal (`/admin`)
 
-## 🧪 Testing
+- **Dashboard** — System-wide statistics and quick actions
+- **Students** — CRUD management of student accounts
+- **Events** — Create and manage attendance events
+- **Announcements** — Publish and manage announcements
+- **Attendance** — Bulk upload attendance records
+- **Profile** — Admin profile view
 
-### With Backend API Running:
+### Authentication
 
-1. Start the backend at `http://127.0.0.1:8000/`
-2. Create test users in Django admin:
-   - **Admin**: username=`admin`, add to "Admin" group
-   - **Student**: username=`student@dnsc.edu.ph`, regular user
-3. Start frontend: `npm run dev`
-4. Login at `http://localhost:5173/login`
+- JWT login with automatic token refresh (access + refresh tokens)
+- Google OAuth sign-in
+- Role-based routing — admins are redirected to `/admin`, students to `/`
+- Route guards prevent unauthorized access
+- Session expiry detection with automatic redirect to login
 
-### Mock Testing (Without Backend):
+Role detection is based on the user's `groups` (containing "Admin") or the `is_staff`/`is_superuser` flags from the API.
 
-The app will show API connection errors but the UI can still be explored.
+## Project Structure
 
-## 📱 Responsive Design
+```
+src/
+├── config/api.js            # API base URL, endpoints, timeouts
+├── services/
+│   ├── api.js               # Axios instance with auth interceptors
+│   ├── authService.js       # Login, logout, token refresh
+│   ├── studentService.js    # Student CRUD calls
+│   ├── feeService.js        # Fee and payment queries
+│   ├── eventService.js      # Attendance event calls
+│   └── announcementService.js
+├── stores/auth.js           # Pinia auth store (JWT state)
+├── router/index.js          # Routes and navigation guards
+├── views/
+│   ├── auth/LoginView.vue
+│   ├── layouts/             # AdminLayout, StudentLayout (sidebar + topbar)
+│   ├── admin/               # Admin page components
+│   └── student/             # Student page components
+└── assets/main.css          # Tailwind entry point
+```
 
-- **Desktop**: Optimized for 1024px and above
-- **Tablet**: Optimized for 768px - 1023px
-- **Mobile**: Basic support for 375px - 767px
+## API Reference
 
-## 🤝 Contributing
+The frontend talks to the DNSC Systems API. All requests go through the Axios instance in `src/services/api.js`, which handles Bearer token injection and automatic refresh on 401 responses.
 
-This project is maintained by the DNSC Development Team.
+| Area | Endpoints |
+|---|---|
+| Auth | `POST /api/v1/login/`, `POST /api/v1/token/refresh/`, `POST /api/v1/auth/google/`, `GET /api/v1/me/` |
+| Students | `GET/POST /api/v1/students/`, `GET/PATCH/DELETE /api/v1/students/:id/` |
+| Fees | `GET /api/v1/fees/?student_id=`, `GET /api/v1/fees/:id/`, `GET/POST /api/v1/payment-submissions/` |
+| Events | `GET/POST /api/v1/attendance-events/`, `GET/PATCH/DELETE /api/v1/attendance-events/:id/` |
+| Attendance | `GET/POST /api/v1/attendance-records/`, `POST /api/v1/attendance-records/upload/` |
+| Announcements | `GET/POST /api/v1/announcements/`, `GET/PATCH/DELETE /api/v1/announcements/:id/` |
 
-## 📝 Notes for Backend Team
+Full API docs: [Swagger](https://dnsc-systems-api.onrender.com/api/docs/swagger/) · [ReDoc](https://dnsc-systems-api.onrender.com/api/docs/redoc/)
 
-1. All API calls are marked with `TODO:` comments in the code
-2. Mock data structures match expected API response formats
-3. Error handling is implemented but needs actual error messages from API
-4. File upload functionality (submissions) needs backend endpoint
-5. Real-time notifications would require WebSocket implementation
+## Tech Stack
 
-## 🔗 External Systems
+| | |
+|---|---|
+| Framework | Vue 3 (Composition API) |
+| Styling | Tailwind CSS 4 |
+| State | Pinia |
+| Routing | Vue Router 4 |
+| HTTP | Axios |
+| Build | Vite 7 |
+| Auth | JWT + Google OAuth |
 
-The portal displays summary information from:
-- Collection Management System (handled by separate team)
-- Voting System (handled by separate team)
-- Locker System (handled by separate team)
-- Attendance Management System (handled by separate team)
+## Color Palette
 
-"Open System" buttons are placeholders for links to actual external system URLs.
+| Token | Hex | Usage |
+|---|---|---|
+| `ic-primary` | `#640D5F` | Main purple, sidebar, buttons |
+| `ic-secondary` | `#D91656` | Accents and highlights |
+| `ic-accent` | `#EE66A6` | Hover states, badges |
+| `ic-light` | `#FFBFDD` | Light backgrounds, tags |
 
-## 📄 License
+## License
 
-MIT License - Feel free to use this project for educational purposes.
-
-## 👥 Team
-
-**Frontend Development**: IC Department Team
-**Backend Development**: Separate Backend Team (APIs & Database)
-
----
-
-**Built with ❤️ for Davao del Norte State College**
-
-
+MIT
