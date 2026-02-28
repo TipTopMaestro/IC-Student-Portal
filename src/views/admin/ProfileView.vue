@@ -160,7 +160,7 @@ const loadProfile = async () => {
   error.value = null
 
   try {
-    const response = await api.get('api/v1/me/')
+    const response = await api.get('/api/v1/me/')
     const data = response.data.data || response.data
 
     profileData.value = {
