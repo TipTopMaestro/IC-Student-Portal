@@ -88,7 +88,7 @@
       <!-- Curved Elliptical Shape -->
       <div class="absolute inset-0 bg-ic-primary shadow-2xl" style="clip-path: ellipse(100% 100% at 100% 50%);">
         <div class="absolute inset-0 overflow-hidden">
-          <img src="/public/ic-building.png" alt="IT building" class="absolute inset-0 w-full h-full object-cover" />
+          <img src="/ic-building.png" alt="IT building" class="absolute inset-0 w-full h-full object-cover" />
           <!-- Purple overlay with gradient -->
           <div class="gradient-overlay"></div>
         </div>

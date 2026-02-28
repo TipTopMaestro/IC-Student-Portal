@@ -58,37 +58,37 @@ const router = createRouter({
           component: () => import('@/views/student/DashboardView.vue')
         },
         {
-          path: '/profile',
+          path: 'profile',
           name: 'profile',
           component: () => import('@/views/student/ProfileView.vue')
         },
         {
-          path: '/attendance',
+          path: 'attendance',
           name: 'attendance',
           component: () => import('@/views/student/AttendanceView.vue')
         },
         {
-          path: '/fees',
+          path: 'fees',
           name: 'fees',
           component: () => import('@/views/student/FeesView.vue')
         },
         {
-          path: '/submissions',
+          path: 'submissions',
           name: 'submissions',
           component: () => import('@/views/student/SubmissionsView.vue')
         },
         {
-          path: '/announcements',
+          path: 'announcements',
           name: 'announcements',
           component: () => import('@/views/student/AnnouncementsView.vue')
         },
         {
-          path: '/calendar',
+          path: 'calendar',
           name: 'calendar',
           component: () => import('@/views/student/CalendarView.vue')
         },
         {
-          path: '/external-systems',
+          path: 'external-systems',
           name: 'external-systems',
           component: () => import('@/views/student/ExternalSystemsView.vue')
         }
