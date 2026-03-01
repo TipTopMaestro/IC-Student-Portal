@@ -100,7 +100,7 @@
           </svg>
         </div>
         <p class="text-sm font-medium text-gray-500">Coming Soon</p>
-        <p class="text-xs text-gray-400 mt-1">Announcements feature is not yet available</p>
+        
       </div>
     </div>
 
