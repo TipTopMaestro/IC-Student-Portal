@@ -15,7 +15,7 @@ export const authService = {
   },
 
   async loginWithGoogle(token) {
-    const response = await api.post('/api/v1/auth/google/', {
+    const response = await api.post(API_CONFIG.ENDPOINTS.GOOGLE_LOGIN, {
       token
     })
     return response.data
