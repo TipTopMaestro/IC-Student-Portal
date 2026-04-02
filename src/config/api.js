@@ -12,7 +12,6 @@ export const API_CONFIG = {
   ENDPOINTS: {
     // Authentication
     LOGIN: '/api/v1/login/',
-    // GOOGLE_LOGIN: 'http://localhost:5173/auth/login/',
     GOOGLE_LOGIN: '/api/v1/auth/google/',
     LOGOUT: '/api/v1/logout/',
     REFRESH_TOKEN: '/api/v1/token/refresh/',
