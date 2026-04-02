@@ -19,7 +19,7 @@ window.addEventListener('auth:session-expired', () => {
   }
 })
 
-let clientID = '189816827593-igu6ajdje3revunfdaphl0n8huv5fnti.apps.googleusercontent.com';
+const clientID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 app.use(GoogleSignInPlugin,
     { 
         clientId : clientID,

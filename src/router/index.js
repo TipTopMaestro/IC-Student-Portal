@@ -73,11 +73,6 @@ const router = createRouter({
           component: () => import('@/views/student/FeesView.vue')
         },
         {
-          path: 'submissions',
-          name: 'submissions',
-          component: () => import('@/views/student/SubmissionsView.vue')
-        },
-        {
           path: 'announcements',
           name: 'announcements',
           component: () => import('@/views/student/AnnouncementsView.vue')
