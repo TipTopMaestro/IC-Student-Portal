@@ -72,7 +72,7 @@
         <!-- Google Login Button-->
 
         <div class="login-container w-full flex justify-center">
-          <GoogleSignInButton @success="handleLoginSuccess" @error="handleLoginError" />
+           <GoogleLogin :callback="handleLoginSuccess" :errorCallback="handleLoginError" />
         </div>
 
 
@@ -117,7 +117,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-import { GoogleSignInButton } from "vue3-google-signin";
+
 
 const handleLoginSuccess = async (response) => {
   const { credential } = response;

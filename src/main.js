@@ -4,8 +4,7 @@ import App from './App.vue'
 import router from './router'
 import './assets/main.css'
 
-// import vue3GoogleLogin from 'vue3-google-login'
-import GoogleSignInPlugin from 'vue3-google-signin';
+import vue3GoogleLogin from 'vue3-google-login';
 
 const app = createApp(App)
 
@@ -19,9 +18,9 @@ window.addEventListener('auth:session-expired', () => {
   }
 })
 
-const clientID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-app.use(GoogleSignInPlugin,
+// console.log('Testing Client ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
+app.use(vue3GoogleLogin,
     { 
-        clientId : clientID,
+        clientId : import.meta.env.VITE_GOOGLE_CLIENT_ID,
     })
 app.mount('#app')
