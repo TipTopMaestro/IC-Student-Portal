@@ -52,7 +52,6 @@ npm run preview      # Preview the production build locally
 - **Profile** — View student information pulled from the API
 - **Fees** — Paginated fee list with receipt modal; "Pay" redirects to the CMS
 - **Attendance** — View attendance records for events
-- **Submissions** — Submit and track documents
 - **Announcements** — Institutional updates
 - **Calendar** — Academic calendar and important dates
 - **External Systems** — Links to Collection, Voting, Locker, and Attendance systems
