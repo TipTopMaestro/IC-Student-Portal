@@ -108,7 +108,7 @@ The frontend talks to the DNSC Systems API. All requests go through the Axios in
 | Fees | `GET /api/v1/fees/?student_id=`, `GET /api/v1/fees/:id/`, `GET/POST /api/v1/payment-submissions/` |
 | Events | `GET/POST /api/v1/attendance-events/`, `GET/PATCH/DELETE /api/v1/attendance-events/:id/` |
 | Attendance | `GET/POST /api/v1/attendance-records/`, `POST /api/v1/attendance-records/upload/` |
-| Announcements | `GET/POST /api/v1/announcements/`, `GET/PATCH/DELETE /api/v1/announcements/:id/` |
+
 
 Full API docs: [Swagger](https://dnsc-systems-api.onrender.com/api/docs/swagger/) · [ReDoc](https://dnsc-systems-api.onrender.com/api/docs/redoc/)
 
