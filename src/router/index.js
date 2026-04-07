@@ -31,9 +31,9 @@ const router = createRouter({
           component: () => import('@/views/admin/EventsView.vue')
         },
         {
-          path: 'announcements',
-          name: 'admin-announcements',
-          component: () => import('@/views/admin/AnnouncementsView.vue')
+          path: 'posts',
+          name: 'admin-posts',
+          component: () => import('@/views/admin/PostsView.vue')
         },
         {
           path: 'attendance',
