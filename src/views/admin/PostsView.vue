@@ -115,7 +115,7 @@
     </button>
 
     <!-- Create/Edit Modal -->
-    <PostModal
+    <CreatePostModal
       :is-open="createModalOpen"
       :post="editingPost"
       @close="closeCreateModal"
@@ -134,7 +134,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import PostModal from '@/components/posts/PostModal.vue'
+import CreatePostModal from '@/components/posts/CreatePostModal.vue'
 import DeleteConfirmModal from '@/components/posts/DeleteConfirmModal.vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 import { listPosts, extractPosts, extractPagination } from '@/services/postService'
@@ -160,7 +160,7 @@ const loadPosts = async () => {
 
   try {
     const result = await listPosts({
-      page: pagination.currentPage,
+      current_page: pagination.currentPage,
       per_page: pagination.perPage
     })
 
@@ -218,6 +218,7 @@ const handlePostSaved = () => {
 const handlePostDeleted = (postId) => {
   posts.value = posts.value.filter(p => p.id !== postId)
   pagination.totalItems -= 1
+  closeDeleteModal()
 }
 
 const handlePostUpdated = (updatedPost) => {

@@ -194,12 +194,14 @@
       </div>
     </div>
 
-    <!-- Comments Section -->
-    <CommentSection
-      ref="commentSectionRef"
-      :post-id="post.id"
-      :comments-count="localCommentCount"
-      :disable-comments="localDisableComments"
+    <!-- Post Modal -->
+    <PostModal
+      :is-open="isModalOpen"
+      :post="post"
+      :is-liked="isLiked"
+      :local-reaction-count="localReactionCount"
+      @close="isModalOpen = false"
+      @toggle-reaction="toggleReaction"
       @comment-count-changed="localCommentCount = $event"
     />
   </div>
@@ -209,7 +211,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { reactToPost, removeReaction, togglePostComments } from '@/services/postService'
-import CommentSection from './CommentSection.vue'
+import PostModal from './PostModal.vue'
 
 const props = defineProps({
   post: {
@@ -235,7 +237,7 @@ const carouselRef = ref(null)
 const currentIndex = ref(0)
 const menuOpen = ref(false)
 const expanded = ref(false)
-const commentSectionRef = ref(null)
+const isModalOpen = ref(false)
 
 // Reaction state (optimistic UI)
 const isLiked = ref(false)
@@ -259,10 +261,11 @@ const getLikedPosts = () => {
 
 const saveLikedState = (postId, liked) => {
   const likedPosts = getLikedPosts()
-  if (liked && !likedPosts.includes(postId)) {
-    likedPosts.push(postId)
+  const idStr = String(postId)
+  if (liked && !likedPosts.includes(idStr)) {
+    likedPosts.push(idStr)
   } else if (!liked) {
-    const idx = likedPosts.indexOf(postId)
+    const idx = likedPosts.indexOf(idStr)
     if (idx !== -1) likedPosts.splice(idx, 1)
   }
   localStorage.setItem(getLikedKey(), JSON.stringify(likedPosts))
@@ -287,7 +290,7 @@ const initializeState = () => {
 
   // Restore liked state from localStorage (persists across reloads)
   const likedPosts = getLikedPosts()
-  isLiked.value = likedPosts.includes(props.post.id)
+  isLiked.value = likedPosts.includes(String(props.post.id))
 }
 
 initializeState()
@@ -306,13 +309,29 @@ const normalizeUrl = (url) => {
 
 // Get author avatar
 const authorAvatar = computed(() => {
-  if (currentUser.value && currentUser.value.id === props.post.user_id) {
-    const profilePic = currentUser.value.profile_picture || 
-                       currentUser.value.avatar || 
-                       currentUser.value.photo ||
-                       currentUser.value.profile_image
+  const user = currentUser.value
+  if (!user) {
+    if (props.post.user_avatar) return normalizeUrl(props.post.user_avatar)
+    return null
+  }
+
+  // Check if current user is the author
+  const isAuthor = 
+    (user.id && String(user.id) === String(props.post.user_id)) ||
+    (user.username && user.username === props.post.user_name) ||
+    (user.email && user.email === props.post.user_name) ||
+    (user.full_name && user.full_name === props.post.user_name) ||
+    (`${user.first_name || ''} ${user.last_name || ''}`.trim() === props.post.user_name)
+
+  if (isAuthor) {
+    const profilePic = user.profile ||
+                       user.profile_picture || 
+                       user.avatar || 
+                       user.photo ||
+                       user.profile_image
     if (profilePic) return normalizeUrl(profilePic)
   }
+  
   if (props.post.user_avatar) return normalizeUrl(props.post.user_avatar)
   return null
 })
@@ -327,20 +346,22 @@ const authorInitials = computed(() => {
 })
 
 const formattedDate = computed(() => {
-  const dateStr = props.post.created_at || props.post.date
+  const p = props.post
+  const dateStr = p.created_at || p.date || p.updated_at || p.timestamp || p.created || p.time
   if (!dateStr) return ''
-  
   const date = new Date(dateStr)
   const now = new Date()
-  const diffMs = now - date
+  const diffMs = Math.abs(now - date)
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
-  
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  if (diffDays < 7) return `${diffDays}d ago`
+  const diffWeeks = Math.floor(diffDays / 7)
+
+  if (diffMins < 1) return 'now'
+  if (diffMins < 60) return `${diffMins}m`
+  if (diffHours < 24) return `${diffHours}h`
+  if (diffDays < 7) return `${diffDays}d`
+  if (diffWeeks < 52) return `${diffWeeks}w`
   
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 })
@@ -369,6 +390,12 @@ const toggleReaction = async () => {
     isLiked.value = wasLiked
     localReactionCount.value += wasLiked ? 1 : -1
   } else {
+    // If we liked it but the backend says it was already recorded, undo the optimistic +1
+    const status = result.data?.data?.status
+    if (!wasLiked && status === 'unchanged') {
+      localReactionCount.value -= 1
+    }
+    
     // Persist liked state to localStorage so it survives reloads
     saveLikedState(props.post.id, isLiked.value)
   }
@@ -387,7 +414,8 @@ const handleDoubleTap = () => {
 
 // --- Comments ---
 const focusCommentInput = () => {
-  commentSectionRef.value?.expandComments?.()
+  if (localDisableComments.value) return
+  isModalOpen.value = true
 }
 
 // --- Carousel ---

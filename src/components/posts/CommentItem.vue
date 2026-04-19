@@ -1,7 +1,10 @@
 <template>
   <div class="flex gap-2.5" :class="depth > 0 ? 'ml-10 mt-3' : ''">
     <!-- Avatar -->
-    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+    <div v-if="authorAvatar" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
+      <img :src="authorAvatar" alt="Profile" class="h-full w-full object-cover" />
+    </div>
+    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
       {{ getInitials(comment.user) }}
     </div>
 
@@ -109,8 +112,9 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import { updateComment, deleteComment, getReplies, extractComments } from '@/services/commentService'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   comment: { type: Object, required: true },
@@ -130,9 +134,28 @@ const replies = ref([])
 const repliesLoaded = ref(false)
 const repliesLoading = ref(false)
 
+const currentUser = computed(() => useAuthStore().user)
+
 const isOwner = computed(() => {
-  if (!props.currentUserId) return false
-  return String(props.comment.user_id) === String(props.currentUserId)
+  const user = currentUser.value
+  if (!user) return false
+
+  // First try ID matching
+  if (user.id && props.comment.user_id && String(user.id) === String(props.comment.user_id)) {
+    return true
+  }
+
+  // Fallback to name matching since admin user object lacks ID
+  const commentUser = props.comment.user
+  if (commentUser) {
+    if (user.username && user.username === commentUser) return true
+    if (user.email && user.email === commentUser) return true
+    if (user.full_name && user.full_name === commentUser) return true
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim()
+    if (fullName && fullName === commentUser) return true
+  }
+
+  return false
 })
 
 const replyCount = computed(() => {
@@ -142,6 +165,18 @@ const replyCount = computed(() => {
   return 0
 })
 
+const authorAvatar = computed(() => {
+  if (isOwner.value) {
+    const authStore = useAuthStore()
+    const user = authStore.user
+    if (!user) return null
+    const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
+    if (pic) return pic.replace(/^http:\/\//i, 'https://')
+    if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+  }
+  return null
+})
+
 const hasReplies = computed(() => replyCount.value > 0 || replies.value.length > 0)
 
 const formattedTime = computed(() => {
@@ -149,7 +184,7 @@ const formattedTime = computed(() => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
   const now = new Date()
-  const diffMs = now - date
+  const diffMs = Math.abs(now - date)
   const diffMins = Math.floor(diffMs / 60000)
   const diffHours = Math.floor(diffMs / 3600000)
   const diffDays = Math.floor(diffMs / 86400000)
@@ -244,7 +279,6 @@ const startEdit = () => {
 }
 
 // Watch for edit mode to focus
-import { watch } from 'vue'
 watch(isEditing, (val) => {
   if (val) {
     editContent.value = props.comment.content

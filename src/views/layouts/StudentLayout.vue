@@ -115,7 +115,10 @@
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
             :class="isActive('/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
           >
-            <div class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
+            <div v-if="userProfilePic" class="h-5 w-5 rounded-full overflow-hidden shrink-0">
+              <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+            </div>
+            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0">
               {{ userInitials }}
             </div>
             <span class="text-sm">Profile</span>
@@ -232,7 +235,10 @@
           :class="{ 'sidebar-link-active': isActive('/profile') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <div class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+            <div v-if="userProfilePic" class="h-7 w-7 rounded-full overflow-hidden shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+              <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+            </div>
+            <div v-else class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
               {{ userInitials }}
             </div>
           </div>
@@ -305,8 +311,14 @@
           class="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors"
           :class="isActive('/profile') ? 'text-ic-primary' : 'text-gray-600'"
         >
-          <div 
-            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium transition-all"
+          <div v-if="userProfilePic"
+            class="h-6 w-6 rounded-full overflow-hidden shrink-0 transition-all"
+            :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-2' : ''"
+          >
+            <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+          </div>
+          <div v-else
+            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0 transition-all"
             :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-2' : ''"
           >
             {{ userInitials }}
@@ -367,6 +379,15 @@ const userInitials = computed(() => {
   }
   
   return 'U'
+})
+
+const userProfilePic = computed(() => {
+  const user = authStore.user
+  if (!user) return null
+  const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
+  if (pic) return pic.replace(/^http:\/\//i, 'https://')
+  if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+  return null
 })
 
 const isActive = (path) => {

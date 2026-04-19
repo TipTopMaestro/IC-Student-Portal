@@ -280,20 +280,11 @@ export const reactToPost = async (postId, reactionType = 'heart') => {
  */
 export const removeReaction = async (postId) => {
   try {
-    // Try POST /react/ first — many backends toggle the reaction on re-call
-    const response = await api.post(`${POSTS_ENDPOINT}${postId}/react/`, {
-      type: 'heart'
-    })
+    const response = await api.delete(`${POSTS_ENDPOINT}${postId}/remove_react/`)
     return { success: true, data: response.data }
   } catch (error) {
-    // If POST toggle fails, try the explicit DELETE endpoint
-    try {
-      await api.delete(`${POSTS_ENDPOINT}${postId}/remove_react/`)
-      return { success: true }
-    } catch (deleteError) {
-      console.error('Error removing reaction:', deleteError)
-      return { success: false, error: getErrorMessage(deleteError, 'Failed to remove reaction') }
-    }
+    console.error('Error removing reaction:', error)
+    return { success: false, error: getErrorMessage(error, 'Failed to remove reaction') }
   }
 }
 

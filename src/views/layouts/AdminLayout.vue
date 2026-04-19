@@ -256,7 +256,8 @@ const userProfilePicture = computed(() => {
   if (!user.value) return null
   
   // Try various profile picture fields
-  const profilePic = user.value.profile_picture || 
+  const profilePic = user.value.profile ||
+                     user.value.profile_picture || 
                      user.value.avatar || 
                      user.value.photo ||
                      user.value.profile_image

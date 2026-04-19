@@ -112,7 +112,7 @@ const loadPosts = async () => {
 
   try {
     const result = await listPosts({
-      page: pagination.currentPage,
+      current_page: pagination.currentPage,
       per_page: pagination.perPage
     })
 
