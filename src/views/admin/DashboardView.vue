@@ -88,39 +88,41 @@
     </div>
 
     <!-- Recent Posts -->
-    <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
+    <div>
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-base font-semibold text-gray-900">Recent Posts</h2>
         <router-link to="/admin/posts" class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">View All</router-link>
       </div>
       
       <!-- Loading State -->
-      <div v-if="postsLoading" class="space-y-4">
-        <div v-for="i in 2" :key="i" class="animate-pulse">
-          <div class="flex items-center gap-3 mb-3">
+      <div v-if="postsLoading" class="max-w-xl space-y-4">
+        <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+          <div class="p-4 flex items-center gap-3">
             <div class="w-10 h-10 rounded-full bg-gray-200"></div>
             <div class="flex-1">
               <div class="h-4 bg-gray-200 rounded w-24 mb-1"></div>
               <div class="h-3 bg-gray-200 rounded w-16"></div>
             </div>
           </div>
-          <div class="h-16 bg-gray-200 rounded"></div>
+          <div class="h-16 bg-gray-200"></div>
         </div>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="recentPosts.length === 0" class="text-center py-6">
-        <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
-          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
+      <div v-else-if="recentPosts.length === 0" class="max-w-xl">
+        <div class="bg-white border border-gray-200 rounded-xl p-8 text-center">
+          <div class="w-10 h-10 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-gray-500">No posts yet</p>
+          <router-link to="/admin/posts" class="text-sm text-ic-primary hover:underline mt-1 inline-block">Create your first post</router-link>
         </div>
-        <p class="text-sm font-medium text-gray-500">No posts yet</p>
-        <router-link to="/admin/posts" class="text-sm text-ic-primary hover:underline mt-1 inline-block">Create your first post</router-link>
       </div>
 
-      <!-- Posts Feed -->
-      <div v-else class="space-y-4">
+      <!-- Posts Feed (same max-w-xl as Posts page for consistency) -->
+      <div v-else class="max-w-xl space-y-6">
         <PostFeedItem
           v-for="post in recentPosts"
           :key="post.id"

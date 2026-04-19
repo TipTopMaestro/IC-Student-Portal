@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-2xl font-semibold text-gray-900">Posts</h1>
-      <p class="text-sm text-gray-500 mt-0.5">Share updates with your students</p>
+      <p class="text-sm text-gray-500 mt-0.5">Stay updated with the latest news and updates</p>
     </div>
 
     <!-- Loading State -->
@@ -52,16 +52,7 @@
           </svg>
         </div>
         <p class="text-gray-900 font-medium mb-1">No posts yet</p>
-        <p class="text-sm text-gray-500 mb-6">Create your first post to share updates with students.</p>
-        <button
-          @click="openCreateModal"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-ic-primary text-white text-sm font-medium rounded-lg hover:bg-ic-secondary transition-colors"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Create post
-        </button>
+        <p class="text-sm text-gray-500">Check back later for updates from your organization.</p>
       </div>
     </div>
 
@@ -71,11 +62,7 @@
         v-for="post in posts"
         :key="post.id"
         :post="post"
-        :show-actions="true"
-        :show-visibility="true"
-        @edit="startEdit"
-        @delete="startDelete"
-        @updated="handlePostUpdated"
+        :show-actions="false"
       />
 
       <!-- Pagination -->
@@ -101,41 +88,11 @@
         </div>
       </div>
     </div>
-
-    <!-- Floating Action Button -->
-    <button
-      v-if="posts.length > 0"
-      @click="openCreateModal"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-ic-primary text-white rounded-full shadow-lg hover:bg-ic-secondary hover:shadow-xl transition-all flex items-center justify-center z-40 md:bottom-8 md:right-8"
-      title="Create new post"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-    </button>
-
-    <!-- Create/Edit Modal -->
-    <PostModal
-      :is-open="createModalOpen"
-      :post="editingPost"
-      @close="closeCreateModal"
-      @success="handlePostSaved"
-    />
-
-    <!-- Delete Confirmation Modal -->
-    <DeleteConfirmModal
-      :is-open="deleteModalOpen"
-      :post="deletingPost"
-      @close="closeDeleteModal"
-      @success="handlePostDeleted"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import PostModal from '@/components/posts/PostModal.vue'
-import DeleteConfirmModal from '@/components/posts/DeleteConfirmModal.vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 import { listPosts, extractPosts, extractPagination } from '@/services/postService'
 
@@ -149,11 +106,6 @@ const pagination = reactive({
   totalItems: 0
 })
 
-const createModalOpen = ref(false)
-const editingPost = ref(null)
-const deleteModalOpen = ref(false)
-const deletingPost = ref(null)
-
 const loadPosts = async () => {
   isLoading.value = true
   error.value = ''
@@ -165,7 +117,9 @@ const loadPosts = async () => {
     })
 
     if (result.success) {
-      posts.value = extractPosts(result)
+      const allPosts = extractPosts(result)
+      // Client-side filter: students only see public posts
+      posts.value = allPosts.filter(post => post.visibility === 'public')
       const paginationData = extractPagination(result)
       Object.assign(pagination, paginationData)
     } else {
@@ -184,47 +138,6 @@ const goToPage = (page) => {
   pagination.currentPage = page
   loadPosts()
   window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const openCreateModal = () => {
-  editingPost.value = null
-  createModalOpen.value = true
-}
-
-const closeCreateModal = () => {
-  createModalOpen.value = false
-  editingPost.value = null
-}
-
-const startEdit = (post) => {
-  editingPost.value = post
-  createModalOpen.value = true
-}
-
-const startDelete = (post) => {
-  deletingPost.value = post
-  deleteModalOpen.value = true
-}
-
-const closeDeleteModal = () => {
-  deleteModalOpen.value = false
-  deletingPost.value = null
-}
-
-const handlePostSaved = () => {
-  loadPosts()
-}
-
-const handlePostDeleted = (postId) => {
-  posts.value = posts.value.filter(p => p.id !== postId)
-  pagination.totalItems -= 1
-}
-
-const handlePostUpdated = (updatedPost) => {
-  const idx = posts.value.findIndex(p => p.id === updatedPost.id)
-  if (idx !== -1) {
-    posts.value[idx] = { ...posts.value[idx], ...updatedPost }
-  }
 }
 
 onMounted(() => {

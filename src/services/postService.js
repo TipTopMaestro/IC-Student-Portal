@@ -85,7 +85,7 @@ export const createPost = async (postData, images = []) => {
     // Append images if any
     if (images.length > 0) {
       images.forEach((image) => {
-        formData.append('media', image)
+        formData.append('uploaded_files', image)
       })
     }
 
@@ -135,7 +135,7 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
     // Append new images if any
     if (newImages.length > 0) {
       newImages.forEach((image) => {
-        formData.append('media', image)
+        formData.append('uploaded_files', image)
       })
     }
     
@@ -251,4 +251,63 @@ export const extractPost = (result) => {
   if (!result.success) return null
   const post = result.data?.data || result.data || null
   return normalizePostMedia(post)
+}
+
+/**
+ * React to a post (Instagram-style heart)
+ * @param {number|string} postId - Post ID
+ * @param {string} [reactionType='heart'] - Reaction type
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const reactToPost = async (postId, reactionType = 'heart') => {
+  try {
+    const response = await api.post(`${POSTS_ENDPOINT}${postId}/react/`, {
+      type: reactionType
+    })
+    return { success: true, data: response.data }
+  } catch (error) {
+    console.error('Error reacting to post:', error)
+    return { success: false, error: getErrorMessage(error, 'Failed to react') }
+  }
+}
+
+/**
+ * Remove reaction from a post
+ * The backend may use POST /react/ as a toggle, so we try that first.
+ * Falls back to DELETE /remove_react/ if needed.
+ * @param {number|string} postId - Post ID
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const removeReaction = async (postId) => {
+  try {
+    // Try POST /react/ first — many backends toggle the reaction on re-call
+    const response = await api.post(`${POSTS_ENDPOINT}${postId}/react/`, {
+      type: 'heart'
+    })
+    return { success: true, data: response.data }
+  } catch (error) {
+    // If POST toggle fails, try the explicit DELETE endpoint
+    try {
+      await api.delete(`${POSTS_ENDPOINT}${postId}/remove_react/`)
+      return { success: true }
+    } catch (deleteError) {
+      console.error('Error removing reaction:', deleteError)
+      return { success: false, error: getErrorMessage(deleteError, 'Failed to remove reaction') }
+    }
+  }
+}
+
+/**
+ * Toggle comments on/off for a post (admin only)
+ * @param {number|string} postId - Post ID
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const togglePostComments = async (postId) => {
+  try {
+    const response = await api.patch(`${POSTS_ENDPOINT}${postId}/toggle_comments/`)
+    return { success: true, data: response.data }
+  } catch (error) {
+    console.error('Error toggling comments:', error)
+    return { success: false, error: getErrorMessage(error, 'Failed to toggle comments') }
+  }
 }

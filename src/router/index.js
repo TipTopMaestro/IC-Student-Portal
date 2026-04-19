@@ -73,9 +73,9 @@ const router = createRouter({
           component: () => import('@/views/student/FeesView.vue')
         },
         {
-          path: 'announcements',
-          name: 'announcements',
-          component: () => import('@/views/student/AnnouncementsView.vue')
+          path: 'posts',
+          name: 'student-posts',
+          component: () => import('@/views/student/PostsView.vue')
         },
         {
           path: 'calendar',

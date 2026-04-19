@@ -30,9 +30,6 @@ export const API_CONFIG = {
     ATTENDANCE_UPLOAD: '/api/v1/attendance-records/upload/',
     STUDENT_ATTENDANCE: (studentId) => `/api/v1/students/${studentId}/attendance/`,
     
-    // Announcements (deprecated - use Posts instead)
-    ANNOUNCEMENTS: '/api/v1/announcements/',
-    ANNOUNCEMENT_DETAIL: (id) => `/api/v1/announcements/${id}/`,
     
     // Posts (Instagram-style posts feature)
     POSTS: '/api/v1/posts/',

@@ -91,10 +91,35 @@
           </div>
         </div>
 
-        <!-- Announcements -->
-        <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-gray-900">Announcements</h2>
-          <span class="text-xs text-gray-400">Coming soon</span>
+        <!-- Recent Posts -->
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-900">Recent Posts</h2>
+            <router-link to="/posts" class="text-xs text-ic-primary hover:underline">View all</router-link>
+          </div>
+          <div v-if="postsLoading" class="p-4 space-y-4">
+            <div v-for="i in 2" :key="i" class="animate-pulse">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-full bg-gray-200"></div>
+                <div class="flex-1">
+                  <div class="h-3 bg-gray-200 rounded w-24 mb-1"></div>
+                  <div class="h-2.5 bg-gray-200 rounded w-16"></div>
+                </div>
+              </div>
+              <div class="h-12 bg-gray-100 rounded"></div>
+            </div>
+          </div>
+          <div v-else-if="recentPosts.length > 0" class="p-4 space-y-4">
+            <PostFeedItem
+              v-for="post in recentPosts"
+              :key="post.id"
+              :post="post"
+              :show-actions="false"
+            />
+          </div>
+          <div v-else class="px-5 py-8 text-center">
+            <p class="text-sm text-gray-400">No posts yet</p>
+          </div>
         </div>
       </div>
 
@@ -142,6 +167,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getStudentFees } from '@/services/feeService'
 import { listInstituteEvents, listAttendanceRecords } from '@/services/eventService'
+import { listPosts, extractPosts } from '@/services/postService'
+import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 
 const authStore = useAuthStore()
 
@@ -168,6 +195,8 @@ const attendedEvents = ref(0)
 const totalUnpaidAmount = ref(0)
 const pendingFeesList = ref([])
 const upcomingEventsList = ref([])
+const postsLoading = ref(true)
+const recentPosts = ref([])
 
 const loadFeeStats = async () => {
   const studentId = authStore.user?.student?.id
@@ -249,9 +278,24 @@ const loadAttendanceStats = async () => {
   }
 }
 
+const loadRecentPosts = async () => {
+  postsLoading.value = true
+  try {
+    const result = await listPosts({ per_page: 3 })
+    if (result.success) {
+      const allPosts = extractPosts(result)
+      recentPosts.value = allPosts.filter(post => post.visibility === 'public').slice(0, 3)
+    }
+  } catch (e) {
+    console.warn('Could not load recent posts:', e)
+  } finally {
+    postsLoading.value = false
+  }
+}
+
 const loadDashboard = async () => {
   isLoading.value = true
-  await Promise.allSettled([loadFeeStats(), loadEvents(), loadAttendanceStats()])
+  await Promise.allSettled([loadFeeStats(), loadEvents(), loadAttendanceStats(), loadRecentPosts()])
   isLoading.value = false
 }
 
