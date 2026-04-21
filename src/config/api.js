@@ -30,9 +30,10 @@ export const API_CONFIG = {
     ATTENDANCE_UPLOAD: '/api/v1/attendance-records/upload/',
     STUDENT_ATTENDANCE: (studentId) => `/api/v1/students/${studentId}/attendance/`,
     
-    // Announcements (if exists in backend)
-    ANNOUNCEMENTS: '/api/v1/announcements/',
-    ANNOUNCEMENT_DETAIL: (id) => `/api/v1/announcements/${id}/`,
+    
+    // Posts (Instagram-style posts feature)
+    POSTS: '/api/v1/posts/',
+    POST_DETAIL: (id) => `/api/v1/posts/${id}/`,
   },
   
   // Request timeout (increased for Render.com free tier cold starts)

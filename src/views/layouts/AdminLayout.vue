@@ -58,7 +58,10 @@
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
             :class="isActiveRoute('/admin/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
           >
-            <div class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
+            <div v-if="userProfilePicture" class="h-5 w-5 rounded-full overflow-hidden">
+              <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
+            </div>
+            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
               {{ userInitials }}
             </div>
             <span class="text-sm">Profile</span>
@@ -114,7 +117,10 @@
           :class="{ 'sidebar-link-active': isActiveRoute('/admin/profile') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <div class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
+            <div v-if="userProfilePicture" class="h-7 w-7 rounded-full overflow-hidden" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
+              <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
+            </div>
+            <div v-else class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
               {{ userInitials }}
             </div>
           </div>
@@ -189,8 +195,8 @@ const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', str
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' })
 ])
 
-const MegaphoneIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' })
+const PostsIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' })
 ])
 
 const ClipboardIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
@@ -201,7 +207,7 @@ const navItems = [
   { name: 'Dashboard', path: '/admin', icon: HomeIcon },
   { name: 'Students', path: '/admin/students', icon: UsersIcon },
   { name: 'Events', path: '/admin/events', icon: CalendarIcon },
-  { name: 'Announcements', path: '/admin/announcements', icon: MegaphoneIcon },
+  { name: 'Posts', path: '/admin/posts', icon: PostsIcon },
   { name: 'Attendance', path: '/admin/attendance', icon: ClipboardIcon }
 ]
 
@@ -243,6 +249,23 @@ const userInitials = computed(() => {
   }
   
   return 'AD'
+})
+
+// Get user's profile picture with HTTPS normalization
+const userProfilePicture = computed(() => {
+  if (!user.value) return null
+  
+  // Try various profile picture fields
+  const profilePic = user.value.profile ||
+                     user.value.profile_picture || 
+                     user.value.avatar || 
+                     user.value.photo ||
+                     user.value.profile_image
+  
+  if (!profilePic) return null
+  
+  // Normalize to HTTPS
+  return profilePic.replace(/^http:\/\//i, 'https://')
 })
 
 const isActiveRoute = (path) => {

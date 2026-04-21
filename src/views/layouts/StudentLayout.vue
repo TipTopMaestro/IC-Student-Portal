@@ -98,15 +98,15 @@
           </router-link>
 
           <router-link
-            to="/announcements"
+            to="/posts"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/announcements') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/posts') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
-            <span class="text-sm">Announcements</span>
+            <span class="text-sm">Posts</span>
           </router-link>
 
           <router-link
@@ -115,7 +115,10 @@
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
             :class="isActive('/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
           >
-            <div class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
+            <div v-if="userProfilePic" class="h-5 w-5 rounded-full overflow-hidden shrink-0">
+              <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+            </div>
+            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0">
               {{ userInitials }}
             </div>
             <span class="text-sm">Profile</span>
@@ -214,16 +217,16 @@
         </router-link>
 
         <router-link
-          to="/announcements"
+          to="/posts"
           class="sidebar-link"
-          :class="{ 'sidebar-link-active': isActive('/announcements') }"
+          :class="{ 'sidebar-link-active': isActive('/posts') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/announcements') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/posts') ? 2.5 : 2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Announcements</span>
+          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Posts</span>
         </router-link>
 
         <router-link
@@ -232,7 +235,10 @@
           :class="{ 'sidebar-link-active': isActive('/profile') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <div class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+            <div v-if="userProfilePic" class="h-7 w-7 rounded-full overflow-hidden shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+              <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+            </div>
+            <div v-else class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
               {{ userInitials }}
             </div>
           </div>
@@ -305,8 +311,14 @@
           class="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors"
           :class="isActive('/profile') ? 'text-ic-primary' : 'text-gray-600'"
         >
-          <div 
-            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium transition-all"
+          <div v-if="userProfilePic"
+            class="h-6 w-6 rounded-full overflow-hidden shrink-0 transition-all"
+            :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-2' : ''"
+          >
+            <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
+          </div>
+          <div v-else
+            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0 transition-all"
             :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-2' : ''"
           >
             {{ userInitials }}
@@ -367,6 +379,15 @@ const userInitials = computed(() => {
   }
   
   return 'U'
+})
+
+const userProfilePic = computed(() => {
+  const user = authStore.user
+  if (!user) return null
+  const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
+  if (pic) return pic.replace(/^http:\/\//i, 'https://')
+  if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+  return null
 })
 
 const isActive = (path) => {

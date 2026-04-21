@@ -1,5 +1,3 @@
-<!-- note: done na majority features ani na page, pero wala pa na test ang pag update sa user sa iyang profile  -->
-
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Loading State -->
@@ -21,30 +19,14 @@
       </div>
     </div>
 
-    <!-- Success Message -->
-    <div v-if="successMessage" class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center">
-      <svg class="h-5 w-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p class="text-sm text-green-700">{{ successMessage }}</p>
-    </div>
-
     <!-- Profile Content -->
     <template v-if="!isLoading && !error">
     <!-- Profile Header -->
     <div class="card">
       <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
         <!-- Avatar -->
-        <div class="relative">
-          <div class="h-32 w-32 rounded-full bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold">
-            {{ userInitials }}
-          </div>
-          <button class="absolute bottom-0 right-0 h-10 w-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-50 border-2 border-gray-100">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+        <div class="h-32 w-32 rounded-full bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold">
+          {{ userInitials }}
         </div>
 
         <!-- Student Info -->
@@ -57,14 +39,6 @@
             <span class="badge badge-success capitalize">{{ studentData.status }}</span>
           </div>
         </div>
-
-        <!-- Action Button -->
-        <button @click="editMode = !editMode" class="btn-primary">
-          <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          {{ editMode ? 'Cancel' : 'Edit Profile' }}
-        </button>
       </div>
     </div>
 
@@ -82,13 +56,11 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">First Name</label>
-          <input v-if="editMode" v-model="studentData.firstName" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.firstName || 'N/A' }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.firstName || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Last Name</label>
-          <input v-if="editMode" v-model="studentData.lastName" type="text" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.lastName || 'N/A' }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.lastName || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Middle Name</label>
@@ -102,14 +74,6 @@
           <label class="block text-sm font-medium text-gray-500 mb-1">RFID</label>
           <p class="text-gray-900 font-medium">{{ studentData.rfid }}</p>
         </div>
-      </div>
-
-      <div v-if="editMode" class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-        <button @click="editMode = false" class="btn-secondary" :disabled="isSaving">Cancel</button>
-        <button @click="saveProfile" class="btn-primary" :disabled="isSaving">
-          <span v-if="isSaving">Saving...</span>
-          <span v-else>Save Changes</span>
-        </button>
       </div>
     </div>
 
@@ -125,8 +89,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
-          <input v-if="editMode" v-model="studentData.email" type="email" class="input-field" />
-          <p v-else class="text-gray-900 font-medium">{{ studentData.email || 'N/A' }}</p>
+          <p class="text-gray-900 font-medium">{{ studentData.email || 'N/A' }}</p>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-500 mb-1">Username</label>
@@ -199,14 +162,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { getCurrentProfile, updateProfile } from '@/services/studentService'
+import { getCurrentProfile } from '@/services/studentService'
 
 const authStore = useAuthStore()
-const editMode = ref(false)
 const isLoading = ref(true)
-const isSaving = ref(false)
 const error = ref(null)
-const successMessage = ref(null)
 
 // Initialize with user data from auth store
 const studentData = ref({
@@ -282,40 +242,4 @@ const userInitials = computed(() => {
   const last = studentData.value.lastName[0] || 'U'
   return `${first}${last}`
 })
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-const saveProfile = async () => {
-  isSaving.value = true
-  error.value = null
-  successMessage.value = null
-  
-  // Only send fields that the API accepts (first_name, last_name, email)
-  const result = await updateProfile({
-    firstName: studentData.value.firstName,
-    lastName: studentData.value.lastName,
-    email: studentData.value.email
-  })
-  
-  if (result.success) {
-    successMessage.value = 'Profile updated successfully!'
-    editMode.value = false
-    
-    // Reload profile to get latest data
-    await loadProfile()
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = null
-    }, 3000)
-  } else {
-    error.value = result.error
-  }
-  
-  isSaving.value = false
-}
 </script>

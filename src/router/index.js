@@ -31,9 +31,9 @@ const router = createRouter({
           component: () => import('@/views/admin/EventsView.vue')
         },
         {
-          path: 'announcements',
-          name: 'admin-announcements',
-          component: () => import('@/views/admin/AnnouncementsView.vue')
+          path: 'posts',
+          name: 'admin-posts',
+          component: () => import('@/views/admin/PostsView.vue')
         },
         {
           path: 'attendance',
@@ -73,9 +73,9 @@ const router = createRouter({
           component: () => import('@/views/student/FeesView.vue')
         },
         {
-          path: 'announcements',
-          name: 'announcements',
-          component: () => import('@/views/student/AnnouncementsView.vue')
+          path: 'posts',
+          name: 'student-posts',
+          component: () => import('@/views/student/PostsView.vue')
         },
         {
           path: 'calendar',
