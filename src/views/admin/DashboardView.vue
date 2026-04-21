@@ -89,7 +89,7 @@
 
     <!-- Recent Posts -->
     <div>
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center max-w-xl justify-between mb-4">
         <h2 class="text-base font-semibold text-gray-900">Recent Posts</h2>
         <router-link to="/admin/posts" class="text-ic-primary hover:text-ic-primary/80 text-xs font-medium">View All</router-link>
       </div>
