@@ -23,6 +23,11 @@ dist-ssr/
 .env.local
 .env.*.local
 
+# AI System (Private)
+.ai/
+.gemini/
+
+
 # Logs
 logs
 *.log
