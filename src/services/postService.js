@@ -200,12 +200,44 @@ const normalizeMediaUrl = (url) => {
  */
 const normalizePostMedia = (post) => {
   if (!post) return post
+  
+  // Log a small sample to see structure once (don't flood console)
+  if (Math.random() < 0.01) {
+    console.log('📬 Post structure sample:', JSON.stringify(post, null, 2))
+  }
+
   if (post.media && Array.isArray(post.media)) {
     post.media = post.media.map(m => ({
       ...m,
       media_url: normalizeMediaUrl(m.media_url)
     }))
   }
+  
+  // Normalize potential avatar fields
+  const avatarFields = ['user_avatar', 'user_profile', 'picture', 'avatar', 'google_avatar', 'photo', 'profile_image']
+  
+  // Find the first available avatar URL
+  let avatarUrl = null
+  
+  // Prefer student profile picture if available
+  if (post.student?.profile_picture) {
+    avatarUrl = post.student.profile_picture
+  } else if (post.author?.profile_picture) {
+    avatarUrl = post.author.profile_picture
+  } else if (post.user?.profile_picture) {
+    avatarUrl = post.user.profile_picture
+  } else {
+    for (const field of avatarFields) {
+      if (post[field]) {
+        avatarUrl = post[field]
+        break
+      }
+    }
+  }
+
+  // Set normalized user_avatar for consistent use in components
+  post.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
+
   return post
 }
 

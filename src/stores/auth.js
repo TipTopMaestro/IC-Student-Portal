@@ -132,18 +132,75 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const normalizeUrl = (url) => {
+    if (!url || typeof url !== 'string') return url
+    return url.replace(/^http:\/\//i, 'https://')
+  }
+
   const fetchCurrentUser = async () => {
     try {
       const response = await authService.getCurrentUser()
       
       // Backend wraps response in data object
-      const userData = response.data || response
+      let userData = response.data || response
       
       if (Array.isArray(userData) && userData.length > 0) {
-        user.value = userData[0]
-      } else {
-        user.value = userData
+        userData = userData[0]
       }
+
+      // Normalize profile pictures
+      console.log('🔐 Auth Store: userData structure:', JSON.stringify(userData, null, 2))
+      const picFields = [
+        'profile_picture', 
+        'avatar', 
+        'picture', 
+        'google_avatar', 
+        'photo', 
+        'profile_image', 
+        'user_avatar', 
+        'user_profile',
+        'profile_url',
+        'profile'
+      ]
+      
+      picFields.forEach(field => {
+        if (userData[field]) userData[field] = normalizeUrl(userData[field])
+      })
+      
+      // The backend /me/ endpoint doesn't return the user ID. We must decode the JWT or use student.user
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        try {
+          const jwtPayload = JSON.parse(atob(token.split('.')[1]))
+          userData.id = jwtPayload.user_id || jwtPayload.id
+        } catch (e) {
+          console.warn('Could not decode JWT to get user ID')
+        }
+      }
+      if (!userData.id && userData.student && userData.student.user) {
+        userData.id = userData.student.user
+      }
+
+      if (userData.student?.s_image) {
+        userData.student.s_image = normalizeUrl(userData.student.s_image)
+      }
+      if (userData.student?.profile_picture) {
+        userData.student.profile_picture = normalizeUrl(userData.student.profile_picture)
+      }
+
+      // Map to user_avatar for consistency, preferring student profile picture
+      userData.user_avatar = userData.student?.s_image ||
+                           userData.student?.profile_picture || 
+                           userData.profile_url ||
+                           userData.profile ||
+                           userData.user_avatar || 
+                           userData.user_profile || 
+                           userData.picture || 
+                           userData.avatar || 
+                           userData.google_avatar || 
+                           null
+      
+      user.value = userData
 
       // If user has no linked student record and isn't admin, try to find it
       // This runs once per login/session so individual pages don't need to
@@ -190,6 +247,9 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const linkStudentRecord = (studentData) => {
     if (user.value && studentData) {
+      if (studentData.profile_picture) {
+        studentData.profile_picture = normalizeUrl(studentData.profile_picture)
+      }
       user.value = { ...user.value, student: studentData }
       localStorage.setItem('user_data', JSON.stringify(user.value))
     }

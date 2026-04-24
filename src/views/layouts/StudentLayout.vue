@@ -384,10 +384,8 @@ const userInitials = computed(() => {
 const userProfilePic = computed(() => {
   const user = authStore.user
   if (!user) return null
-  const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
-  if (pic) return pic.replace(/^http:\/\//i, 'https://')
-  if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
-  return null
+  // The backend uses 'profile_url' or 'profile' for User, and 's_image' for Student
+  return user.profile_url || user.profile || user.student?.s_image || user.user_avatar || null
 })
 
 const isActive = (path) => {

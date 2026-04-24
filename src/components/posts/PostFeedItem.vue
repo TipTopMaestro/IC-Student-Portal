@@ -5,7 +5,7 @@
       <div v-if="authorAvatar" class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100">
         <img :src="authorAvatar" :alt="post.user_name" class="w-full h-full object-cover" />
       </div>
-      <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-medium ring-2 ring-gray-100">
+      <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-sm font-medium ring-2 ring-gray-100">
         {{ authorInitials }}
       </div>
       <div class="flex-1 min-w-0">
@@ -309,30 +309,25 @@ const normalizeUrl = (url) => {
 
 // Get author avatar
 const authorAvatar = computed(() => {
+  // Prioritize post.user_avatar or post.user_profile as they should be provided by the backend and normalized
+  const avatar = props.post.user_avatar || props.post.user_profile
+  if (avatar) return normalizeUrl(avatar)
+
+  // Fallback to current user profile pic if the current user is the author
   const user = currentUser.value
-  if (!user) {
-    if (props.post.user_avatar) return normalizeUrl(props.post.user_avatar)
-    return null
-  }
+  if (user) {
+    const isAuthor = 
+      (user.id && String(user.id) === String(props.post.user_id)) ||
+      (user.username && user.username === props.post.user_name) ||
+      (user.email && user.email === props.post.user_name) ||
+      (user.full_name && user.full_name === props.post.user_name) ||
+      (`${user.first_name || ''} ${user.last_name || ''}`.trim() === props.post.user_name)
 
-  // Check if current user is the author
-  const isAuthor = 
-    (user.id && String(user.id) === String(props.post.user_id)) ||
-    (user.username && user.username === props.post.user_name) ||
-    (user.email && user.email === props.post.user_name) ||
-    (user.full_name && user.full_name === props.post.user_name) ||
-    (`${user.first_name || ''} ${user.last_name || ''}`.trim() === props.post.user_name)
-
-  if (isAuthor) {
-    const profilePic = user.profile ||
-                       user.profile_picture || 
-                       user.avatar || 
-                       user.photo ||
-                       user.profile_image
-    if (profilePic) return normalizeUrl(profilePic)
+    if (isAuthor && user.user_avatar) {
+      return normalizeUrl(user.user_avatar)
+    }
   }
   
-  if (props.post.user_avatar) return normalizeUrl(props.post.user_avatar)
   return null
 })
 

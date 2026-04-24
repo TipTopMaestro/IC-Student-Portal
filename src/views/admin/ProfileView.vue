@@ -33,12 +33,31 @@
       <div class="bg-white border border-gray-200 rounded-xl p-4 md:p-5">
         <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           <!-- Avatar -->
-          <div class="relative">
-            <div v-if="profileData.profileImage" class="h-32 w-32 rounded-full overflow-hidden">
-              <img :src="profileData.profileImage" alt="Profile" class="h-full w-full object-cover" />
-            </div>
-            <div v-else class="h-32 w-32 rounded-full bg-gradient-to-br from-ic-primary to-purple-400 flex items-center justify-center text-white text-4xl font-bold">
-              {{ userInitials }}
+          <div class="relative group">
+            <div class="h-32 w-32 rounded-full overflow-hidden shrink-0 bg-gradient-to-br from-ic-primary to-purple-400 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105">
+              <img v-if="profileData.profileImage" :src="profileData.profileImage" alt="Profile" class="h-full w-full object-cover" />
+              <span v-else>{{ userInitials }}</span>
+              
+              <!-- Upload Overlay -->
+              <label 
+                class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer rounded-full"
+                :class="{ 'opacity-100': isUploadingProfilePic }"
+              >
+                <template v-if="isUploadingProfilePic">
+                  <svg class="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </template>
+                <template v-else>
+                  <svg class="w-8 h-8 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span class="text-white text-xs font-medium">Update</span>
+                </template>
+                <input type="file" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onProfilePicSelected" :disabled="isUploadingProfilePic" />
+              </label>
             </div>
           </div>
 
@@ -135,10 +154,14 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
+import { uploadImage } from '@/services/fileService'
 
+const authStore = useAuthStore()
 const isLoading = ref(true)
 const error = ref(null)
+const isUploadingProfilePic = ref(false)
 
 const profileData = ref({
   username: '',
@@ -168,7 +191,7 @@ const loadProfile = async () => {
       firstName: data.first_name || '',
       lastName: data.last_name || '',
       email: data.email || '',
-      profileImage: data.profile || '',
+      profileImage: data.profile_url || data.profile || data.user_avatar || '',
       institute: data.institute?.institute_name || '',
       school: data.institute?.school?.school_name || '',
       groups: data.groups || []
@@ -179,6 +202,64 @@ const loadProfile = async () => {
   }
 
   isLoading.value = false
+}
+
+const onProfilePicSelected = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image size should be less than 5MB')
+    return
+  }
+
+  isUploadingProfilePic.value = true
+  try {
+    // 1. Upload to Cloudinary
+    const uploadResult = await uploadImage(file, 'profiles')
+    if (!uploadResult.success) {
+      throw new Error(uploadResult.error || 'Failed to upload image')
+    }
+
+    const imageUrl = uploadResult.data.image_url
+    console.log('✅ Image uploaded to Cloudinary:', imageUrl)
+
+    // 2. Update backend profile
+    // We send multiple possible field names for better compatibility with backend
+    const payload = {
+      first_name: profileData.firstName,
+      last_name: profileData.lastName,
+      email: profileData.email,
+      profile: imageUrl,
+      profile_picture: imageUrl,
+      user_avatar: imageUrl
+    }
+
+    console.log('📤 Sending profile update payload:', payload)
+    const response = await api.patch(`/api/v1/users/${authStore.user.id}/`, payload)
+    console.log('📥 Profile update response:', response.data)
+
+    // 3. Update local state & auth store
+    // Ensure we use the exact same property names the auth store uses
+    profileData.value.profileImage = imageUrl
+
+    // Force a fresh fetch from the server to sync everything
+    await authStore.fetchCurrentUser()
+
+    // Update local state again from the store to be absolutely sure
+    if (authStore.user?.user_avatar) {
+      profileData.value.profileImage = authStore.user.user_avatar
+    }
+
+    alert('Profile picture updated successfully!')
+  } catch (err) {
+    console.error('Profile pic upload error:', err)
+    alert(err.message || 'An error occurred while updating profile picture')
+  } finally {
+    isUploadingProfilePic.value = false
+    // Reset input
+    event.target.value = ''
+  }
 }
 
 const fullName = computed(() => {

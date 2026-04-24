@@ -4,7 +4,7 @@
     <div v-if="authorAvatar" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
       <img :src="authorAvatar" alt="Profile" class="h-full w-full object-cover" />
     </div>
-    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
       {{ getInitials(comment.user) }}
     </div>
 
@@ -113,7 +113,7 @@
 
 <script setup>
 import { ref, computed, nextTick, watch } from 'vue'
-import { updateComment, deleteComment, getReplies, extractComments } from '@/services/commentService'
+import { updateComment, deleteComment, getReplies, extractReplies } from '@/services/commentService'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
@@ -135,6 +135,12 @@ const repliesLoaded = ref(false)
 const repliesLoading = ref(false)
 
 const currentUser = computed(() => useAuthStore().user)
+
+// Normalize URL to use HTTPS
+const normalizeUrl = (url) => {
+  if (!url) return ''
+  return url.replace(/^http:\/\//i, 'https://')
+}
 
 const isOwner = computed(() => {
   const user = currentUser.value
@@ -166,13 +172,16 @@ const replyCount = computed(() => {
 })
 
 const authorAvatar = computed(() => {
+  // Prioritize comment.user_avatar or user_profile for all users
+  const avatar = props.comment.user_avatar || props.comment.user_profile
+  if (avatar) return normalizeUrl(avatar)
+
   if (isOwner.value) {
     const authStore = useAuthStore()
     const user = authStore.user
-    if (!user) return null
-    const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
-    if (pic) return pic.replace(/^http:\/\//i, 'https://')
-    if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+    if (user && user.user_avatar) {
+      return normalizeUrl(user.user_avatar)
+    }
   }
   return null
 })
@@ -209,24 +218,7 @@ const loadReplies = async () => {
   repliesLoading.value = true
   const result = await getReplies(props.comment.id)
   if (result.success) {
-    const data = result.data?.data || result.data
-    // The API returns PostCommentDetail which has a `replies` field inside
-    // Try multiple parsing strategies to handle different response shapes
-    let items = []
-    if (Array.isArray(data)) {
-      items = data
-    } else if (data?.replies && Array.isArray(data.replies)) {
-      items = data.replies
-    } else if (data?.results && Array.isArray(data.results)) {
-      items = data.results
-    } else if (data?.data && Array.isArray(data.data)) {
-      items = data.data
-    }
-    // If replies came as a JSON string (API schema says type: string), parse it
-    if (typeof data?.replies === 'string') {
-      try { items = JSON.parse(data.replies) } catch (e) { items = [] }
-    }
-    replies.value = items
+    replies.value = extractReplies(result)
     repliesLoaded.value = true
   }
   repliesLoading.value = false

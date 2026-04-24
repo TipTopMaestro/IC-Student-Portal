@@ -251,21 +251,11 @@ const userInitials = computed(() => {
   return 'AD'
 })
 
-// Get user's profile picture with HTTPS normalization
+// Get user's profile picture
 const userProfilePicture = computed(() => {
   if (!user.value) return null
-  
-  // Try various profile picture fields
-  const profilePic = user.value.profile ||
-                     user.value.profile_picture || 
-                     user.value.avatar || 
-                     user.value.photo ||
-                     user.value.profile_image
-  
-  if (!profilePic) return null
-  
-  // Normalize to HTTPS
-  return profilePic.replace(/^http:\/\//i, 'https://')
+  // The backend uses 'profile_url' or 'profile' for User, and 's_image' for Student
+  return user.value.profile_url || user.value.profile || user.value.student?.s_image || user.value.user_avatar || null
 })
 
 const isActiveRoute = (path) => {
