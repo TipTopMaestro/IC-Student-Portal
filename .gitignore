@@ -28,6 +28,9 @@ dist-ssr/
 .gemini/
 
 
+#Docs
+docs/
+
 # Logs
 logs
 *.log
