@@ -93,6 +93,37 @@ export const deleteComment = async (commentId) => {
 }
 
 /**
+ * React to a comment
+ * @param {number|string} commentId - Comment ID
+ * @param {string} type - Reaction type ('like', 'heart', 'haha', 'sad', 'angry')
+ * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ */
+export const reactToComment = async (commentId, type) => {
+  try {
+    const response = await api.post(`${COMMENTS_ENDPOINT}${commentId}/react/`, { type })
+    return { success: true, data: response.data }
+  } catch (error) {
+    console.error('Error reacting to comment:', error)
+    return { success: false, error: getErrorMessage(error, 'Failed to react to comment') }
+  }
+}
+
+/**
+ * Remove reaction from a comment
+ * @param {number|string} commentId - Comment ID
+ * @returns {Promise<{success: boolean, error?: string}>}
+ */
+export const removeCommentReaction = async (commentId) => {
+  try {
+    await api.delete(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
+    return { success: true }
+  } catch (error) {
+    console.error('Error removing reaction from comment:', error)
+    return { success: false, error: getErrorMessage(error, 'Failed to remove reaction') }
+  }
+}
+
+/**
  * Get replies for a comment
  * @param {number|string} commentId - Comment ID
  * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
