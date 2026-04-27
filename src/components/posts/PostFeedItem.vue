@@ -328,7 +328,8 @@ const authorAvatar = computed(() => {
     }
   }
   
-  return null
+  // Default fallback
+  return '/default_profile.png'
 })
 
 const authorInitials = computed(() => {

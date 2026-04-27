@@ -198,7 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
                            userData.picture || 
                            userData.avatar || 
                            userData.google_avatar || 
-                           null
+                           '/default_profile.png'
       
       user.value = userData
 

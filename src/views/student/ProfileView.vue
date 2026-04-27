@@ -248,7 +248,7 @@ const loadProfile = async () => {
       institute: data.institute?.institute_name || '',
       school: data.institute?.school?.school_name || '',
       groups: data.groups || [],
-      avatar: data.profile_url || data.profile || student.s_image || data.user_avatar || null
+      avatar: data.user_avatar || data.profile_url || data.profile || student.s_image || '/default_profile.png'
     }
     
     // Link student record to auth store if found

@@ -402,7 +402,9 @@ const authorAvatar = computed(() => {
       return normalizeUrl(user.user_avatar)
     }
   }
-  return null
+  
+  // Default fallback
+  return '/default_profile.png'
 })
 
 const hasReplies = computed(() => replyCount.value > 0 || replies.value.length > 0)
