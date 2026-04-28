@@ -62,7 +62,7 @@
           :alt="userInitials"
           class="w-8 h-8 rounded-full object-cover shrink-0"
         />
-        <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+        <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
           {{ userInitials }}
         </div>
         <div class="flex-1 relative">

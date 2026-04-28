@@ -1,5 +1,15 @@
 <template>
   <div class="relative w-full aspect-square overflow-hidden rounded-lg group">
+    <!-- Author Avatar (Top Left Overlay) -->
+    <div class="absolute top-2 left-2 z-20 pointer-events-none">
+      <div v-if="authorAvatar" class="w-6 h-6 md:w-7 md:h-7 rounded-full overflow-hidden ring-1 ring-white/30 shadow-sm">
+        <img :src="authorAvatar" :alt="post.user_name" class="w-full h-full object-cover" />
+      </div>
+      <div v-else class="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-[9px] md:text-[10px] font-bold ring-1 ring-white/30 shadow-sm">
+        {{ authorInitials }}
+      </div>
+    </div>
+
     <!-- Image Carousel for posts with images -->
     <template v-if="hasMedia">
       <div 
@@ -13,7 +23,7 @@
           class="flex-shrink-0 w-full h-full snap-center"
         >
           <img 
-            :src="media.media_url" 
+            :src="normalizeUrl(media.media_url)" 
             :alt="`Post image ${index + 1}`"
             class="w-full h-full object-cover"
             loading="lazy"
@@ -97,6 +107,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   post: {
@@ -107,15 +118,55 @@ const props = defineProps({
 
 defineEmits(['click'])
 
+const authStore = useAuthStore()
+const currentUser = computed(() => authStore.user)
+
 const carouselRef = ref(null)
 const currentIndex = ref(0)
 
 const hasMedia = computed(() => props.post.media && props.post.media.length > 0)
 
+// Normalize URL to use HTTPS
+const normalizeUrl = (url) => {
+  if (!url) return ''
+  return url.replace(/^http:\/\//i, 'https://')
+}
+
 const totalReactions = computed(() => {
   if (!props.post.reaction_counts) return 0
   const counts = props.post.reaction_counts
   return (counts.like || 0) + (counts.heart || 0) + (counts.haha || 0) + (counts.angry || 0)
+})
+
+const authorAvatar = computed(() => {
+  // Prioritize post.user_avatar as it should be provided by the backend and normalized
+  if (props.post.user_avatar) return normalizeUrl(props.post.user_avatar)
+
+  // Fallback to current user profile pic if the current user is the author
+  const user = currentUser.value
+  if (user) {
+    const isAuthor = 
+      (user.id && String(user.id) === String(props.post.user_id)) ||
+      (user.username && user.username === props.post.user_name) ||
+      (user.email && user.email === props.post.user_name) ||
+      (user.full_name && user.full_name === props.post.user_name) ||
+      (`${user.first_name || ''} ${user.last_name || ''}`.trim() === props.post.user_name)
+
+    if (isAuthor && user.user_avatar) {
+      return normalizeUrl(user.user_avatar)
+    }
+  }
+  
+  return null
+})
+
+const authorInitials = computed(() => {
+  const name = props.post.user_name || 'Admin'
+  const parts = name.split(' ').filter(p => p.length > 0)
+  if (parts.length >= 2) {
+    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase()
+  }
+  return name.substring(0, 2).toUpperCase()
 })
 
 const handleScroll = () => {

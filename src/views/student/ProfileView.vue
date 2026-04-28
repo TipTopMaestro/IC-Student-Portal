@@ -25,8 +25,32 @@
     <div class="card">
       <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
         <!-- Avatar -->
-        <div class="h-32 w-32 rounded-full bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold">
-          {{ userInitials }}
+        <div class="relative group">
+          <div class="h-32 w-32 rounded-full overflow-hidden shrink-0 bg-linear-to-br from-ic-primary to-dnsc-accent flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-105">
+            <img v-if="studentData.avatar" :src="studentData.avatar" class="w-full h-full object-cover" alt="Profile" />
+            <span v-else>{{ userInitials }}</span>
+            
+            <!-- Upload Overlay -->
+            <label 
+              class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer rounded-full"
+              :class="{ 'opacity-100': isUploadingProfilePic }"
+            >
+              <template v-if="isUploadingProfilePic">
+                <svg class="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </template>
+              <template v-else>
+                <svg class="w-8 h-8 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-white text-xs font-medium">Update</span>
+              </template>
+              <input type="file" class="hidden" accept="image/jpeg,image/png,image/webp" @change="onProfilePicSelected" :disabled="isUploadingProfilePic" />
+            </label>
+          </div>
         </div>
 
         <!-- Student Info -->
@@ -162,14 +186,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import { getCurrentProfile } from '@/services/studentService'
+import { getCurrentProfile, updateProfile, updateStudentProfile } from '@/services/studentService'
+import { uploadImage } from '@/services/fileService'
 
 const authStore = useAuthStore()
 const isLoading = ref(true)
 const error = ref(null)
+const isUploadingProfilePic = ref(false)
 
 // Initialize with user data from auth store
 const studentData = ref({
+  id: null,
   username: '',
   firstName: '',
   lastName: '',
@@ -184,7 +211,8 @@ const studentData = ref({
   section: '',
   institute: '',
   school: '',
-  groups: []
+  groups: [],
+  avatar: ''
 })
 
 // Load user profile data from API
@@ -204,6 +232,7 @@ const loadProfile = async () => {
     const student = data.student || {}
     
     studentData.value = {
+      id: student.id || null,
       username: data.username || '',
       firstName: student.s_fname || data.first_name || '',
       lastName: student.s_lname || data.last_name || '',
@@ -218,7 +247,8 @@ const loadProfile = async () => {
       section: student.s_set || '',
       institute: data.institute?.institute_name || '',
       school: data.institute?.school?.school_name || '',
-      groups: data.groups || []
+      groups: data.groups || [],
+      avatar: data.user_avatar || data.profile_url || data.profile || student.s_image || '/default_profile.png'
     }
     
     // Link student record to auth store if found
@@ -231,6 +261,61 @@ const loadProfile = async () => {
   }
   
   isLoading.value = false
+}
+
+const onProfilePicSelected = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image size should be less than 5MB')
+    return
+  }
+
+  isUploadingProfilePic.value = true
+  try {
+    // 1. Upload to Cloudinary
+    const uploadResult = await uploadImage(file, 'profiles')
+    if (!uploadResult.success) {
+      throw new Error(uploadResult.error || 'Failed to upload image')
+    }
+
+    const imageUrl = uploadResult.data.image_url
+
+    // 2. Update backend profile
+    let updateResult;
+    
+    // If we have a student record, update the student image field (s_image)
+    // This is more reliable for students as they may not have permission to patch the User object
+    if (studentData.value.id) {
+      updateResult = await updateStudentProfile(studentData.value.id, {
+        s_image: imageUrl
+      })
+    } else {
+      // Fallback for cases where student record isn't linked yet (though id should be there)
+      updateResult = await updateProfile(authStore.user.id, {
+        firstName: studentData.value.firstName,
+        lastName: studentData.value.lastName,
+        email: studentData.value.email,
+        avatar: imageUrl
+      })
+    }
+
+    if (!updateResult.success) {
+      throw new Error(updateResult.error || 'Failed to save profile picture')
+    }
+
+    // 3. Update local state & auth store
+    studentData.value.avatar = imageUrl
+    await authStore.fetchCurrentUser()
+  } catch (err) {
+    console.error('Profile pic upload error:', err)
+    alert(err.message || 'An error occurred while updating profile picture')
+  } finally {
+    isUploadingProfilePic.value = false
+    // Reset input
+    event.target.value = ''
+  }
 }
 
 const fullName = computed(() => {

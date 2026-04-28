@@ -14,7 +14,7 @@
         <!-- Carousel for Media -->
         <div class="relative w-full h-full flex items-center justify-center group">
           <img 
-            :src="post.media[currentMediaIndex].media_url.replace(/^http:\/\//i, 'https://')" 
+            :src="normalizeUrl(post.media[currentMediaIndex].media_url)" 
             class="max-w-full max-h-full object-contain" 
             alt="Post media" 
           />
@@ -136,7 +136,7 @@
             <div v-if="userProfilePic" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
               <img :src="userProfilePic" class="w-full h-full object-cover" />
             </div>
-            <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+            <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
               {{ currentUserInitials }}
             </div>
             
@@ -190,6 +190,12 @@ const isAdmin = computed(() => authStore.isAdmin)
 const currentMediaIndex = ref(0)
 const hasMedia = computed(() => props.post?.media && props.post.media.length > 0)
 
+// Normalize URL to use HTTPS
+const normalizeUrl = (url) => {
+  if (!url) return ''
+  return url.replace(/^http:\/\//i, 'https://')
+}
+
 // Comments State
 const comments = ref([])
 const commentsLoading = ref(false)
@@ -237,11 +243,12 @@ const authorInitials = computed(() => {
 })
 
 const authorAvatar = computed(() => {
+  // Prioritize post.user_avatar or post.user_profile as they should be provided by the backend and normalized
+  const avatar = props.post.user_avatar || props.post.user_profile
+  if (avatar) return normalizeUrl(avatar)
+
   const user = currentUser.value
-  if (!user) {
-    if (props.post.user_avatar) return props.post.user_avatar.replace(/^http:\/\//i, 'https://')
-    return null
-  }
+  if (!user) return null
 
   // Check if current user is the author
   const isAuthor = 
@@ -251,11 +258,10 @@ const authorAvatar = computed(() => {
     (user.full_name && user.full_name === props.post.user_name) ||
     (`${user.first_name || ''} ${user.last_name || ''}`.trim() === props.post.user_name)
 
-  if (isAuthor) {
-    return userProfilePic.value
+  if (isAuthor && user.user_avatar) {
+    return normalizeUrl(user.user_avatar)
   }
   
-  if (props.post.user_avatar) return props.post.user_avatar.replace(/^http:\/\//i, 'https://')
   return null
 })
 
@@ -268,15 +274,19 @@ const currentUserInitials = computed(() => {
   const firstName = user.first_name || user.firstName || ''
   const lastName = user.last_name || user.lastName || ''
   if (firstName && lastName) return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+  const fullName = user.full_name || user.fullName || ''
+  if (fullName) {
+    const parts = fullName.split(' ').filter(p => p.length > 0)
+    if (parts.length >= 2) return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase()
+    return fullName.substring(0, 2).toUpperCase()
+  }
   return user.username ? user.username.substring(0, 2).toUpperCase() : 'U'
 })
 
 const userProfilePic = computed(() => {
   const user = currentUser.value
   if (!user) return null
-  const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
-  if (pic) return pic.replace(/^http:\/\//i, 'https://')
-  if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+  if (user.user_avatar) return normalizeUrl(user.user_avatar)
   return null
 })
 

@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between h-14 px-4">
         <div class="flex items-center gap-2">
           <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
-          <span class="text-base font-semibold text-gray-900">ICSA Admin</span>
+          <span class="text-base font-semibold text-gray-900">ICAP</span>
         </div>
         <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg">
           <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
         <div class="w-7 h-7 shrink-0 flex items-center justify-center">
           <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
         </div>
-        <span class="ml-4 text-xl font-semibold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">ICSA Admin</span>
+        <span class="ml-4 text-xl font-semibold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">ICAP</span>
       </div>
 
       <!-- Navigation -->
@@ -251,21 +251,9 @@ const userInitials = computed(() => {
   return 'AD'
 })
 
-// Get user's profile picture with HTTPS normalization
+// Get user's profile picture
 const userProfilePicture = computed(() => {
-  if (!user.value) return null
-  
-  // Try various profile picture fields
-  const profilePic = user.value.profile ||
-                     user.value.profile_picture || 
-                     user.value.avatar || 
-                     user.value.photo ||
-                     user.value.profile_image
-  
-  if (!profilePic) return null
-  
-  // Normalize to HTTPS
-  return profilePic.replace(/^http:\/\//i, 'https://')
+  return authStore.user?.user_avatar || '/default_profile.png'
 })
 
 const isActiveRoute = (path) => {

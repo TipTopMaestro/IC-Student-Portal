@@ -4,40 +4,82 @@
     <div v-if="authorAvatar" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
       <img :src="authorAvatar" alt="Profile" class="h-full w-full object-cover" />
     </div>
-    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
       {{ getInitials(comment.user) }}
     </div>
 
     <div class="flex-1 min-w-0">
       <!-- Comment Bubble -->
-      <div class="bg-gray-50 rounded-2xl px-3.5 py-2.5 inline-block max-w-full">
-        <span class="text-[13px] font-semibold text-gray-900">{{ comment.user || 'User' }}</span>
+      <div class="relative group/bubble inline-block max-w-full">
+        <div class="bg-gray-50 rounded-2xl px-3.5 py-2.5">
+          <span class="text-[13px] font-semibold text-gray-900">{{ comment.user || 'User' }}</span>
 
-        <!-- Display mode -->
-        <p v-if="!isEditing" class="text-[13px] text-gray-800 mt-0.5 whitespace-pre-wrap break-words">{{ comment.content }}</p>
+          <!-- Display mode -->
+          <p v-if="!isEditing" class="text-[13px] text-gray-800 mt-0.5 whitespace-pre-wrap break-words">{{ comment.content }}</p>
 
-        <!-- Edit mode -->
-        <div v-else class="mt-1">
-          <textarea
-            ref="editInput"
-            v-model="editContent"
-            rows="2"
-            class="w-full text-[13px] bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-ic-primary resize-none"
-            @keydown.enter.exact.prevent="saveEdit"
-            @keydown.escape="cancelEdit"
-          />
-          <div class="flex items-center gap-2 mt-1.5">
-            <button @click="saveEdit" :disabled="!editContent.trim() || editSaving" class="text-xs font-medium text-ic-primary hover:text-ic-secondary disabled:opacity-40">
-              {{ editSaving ? 'Saving...' : 'Save' }}
-            </button>
-            <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+          <!-- Edit mode -->
+          <div v-else class="mt-1">
+            <textarea
+              ref="editInput"
+              v-model="editContent"
+              rows="2"
+              class="w-full text-[13px] bg-white border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-ic-primary resize-none"
+              @keydown.enter.exact.prevent="saveEdit"
+              @keydown.escape="cancelEdit"
+            />
+            <div class="flex items-center gap-2 mt-1.5">
+              <button @click="saveEdit" :disabled="!editContent.trim() || editSaving" class="text-xs font-medium text-ic-primary hover:text-ic-secondary disabled:opacity-40">
+                {{ editSaving ? 'Saving...' : 'Save' }}
+              </button>
+              <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+            </div>
           </div>
+        </div>
+
+        <!-- Reaction Summary Overlay (Bottom Right of bubble) -->
+        <div 
+          v-if="hasReactions"
+          class="absolute -bottom-2 -right-2 flex items-center bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 gap-0.5"
+        >
+          <div class="flex -space-x-1">
+            <span v-for="type in topReactionTypes" :key="type" class="text-[11px] leading-none">
+              {{ reactionEmojis[type] }}
+            </span>
+          </div>
+          <span class="text-[10px] font-medium text-gray-500 ml-0.5">{{ totalReactionCount }}</span>
         </div>
       </div>
 
       <!-- Action Bar -->
-      <div class="flex items-center gap-3 mt-1 px-1">
+      <div class="flex items-center gap-3 mt-1 px-1 relative">
         <span class="text-[11px] text-gray-400">{{ formattedTime }}</span>
+        
+        <!-- Like Button with Hover Trigger -->
+        <div class="relative inline-block">
+          <button
+            @click="handleLikeClick"
+            @mouseenter="handleMouseEnter"
+            @mouseleave="handleMouseLeave"
+            @touchstart="handleTouchStart"
+            @touchend="handleTouchEnd"
+            class="text-[11px] font-semibold transition-colors"
+            :class="localUserReaction ? 'text-ic-primary' : 'text-gray-500 hover:text-gray-700'"
+          >
+            <span v-if="localUserReaction" class="capitalize">{{ localUserReaction }}</span>
+            <span v-else>Like</span>
+          </button>
+
+          <!-- Reaction Picker -->
+          <div 
+            v-if="showPicker"
+            class="absolute bottom-full left-0 mb-2 z-50"
+            @mouseenter="clearHideTimer"
+            @mouseleave="handleMouseLeave"
+          >
+            <ReactionPicker @select="handleReactionSelect" @close="showPicker = false" />
+          </div>
+        </div>
+
         <button
           v-if="depth < 1"
           @click="$emit('reply', comment)"
@@ -47,7 +89,7 @@
         </button>
         <button
           v-if="isOwner || isAdmin"
-          @click="isEditing = true"
+          @click="startEdit"
           class="text-[11px] font-semibold text-gray-500 hover:text-gray-700"
         >
           Edit
@@ -112,9 +154,10 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch } from 'vue'
-import { updateComment, deleteComment, getReplies, extractComments } from '@/services/commentService'
+import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { updateComment, deleteComment, getReplies, extractReplies, reactToComment, removeCommentReaction } from '@/services/commentService'
 import { useAuthStore } from '@/stores/auth'
+import ReactionPicker from './ReactionPicker.vue'
 
 const props = defineProps({
   comment: { type: Object, required: true },
@@ -135,6 +178,188 @@ const repliesLoaded = ref(false)
 const repliesLoading = ref(false)
 
 const currentUser = computed(() => useAuthStore().user)
+
+// --- Reactions State ---
+const showPicker = ref(false)
+const isReacting = ref(false)
+const localUserReaction = ref(props.comment.user_reaction || null)
+const localReactionCounts = ref({})
+const reactionEmojis = {
+  like: '👍',
+  heart: '❤️',
+  haha: '😆',
+  sad: '😢',
+  angry: '😡'
+}
+
+// Timers for hover/long-press
+let hideTimer = null
+let showTimer = null
+let touchTimer = null
+let touchHandled = false
+
+// Initialize and sync reaction state
+const initializeReactions = (comment) => {
+  localUserReaction.value = comment.user_reaction || null
+  if (comment.reaction_counts) {
+    if (typeof comment.reaction_counts === 'object') {
+      localReactionCounts.value = { ...comment.reaction_counts }
+    } else {
+      try {
+        localReactionCounts.value = JSON.parse(comment.reaction_counts)
+      } catch (e) {
+        localReactionCounts.value = {}
+      }
+    }
+  } else {
+    localReactionCounts.value = {}
+  }
+}
+
+onMounted(() => {
+  initializeReactions(props.comment)
+})
+
+// Sync with prop changes (e.g. from parent refresh or websocket)
+watch(() => props.comment, (newComment) => {
+  // Only sync if we aren't currently in the middle of an optimistic update
+  if (!isReacting.value) {
+    initializeReactions(newComment)
+  }
+}, { deep: true })
+
+const totalReactionCount = computed(() => {
+  return Object.values(localReactionCounts.value).reduce((sum, count) => sum + (parseInt(count) || 0), 0)
+})
+
+const hasReactions = computed(() => totalReactionCount.value > 0)
+
+const topReactionTypes = computed(() => {
+  return Object.entries(localReactionCounts.value)
+    .filter(([_, count]) => count > 0)
+    .sort((a, b) => (parseInt(b[1]) || 0) - (parseInt(a[1]) || 0))
+    .slice(0, 3)
+    .map(([type]) => type)
+})
+
+// --- Reaction Handlers ---
+
+const handleReactionSelect = async (type) => {
+  if (isReacting.value) return
+  
+  const oldReaction = localUserReaction.value
+  if (type === oldReaction) {
+    showPicker.value = false
+    return
+  }
+
+  showPicker.value = false
+  isReacting.value = true
+  
+  // Optimistic UI update
+  updateLocalReaction(type)
+
+  const result = await reactToComment(props.comment.id, type)
+  if (!result.success) {
+    // Rollback on failure
+    updateLocalReaction(oldReaction)
+  }
+  
+  // Small delay to prevent rapid double-clicks
+  setTimeout(() => {
+    isReacting.value = false
+  }, 200)
+}
+
+const handleLikeClick = async () => {
+  if (isReacting.value || touchHandled) {
+    touchHandled = false
+    return
+  }
+
+  const oldReaction = localUserReaction.value
+  isReacting.value = true
+  
+  if (oldReaction) {
+    // Remove reaction if already exists
+    updateLocalReaction(null)
+    const result = await removeCommentReaction(props.comment.id)
+    if (!result.success) {
+      updateLocalReaction(oldReaction)
+    }
+  } else {
+    // Toggle default like
+    updateLocalReaction('like')
+    const result = await reactToComment(props.comment.id, 'like')
+    if (!result.success) {
+      updateLocalReaction(null)
+    }
+  }
+
+  setTimeout(() => {
+    isReacting.value = false
+  }, 200)
+}
+
+const updateLocalReaction = (newReaction) => {
+  const oldReaction = localUserReaction.value
+  if (newReaction === oldReaction) return
+  
+  // Decrease count for old reaction
+  if (oldReaction && localReactionCounts.value[oldReaction]) {
+    localReactionCounts.value[oldReaction] = Math.max(0, (parseInt(localReactionCounts.value[oldReaction]) || 0) - 1)
+  }
+  
+  // Increase count for new reaction
+  if (newReaction) {
+    localReactionCounts.value[newReaction] = (parseInt(localReactionCounts.value[newReaction]) || 0) + 1
+  }
+  
+  localUserReaction.value = newReaction
+}
+
+// --- Hover & Touch Logic ---
+
+const handleMouseEnter = () => {
+  clearHideTimer()
+  showTimer = setTimeout(() => {
+    showPicker.value = true
+  }, 400)
+}
+
+const handleMouseLeave = () => {
+  clearTimeout(showTimer)
+  hideTimer = setTimeout(() => {
+    showPicker.value = false
+  }, 300)
+}
+
+const clearHideTimer = () => {
+  if (hideTimer) {
+    clearTimeout(hideTimer)
+    hideTimer = null
+  }
+}
+
+const handleTouchStart = () => {
+  touchHandled = false
+  touchTimer = setTimeout(() => {
+    showPicker.value = true
+    touchHandled = true
+  }, 500)
+}
+
+const handleTouchEnd = () => {
+  clearTimeout(touchTimer)
+}
+
+// --- Rest of the component logic ---
+
+// Normalize URL to use HTTPS
+const normalizeUrl = (url) => {
+  if (!url) return ''
+  return url.replace(/^http:\/\//i, 'https://')
+}
 
 const isOwner = computed(() => {
   const user = currentUser.value
@@ -166,15 +391,20 @@ const replyCount = computed(() => {
 })
 
 const authorAvatar = computed(() => {
+  // Prioritize comment.user_avatar or user_profile for all users
+  const avatar = props.comment.user_avatar || props.comment.user_profile
+  if (avatar) return normalizeUrl(avatar)
+
   if (isOwner.value) {
     const authStore = useAuthStore()
     const user = authStore.user
-    if (!user) return null
-    const pic = user.profile || user.profile_picture || user.avatar || user.photo || user.profile_image
-    if (pic) return pic.replace(/^http:\/\//i, 'https://')
-    if (user.student?.profile_picture) return user.student.profile_picture.replace(/^http:\/\//i, 'https://')
+    if (user && user.user_avatar) {
+      return normalizeUrl(user.user_avatar)
+    }
   }
-  return null
+  
+  // Default fallback
+  return '/default_profile.png'
 })
 
 const hasReplies = computed(() => replyCount.value > 0 || replies.value.length > 0)
@@ -209,24 +439,7 @@ const loadReplies = async () => {
   repliesLoading.value = true
   const result = await getReplies(props.comment.id)
   if (result.success) {
-    const data = result.data?.data || result.data
-    // The API returns PostCommentDetail which has a `replies` field inside
-    // Try multiple parsing strategies to handle different response shapes
-    let items = []
-    if (Array.isArray(data)) {
-      items = data
-    } else if (data?.replies && Array.isArray(data.replies)) {
-      items = data.replies
-    } else if (data?.results && Array.isArray(data.results)) {
-      items = data.results
-    } else if (data?.data && Array.isArray(data.data)) {
-      items = data.data
-    }
-    // If replies came as a JSON string (API schema says type: string), parse it
-    if (typeof data?.replies === 'string') {
-      try { items = JSON.parse(data.replies) } catch (e) { items = [] }
-    }
-    replies.value = items
+    replies.value = extractReplies(result)
     repliesLoaded.value = true
   }
   repliesLoading.value = false
@@ -286,3 +499,4 @@ watch(isEditing, (val) => {
   }
 })
 </script>
+

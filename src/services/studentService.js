@@ -59,10 +59,11 @@ export const getCurrentProfile = async () => {
 
 /**
  * Update current user's profile
+ * @param {Number} userId - User ID
  * @param {Object} profileData - Updated profile data
  * @returns {Promise} Updated profile data
  */
-export const updateProfile = async (profileData) => {
+export const updateProfile = async (userId, profileData) => {
   try {
     // Backend uses student object format, not profile
     // We can only update what the API allows
@@ -71,8 +72,13 @@ export const updateProfile = async (profileData) => {
       last_name: profileData.lastName,
       email: profileData.email
     }
+    
+    // Include profile image URL if provided
+    if (profileData.avatar) {
+      payload.profile = profileData.avatar
+    }
 
-    const response = await api.patch('/api/v1/me/', payload)
+    const response = await api.patch(`/api/v1/users/${userId}/`, payload)
     const userData = response.data.data || response.data
     return {
       success: true,
@@ -129,9 +135,32 @@ export const listStudents = async (params = {}) => {
   }
 }
 
+/**
+ * Update student record
+ * @param {Number} studentId - Student ID
+ * @param {Object} studentData - Updated student data
+ * @returns {Promise} Updated student data
+ */
+export const updateStudentProfile = async (studentId, studentData) => {
+  try {
+    const response = await api.patch(`/api/v1/students/${studentId}/`, studentData)
+    return {
+      success: true,
+      data: response.data.data || response.data
+    }
+  } catch (error) {
+    console.error('Error updating student profile:', error)
+    return {
+      success: false,
+      error: error.response?.data?.errors || error.response?.data?.message || 'Failed to update student profile'
+    }
+  }
+}
+
 export default {
   getCurrentProfile,
   updateProfile,
   getStudentById,
-  listStudents
+  listStudents,
+  updateStudentProfile
 }
