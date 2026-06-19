@@ -76,7 +76,7 @@
         <div class="divide-y divide-gray-100">
           <!-- Skeleton Loading -->
           <template v-if="isLoading && records.length > 0">
-            <div v-for="i in 10" :key="'skel-'+i" class="grid grid-cols-12 gap-2 px-4 py-3">
+            <div v-for="i in 10" :key="'skel-'+i" class="grid grid-cols-12 gap-2 px-4 py-5.5">
               <div class="col-span-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div></div>
               <div class="col-span-1"><div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div></div>
               <div class="col-span-2"><div class="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div></div>
