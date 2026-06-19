@@ -408,10 +408,6 @@ const availableDates = computed(() => {
 // Client-side filters
 const displayedRecords = computed(() => {
   let filtered = records.value
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(r => r.student?.full_name?.toLowerCase().includes(q))
-  }
   if (filterDate.value) {
     filtered = filtered.filter(r => r.date === filterDate.value)
   }
@@ -447,6 +443,9 @@ const loadRecords = async () => {
 
   try {
     const params = { current_page: currentPage.value, per_page: perPage }
+    if (searchQuery.value.trim()) {
+      params.search = searchQuery.value.trim()
+    }
     const result = await listAttendanceRecords(params)
 
     if (result.success) {
@@ -549,8 +548,9 @@ let searchTimeout = null
 watch(searchQuery, () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    // Client-side filter, no need to reload
-  }, 300)
+    currentPage.value = 1
+    loadRecords()
+  }, 400)
 })
 
 onMounted(() => {
