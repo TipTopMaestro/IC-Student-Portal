@@ -75,7 +75,7 @@
         <div class="divide-y divide-gray-100">
           <!-- Skeleton Loading Rows -->
           <template v-if="isLoading && students.length > 0">
-            <div v-for="i in perPage" :key="'skel-'+i" class="grid grid-cols-12 gap-4 px-6 py-4">
+            <div v-for="i in perPage" :key="'skel-'+i" class="grid grid-cols-12 gap-4 px-6 py-2.5">
               <div class="col-span-3 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gray-200 animate-pulse shrink-0"></div>
                 <div class="space-y-2 flex-1">
@@ -96,7 +96,7 @@
           <div 
             v-for="student in displayedStudents" 
             :key="student.id"
-            class="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors"
+            class="grid grid-cols-12 gap-4 px-6 py-2.5 hover:bg-gray-50 transition-colors"
           >
             <!-- Student Info -->
             <div class="col-span-3 flex items-center gap-3">
@@ -284,7 +284,7 @@ const searchQuery = ref('')
 const filterYear = ref('')
 const filterCourse = ref('')
 const currentPage = ref(1)
-const perPage = 20
+const perPage = 10
 
 const isLoading = ref(false)
 const error = ref(null)
@@ -341,7 +341,7 @@ const loadStudents = async () => {
   error.value = null
 
   try {
-    const params = { page: currentPage.value, per_page: perPage }
+    const params = { current_page: currentPage.value, per_page: perPage }
     if (searchQuery.value.trim()) {
       params.search = searchQuery.value.trim()
     }

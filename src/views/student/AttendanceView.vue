@@ -180,7 +180,7 @@ const loadRecords = async () => {
       return
     }
 
-    const params = { page: currentPage.value, per_page: 20, student_id: studentId }
+    const params = { current_page: currentPage.value, per_page: 20, student_id: studentId }
 
     const result = await listAttendanceRecords(params)
     if (result.success) {
