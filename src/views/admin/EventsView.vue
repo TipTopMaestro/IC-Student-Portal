@@ -240,7 +240,7 @@ const loadEvents = async () => {
   try {
     // Use institute-attendance-event for richer data (dates, academic year, semester, status)
     const response = await api.get('/api/v1/institute-attendance-event/', {
-      params: { page: currentPage.value, per_page: 50 }
+      params: { current_page: currentPage.value, per_page: 50 }
     })
 
     const result = response.data

@@ -381,7 +381,7 @@ import { listAttendanceRecords, listInstituteEvents, uploadAttendance } from '@/
 const searchQuery = ref('')
 const filterDate = ref('')
 const currentPage = ref(1)
-const perPage = 20
+const perPage = 10
 
 const isLoading = ref(false)
 const error = ref(null)
@@ -446,7 +446,7 @@ const loadRecords = async () => {
   error.value = null
 
   try {
-    const params = { page: currentPage.value, per_page: perPage }
+    const params = { current_page: currentPage.value, per_page: perPage }
     const result = await listAttendanceRecords(params)
 
     if (result.success) {
