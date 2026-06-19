@@ -107,7 +107,7 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
+      <div v-if="totalPages > 15" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
         <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
         <div class="flex items-center gap-2">
           <button 
