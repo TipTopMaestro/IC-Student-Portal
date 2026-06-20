@@ -9,8 +9,12 @@ const POSTS_ENDPOINT = '/api/v1/posts/'
 
 // Helper to invalidate post caches
 const invalidatePostCaches = () => {
-  invalidateCachePattern('posts')
-  invalidateApiCachePattern('/api/v1/posts/')
+  try {
+    invalidateCachePattern('posts')
+    invalidateApiCachePattern('/api/v1/posts/')
+  } catch (e) {
+    console.warn('⚠️ Non-fatal cache invalidation error:', e)
+  }
   
   import('@/stores/posts').then(({ usePostStore }) => {
     usePostStore().invalidate()

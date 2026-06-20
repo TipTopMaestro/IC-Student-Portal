@@ -152,14 +152,18 @@ export const submitPayment = async (submissionData) => {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
-    // Write-through cache invalidation:
-    // 1. Invalidate SWR Cache for fees and payment submissions
-    invalidateCachePattern('fees')
-    invalidateCachePattern('payment-submissions')
+    // Write-through cache invalidation safely:
+    try {
+      // 1. Invalidate SWR Cache for fees and payment submissions
+      invalidateCachePattern('fees')
+      invalidateCachePattern('payment-submissions')
 
-    // 2. Invalidate Axios cache for fees and payment submissions
-    invalidateApiCachePattern('/api/v1/fees/')
-    invalidateApiCachePattern('/api/v1/payment-submissions/')
+      // 2. Invalidate Axios cache for fees and payment submissions
+      invalidateApiCachePattern('/api/v1/fees/')
+      invalidateApiCachePattern('/api/v1/payment-submissions/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
 
     // 3. Invalidate Pinia store
     try {

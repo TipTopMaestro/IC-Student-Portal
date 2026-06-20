@@ -86,12 +86,16 @@ export const updateProfile = async (userId, profileData) => {
 
     const response = await api.patch(`/api/v1/users/${userId}/`, payload)
     
-    // Write-through cache invalidation
-    invalidateCachePattern('profile')
-    invalidateCachePattern('me')
-    
-    invalidateApiCachePattern('/api/v1/me/')
-    invalidateApiCachePattern(`/api/v1/users/${userId}/`)
+    // Write-through cache invalidation safely
+    try {
+      invalidateCachePattern('profile')
+      invalidateCachePattern('me')
+      
+      invalidateApiCachePattern('/api/v1/me/')
+      invalidateApiCachePattern(`/api/v1/users/${userId}/`)
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
     
     try {
       const { useAuthStore } = await import('@/stores/auth')
@@ -174,13 +178,17 @@ export const updateStudentProfile = async (studentId, studentData) => {
   try {
     const response = await api.patch(`/api/v1/students/${studentId}/`, studentData)
     
-    // Write-through cache invalidation
-    invalidateCachePattern('students')
-    invalidateCachePattern('profile')
-    invalidateCachePattern('me')
-    
-    invalidateApiCachePattern('/api/v1/students/')
-    invalidateApiCachePattern('/api/v1/me/')
+    // Write-through cache invalidation safely
+    try {
+      invalidateCachePattern('students')
+      invalidateCachePattern('profile')
+      invalidateCachePattern('me')
+      
+      invalidateApiCachePattern('/api/v1/students/')
+      invalidateApiCachePattern('/api/v1/me/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
     
     try {
       const { useStudentStore } = await import('@/stores/students')

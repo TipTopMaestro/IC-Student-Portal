@@ -115,14 +115,16 @@ export const uploadAttendance = async (formData) => {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
-    // Invalidate SWR caches
-    invalidateCachePattern('attendance')
-    invalidateCachePattern('events')
-    
-    // Invalidate Axios caches
-    invalidateApiCachePattern('/api/v1/attendance-records/')
-    invalidateApiCachePattern('/api/v1/institute-attendance-event/')
-    invalidateApiCachePattern('/api/v1/attendance-events/')
+    // Invalidate SWR & Axios caches safely
+    try {
+      invalidateCachePattern('attendance')
+      invalidateCachePattern('events')
+      invalidateApiCachePattern('/api/v1/attendance-records/')
+      invalidateApiCachePattern('/api/v1/institute-attendance-event/')
+      invalidateApiCachePattern('/api/v1/attendance-events/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
 
     // Invalidate Pinia stores
     import('@/stores/events').then(({ useEventStore }) => {

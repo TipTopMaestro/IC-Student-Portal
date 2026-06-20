@@ -95,15 +95,23 @@ export function useSWR(cacheKey, fetchFn, options = {}) {
 
 // Global cache invalidation utility
 export const invalidateCachePattern = (pattern) => {
-  for (const key of swrCache.keys()) {
-    if (key.includes(pattern)) {
-      swrCache.delete(key)
+  try {
+    for (const key of swrCache.keys()) {
+      if (key.includes(pattern)) {
+        swrCache.delete(key)
+      }
     }
+  } catch (error) {
+    console.warn('⚠️ Error during SWR cache invalidation:', error)
   }
 }
 
 // Global cache clear function
 export const clearSwrCache = () => {
-  swrCache.clear()
-  console.log('🧹 SWR Cache cleared')
+  try {
+    swrCache.clear()
+    console.log('🧹 SWR Cache cleared')
+  } catch (error) {
+    console.warn('⚠️ Error clearing SWR cache:', error)
+  }
 }

@@ -153,14 +153,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import api from '@/services/api'
+import api, { invalidateApiCachePattern } from '@/services/api'
+import { getCurrentProfile } from '@/services/studentService'
 import { uploadImage } from '@/services/fileService'
+import { useSWR, invalidateCachePattern } from '@/composables/useSWR'
 
 const authStore = useAuthStore()
-const isLoading = ref(true)
-const error = ref(null)
 const isUploadingProfilePic = ref(false)
 
 const profileData = ref({
@@ -174,18 +174,26 @@ const profileData = ref({
   groups: []
 })
 
-onMounted(async () => {
-  await loadProfile()
-})
+const adminId = computed(() => authStore.user?.id || 'admin')
+const cacheKey = computed(() => `profile-admin-${adminId.value}`)
 
-const loadProfile = async () => {
-  isLoading.value = true
-  error.value = null
+// Caching admin profile via SWR
+const {
+  data: swrData,
+  error,
+  isLoading,
+  isRefreshing,
+  refresh
+} = useSWR(
+  cacheKey,
+  () => getCurrentProfile(),
+  { ttl: 300000, immediate: true }
+)
 
-  try {
-    const response = await api.get('/api/v1/me/')
-    const data = response.data.data || response.data
-
+// Sync SWR cache data
+watch(swrData, (newVal) => {
+  if (newVal) {
+    const data = newVal.data || newVal
     profileData.value = {
       username: data.username || '',
       firstName: data.first_name || '',
@@ -196,13 +204,8 @@ const loadProfile = async () => {
       school: data.institute?.school?.school_name || '',
       groups: data.groups || []
     }
-  } catch (err) {
-    console.error('Failed to load admin profile:', err)
-    error.value = err.response?.data?.message || 'Failed to load profile'
   }
-
-  isLoading.value = false
-}
+}, { immediate: true })
 
 const onProfilePicSelected = async (event) => {
   const file = event.target.files[0]
@@ -225,11 +228,10 @@ const onProfilePicSelected = async (event) => {
     console.log('✅ Image uploaded to Cloudinary:', imageUrl)
 
     // 2. Update backend profile
-    // We send multiple possible field names for better compatibility with backend
     const payload = {
-      first_name: profileData.firstName,
-      last_name: profileData.lastName,
-      email: profileData.email,
+      first_name: profileData.value.firstName,
+      last_name: profileData.value.lastName,
+      email: profileData.value.email,
       profile: imageUrl,
       profile_picture: imageUrl,
       user_avatar: imageUrl
@@ -239,17 +241,19 @@ const onProfilePicSelected = async (event) => {
     const response = await api.patch(`/api/v1/users/${authStore.user.id}/`, payload)
     console.log('📥 Profile update response:', response.data)
 
-    // 3. Update local state & auth store
-    // Ensure we use the exact same property names the auth store uses
-    profileData.value.profileImage = imageUrl
-
-    // Force a fresh fetch from the server to sync everything
-    await authStore.fetchCurrentUser()
-
-    // Update local state again from the store to be absolutely sure
-    if (authStore.user?.user_avatar) {
-      profileData.value.profileImage = authStore.user.user_avatar
+    // Write-through cache invalidation to clear stale /api/v1/me/ cache entries safely
+    try {
+      invalidateApiCachePattern('/api/v1/me/')
+      invalidateApiCachePattern(`/api/v1/users/${authStore.user.id}/`)
+      invalidateCachePattern('profile')
+      invalidateCachePattern('me')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
     }
+
+    // 3. Force re-fetching in auth store & SWR cache to update the app layout instantly
+    await authStore.fetchCurrentUser()
+    refresh()
 
     alert('Profile picture updated successfully!')
   } catch (err) {

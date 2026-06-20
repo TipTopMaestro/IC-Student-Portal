@@ -32,21 +32,29 @@ export const apiCache = new Map()
 
 // Global cache clear function
 export const clearApiCache = () => {
-  apiCache.clear()
-  console.log('🧹 API cache cleared')
+  try {
+    apiCache.clear()
+    console.log('🧹 API cache cleared')
+  } catch (error) {
+    console.warn('⚠️ Error clearing API cache:', error)
+  }
 }
 
 // Invalidate API cache by pattern
 export const invalidateApiCachePattern = (pattern) => {
-  let count = 0
-  for (const key of apiCache.keys()) {
-    if (key.includes(pattern)) {
-      apiCache.delete(key)
-      count++
+  try {
+    let count = 0
+    for (const key of apiCache.keys()) {
+      if (key.includes(pattern)) {
+        apiCache.delete(key)
+        count++
+      }
     }
-  }
-  if (count > 0) {
-    console.log(`🧹 Invalidated ${count} API cache entries matching pattern: ${pattern}`)
+    if (count > 0) {
+      console.log(`🧹 Invalidated ${count} API cache entries matching pattern: ${pattern}`)
+    }
+  } catch (error) {
+    console.warn('⚠️ Error during API cache invalidation:', error)
   }
 }
 

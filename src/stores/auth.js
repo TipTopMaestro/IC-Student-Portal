@@ -268,9 +268,13 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     hasToken.value = false
 
-    // Clear all caching layers on logout
-    clearApiCache()
-    clearSwrCache()
+    // Clear all caching layers on logout safely
+    try {
+      clearApiCache()
+      clearSwrCache()
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache clearing error during logout:', e)
+    }
     
     // Invalidate other Pinia stores
     try {
