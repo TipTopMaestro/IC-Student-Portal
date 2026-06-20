@@ -7,7 +7,7 @@ export const useFeeStore = defineStore('fees', () => {
   const lastFetched = ref(null)
   const loading = ref(false)
 
-  const fetchFeesForStudent = async (force = false) => {
+  const fetchFeesForStudent = async (studentId, force = false) => {
     const cacheValidDuration = 5 * 60 * 1000 // 5 minutes
     const isCacheExpired = !lastFetched.value || (Date.now() - lastFetched.value > cacheValidDuration)
 

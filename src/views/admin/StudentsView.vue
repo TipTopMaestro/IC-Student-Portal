@@ -282,7 +282,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { listStudents } from '@/services/studentService'
 import { useSWR } from '@/composables/useSWR'
 
@@ -399,5 +399,9 @@ watch(searchQuery, () => {
   searchTimeout = setTimeout(() => {
     currentPage.value = 1
   }, 400)
+})
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
 })
 </script>

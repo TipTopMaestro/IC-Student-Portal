@@ -380,13 +380,14 @@ const error = computed(() => feesError.value || subsError.value)
 // Sync SWR data
 watch(swrFees, (newVal) => {
   if (newVal) {
-    allFees.value = newVal.map(mapFeeData)
+    const feesArray = Array.isArray(newVal) ? newVal : (newVal.data || newVal.results || [])
+    allFees.value = feesArray.map(mapFeeData)
   }
 }, { immediate: true })
 
 watch(swrSubs, (newVal) => {
   if (newVal) {
-    submissions.value = newVal
+    submissions.value = Array.isArray(newVal) ? newVal : (newVal.data || newVal.results || [])
   }
 }, { immediate: true })
 

@@ -241,12 +241,17 @@ const fetchDashboardData = async () => {
   const sid = authStore.user?.student?.id
   if (!sid) return { success: false, error: 'No student ID' }
 
-  const [feesResult, eventsResult, attendanceResult, postsResult] = await Promise.all([
+  const [feesRes, eventsRes, attendanceRes, postsRes] = await Promise.allSettled([
     getStudentFees(sid, { perPage: 100 }),
     listInstituteEvents({ per_page: 10 }),
-    listAttendanceRecords({ per_page: 200 }),
+    listAttendanceRecords({ per_page: 200, student_id: sid }),
     listPosts({ per_page: 3 })
   ])
+
+  const feesResult = feesRes.status === 'fulfilled' ? feesRes.value : { success: false }
+  const eventsResult = eventsRes.status === 'fulfilled' ? eventsRes.value : { success: false }
+  const attendanceResult = attendanceRes.status === 'fulfilled' ? attendanceRes.value : { success: false }
+  const postsResult = postsRes.status === 'fulfilled' ? postsRes.value : { success: false }
 
   // Process fees
   let unpaid = 0

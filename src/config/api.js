@@ -1,9 +1,9 @@
 // API Configuration
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
+const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'false'
 
 export const API_CONFIG = {
-  // When mock is off, use empty BASE_URL so requests go to Vite's proxy (same origin → no CORS)
-  BASE_URL: USE_MOCK ? '' : '',
+  // When mock is off, use Vite proxy in dev to avoid CORS, and VITE_API_BASE_URL in production
+  BASE_URL: USE_MOCK ? '' : (import.meta.env.PROD ? (import.meta.env.VITE_API_BASE_URL || '') : ''),
   
   // Use mock API for development (set VITE_USE_MOCK_API=true to enable)
   USE_MOCK,

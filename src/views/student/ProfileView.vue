@@ -286,8 +286,8 @@ const fullName = computed(() => {
 })
 
 const userInitials = computed(() => {
-  const first = studentData.value.firstName[0] || 'S'
-  const last = studentData.value.lastName[0] || 'U'
-  return `${first}${last}`
+  const first = studentData.value.firstName?.[0] || 'S'
+  const last = studentData.value.lastName?.[0] || 'U'
+  return `${first}${last}`.toUpperCase()
 })
 </script>

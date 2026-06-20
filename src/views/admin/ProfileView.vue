@@ -21,7 +21,7 @@
         </svg>
         <h3 class="mt-4 text-lg font-medium text-gray-900">Failed to load profile</h3>
         <p class="mt-2 text-sm text-gray-500">{{ error }}</p>
-        <button @click="loadProfile" class="mt-4 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+        <button @click="refresh" class="mt-4 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
           Try Again
         </button>
       </div>

@@ -2,6 +2,15 @@ import { ref, watch, onMounted, isRef } from 'vue'
 
 // Global in-memory cache map
 const swrCache = new Map()
+const MAX_SWR_CACHE_SIZE = 100
+
+const setSwrCache = (key, value) => {
+  if (swrCache.size >= MAX_SWR_CACHE_SIZE) {
+    const oldestKey = swrCache.keys().next().value
+    swrCache.delete(oldestKey)
+  }
+  swrCache.set(key, value)
+}
 
 /**
  * Custom SWR Composable for caching API requests
@@ -50,8 +59,8 @@ export function useSWR(cacheKey, fetchFn, options = {}) {
     try {
       const response = await fetchFn()
       if (response.success) {
-        // Update cache
-        swrCache.set(activeKey, {
+        // Update cache safely capping max size
+        setSwrCache(activeKey, {
           data: response.data,
           timestamp: Date.now()
         })
@@ -74,14 +83,16 @@ export function useSWR(cacheKey, fetchFn, options = {}) {
     swrCache.delete(activeKey)
   }
 
-  if (immediate) {
+  const isReactive = isRef(cacheKey) || (cacheKey && typeof cacheKey === 'function') || (cacheKey && cacheKey.effect)
+
+  if (isReactive) {
+    // Watch key changes (e.g., pagination changes) and load immediately if needed
+    watch(cacheKey, () => {
+      load()
+    }, { immediate })
+  } else if (immediate) {
     onMounted(() => load())
   }
-
-  // Watch key changes (e.g., pagination changes)
-  watch(cacheKey, () => {
-    load()
-  })
 
   return {
     data,

@@ -375,7 +375,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { listAttendanceRecords, listInstituteEvents, uploadAttendance } from '@/services/eventService'
 
 const searchQuery = ref('')
@@ -556,5 +556,9 @@ watch(searchQuery, () => {
 onMounted(() => {
   loadRecords()
   loadUploadEvents()
+})
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
 })
 </script>

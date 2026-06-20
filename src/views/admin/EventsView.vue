@@ -233,7 +233,10 @@ const displayedEvents = computed(() => {
   return events.value.filter(e => getEventStatus(e) === filterStatus.value)
 })
 
+let currentRequestId = 0
+
 const loadEvents = async () => {
+  const requestId = ++currentRequestId
   isLoading.value = true
   error.value = null
 
@@ -243,6 +246,8 @@ const loadEvents = async () => {
       current_page: currentPage.value,
       per_page: 50
     })
+
+    if (requestId !== currentRequestId) return // discard stale response
 
     if (!result.success) {
       throw new Error(result.error)
@@ -262,11 +267,15 @@ const loadEvents = async () => {
     totalItems.value = responseData.total_items || events.value.length
     totalPages.value = responseData.total_pages || 1
   } catch (err) {
-    console.error('Failed to load events:', err)
-    error.value = err.message || 'Failed to load events'
+    if (requestId === currentRequestId) {
+      console.error('Failed to load events:', err)
+      error.value = err.message || 'Failed to load events'
+    }
+  } finally {
+    if (requestId === currentRequestId) {
+      isLoading.value = false
+    }
   }
-
-  isLoading.value = false
 }
 
 

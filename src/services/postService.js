@@ -235,13 +235,15 @@ const normalizeMediaUrl = (url) => {
 const normalizePostMedia = (post) => {
   if (!post) return post
   
-  // Log a small sample to see structure once (don't flood console)
-  if (Math.random() < 0.01) {
+  const normalized = { ...post }
+
+  // Log a small sample to see structure once (only in development)
+  if (import.meta.env.DEV && Math.random() < 0.01) {
     console.log('📬 Post structure sample:', JSON.stringify(post, null, 2))
   }
 
   if (post.media && Array.isArray(post.media)) {
-    post.media = post.media.map(m => ({
+    normalized.media = post.media.map(m => ({
       ...m,
       media_url: normalizeMediaUrl(m.media_url)
     }))
@@ -270,9 +272,9 @@ const normalizePostMedia = (post) => {
   }
 
   // Set normalized user_avatar for consistent use in components
-  post.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
+  normalized.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
 
-  return post
+  return normalized
 }
 
 /**

@@ -188,8 +188,10 @@ const normalizeMediaUrl = (url) => {
 const normalizeComment = (comment) => {
   if (!comment) return comment
   
-  // Log a small sample to see structure once (don't flood console)
-  if (Math.random() < 0.01) {
+  const normalized = { ...comment }
+  
+  // Log a small sample to see structure once (only in development)
+  if (import.meta.env.DEV && Math.random() < 0.01) {
     console.log('💬 Comment structure sample:', JSON.stringify(comment, null, 2))
   }
   
@@ -216,14 +218,14 @@ const normalizeComment = (comment) => {
   }
 
   // Set normalized user_avatar for consistent use in components
-  comment.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
+  normalized.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
   
   // Normalize replies if they exist
   if (comment.replies && Array.isArray(comment.replies)) {
-    comment.replies = comment.replies.map(normalizeComment)
+    normalized.replies = comment.replies.map(normalizeComment)
   }
   
-  return comment
+  return normalized
 }
 
 /**

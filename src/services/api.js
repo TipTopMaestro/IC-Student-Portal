@@ -29,6 +29,15 @@ const addRefreshSubscriber = (callback) => {
 
 // Simple in-memory response cache
 export const apiCache = new Map()
+const MAX_API_CACHE_SIZE = 100
+
+const setApiCache = (key, value) => {
+  if (apiCache.size >= MAX_API_CACHE_SIZE) {
+    const oldestKey = apiCache.keys().next().value
+    apiCache.delete(oldestKey)
+  }
+  apiCache.set(key, value)
+}
 
 // Global cache clear function
 export const clearApiCache = () => {
@@ -66,19 +75,24 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    console.log('📤 API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      hasAuth: !!token
-    })
+    if (import.meta.env.DEV) {
+      console.log('📤 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        hasAuth: !!token
+      })
+    }
     
     // Only cache GET requests that explicitly specify `cache: true` in config
     if (config.method?.toLowerCase() === 'get' && config.cache) {
-      const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`
+      const sortedParams = Object.entries(config.params || {}).sort(([a],[b]) => a.localeCompare(b))
+      const cacheKey = `${config.url}?${new URLSearchParams(sortedParams).toString()}`
       const cachedResponse = apiCache.get(cacheKey)
       
       if (cachedResponse && (Date.now() - cachedResponse.timestamp < (config.cacheTTL || 60000))) {
-        console.log(`⚡ Cache hit for URL: ${config.url}`)
+        if (import.meta.env.DEV) {
+          console.log(`⚡ Cache hit for URL: ${config.url}`)
+        }
         config.adapter = () => Promise.resolve({
           data: cachedResponse.data,
           headers: cachedResponse.headers,
@@ -100,17 +114,22 @@ api.interceptors.request.use(
 // Response interceptor - Handle token refresh and errors
 api.interceptors.response.use(
   (response) => {
-    console.log('📥 API Response:', response.status, response.config.url)
+    if (import.meta.env.DEV) {
+      console.log('📥 API Response:', response.status, response.config.url)
+    }
     
     const config = response.config
     if (config && config.method?.toLowerCase() === 'get' && config.cache) {
-      const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`
-      apiCache.set(cacheKey, {
+      const sortedParams = Object.entries(config.params || {}).sort(([a],[b]) => a.localeCompare(b))
+      const cacheKey = `${config.url}?${new URLSearchParams(sortedParams).toString()}`
+      setApiCache(cacheKey, {
         data: response.data,
         headers: response.headers,
         timestamp: Date.now()
       })
-      console.log(`💾 Cached response for URL: ${config.url}`)
+      if (import.meta.env.DEV) {
+        console.log(`💾 Cached response for URL: ${config.url}`)
+      }
     }
     
     return response
