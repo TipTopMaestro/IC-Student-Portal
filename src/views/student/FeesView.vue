@@ -4,8 +4,13 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-900">Fees</h1>
+    <div class="mb-6">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold text-gray-900">Fees</h1>
+        <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
+          Syncing...
+        </div>
+      </div>
       <p class="text-gray-500 text-sm mt-0.5">Manage your department fees</p>
     </div>
 
@@ -273,18 +278,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getStudentFees, getPaymentSubmissions } from '@/services/feeService'
+import { useSWR } from '@/composables/useSWR'
 
 const authStore = useAuthStore()
 
 // CMS URL (configurable via env)
 const cmsUrl = import.meta.env.VITE_CMS_URL || '#'
-
-// Loading and error states
-const isLoading = ref(true)
-const error = ref(null)
 
 // Filters
 const filterStatus = ref('all')
@@ -337,37 +339,56 @@ const mapFeeData = (backendFee) => {
   }
 }
 
-// Load all fees and submissions from API
-const loadFees = async () => {
-  isLoading.value = true
-  error.value = null
-  
-  try {
-    const sid = studentId.value
-    console.log('💰 FeesView: Loading all fees for student:', sid)
-    
-    // Fetch ALL fees in one call for accurate summaries + client-side pagination
-    const [feesResult, subsResult] = await Promise.all([
-      getStudentFees(sid, { page: 1, perPage: 200 }),
-      getPaymentSubmissions(sid)
-    ])
-    
-    if (feesResult.success) {
-      allFees.value = feesResult.data.map(mapFeeData)
-    } else {
-      error.value = feesResult.error
-    }
-    
-    if (subsResult?.success) {
-      submissions.value = subsResult.data
-    }
-  } catch (err) {
-    error.value = 'Failed to load fees'
-    console.error('❌ FeesView: Error loading fees:', err)
-  } finally {
-    isLoading.value = false
+// Dynamic SWR cache keys
+const feesCacheKey = computed(() => {
+  const sid = studentId.value
+  return sid ? `student-fees-${sid}` : null
+})
+
+const subsCacheKey = computed(() => {
+  const sid = studentId.value
+  return sid ? `student-submissions-${sid}` : null
+})
+
+// Setup SWR fetches
+const {
+  data: swrFees,
+  isLoading: isFeesLoading,
+  isRefreshing: isFeesRefreshing,
+  error: feesError
+} = useSWR(
+  feesCacheKey,
+  () => getStudentFees(studentId.value, { page: 1, perPage: 200 }),
+  { ttl: 300000, immediate: true }
+)
+
+const {
+  data: swrSubs,
+  isLoading: isSubsLoading,
+  isRefreshing: isSubsRefreshing,
+  error: subsError
+} = useSWR(
+  subsCacheKey,
+  () => getPaymentSubmissions(studentId.value),
+  { ttl: 300000, immediate: true }
+)
+
+const isLoading = computed(() => isFeesLoading.value || isSubsLoading.value)
+const isRefreshing = computed(() => isFeesRefreshing.value || isSubsRefreshing.value)
+const error = computed(() => feesError.value || subsError.value)
+
+// Sync SWR data
+watch(swrFees, (newVal) => {
+  if (newVal) {
+    allFees.value = newVal.map(mapFeeData)
   }
-}
+}, { immediate: true })
+
+watch(swrSubs, (newVal) => {
+  if (newVal) {
+    submissions.value = newVal
+  }
+}, { immediate: true })
 
 // Reset to page 1 when filters change
 watch([filterStatus, filterSemester], () => {
@@ -433,11 +454,6 @@ const paginationPages = computed(() => {
   if (current < total - 2) pages.push('...')
   pages.push(total)
   return pages
-})
-
-// Initialize on mount
-onMounted(() => {
-  loadFees()
 })
 
 // Methods

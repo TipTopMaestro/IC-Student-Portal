@@ -27,6 +27,29 @@ const addRefreshSubscriber = (callback) => {
   refreshSubscribers.push(callback)
 }
 
+// Simple in-memory response cache
+export const apiCache = new Map()
+
+// Global cache clear function
+export const clearApiCache = () => {
+  apiCache.clear()
+  console.log('🧹 API cache cleared')
+}
+
+// Invalidate API cache by pattern
+export const invalidateApiCachePattern = (pattern) => {
+  let count = 0
+  for (const key of apiCache.keys()) {
+    if (key.includes(pattern)) {
+      apiCache.delete(key)
+      count++
+    }
+  }
+  if (count > 0) {
+    console.log(`🧹 Invalidated ${count} API cache entries matching pattern: ${pattern}`)
+  }
+}
+
 // Request interceptor - Add auth token to requests
 api.interceptors.request.use(
   (config) => {
@@ -41,6 +64,23 @@ api.interceptors.request.use(
       hasAuth: !!token
     })
     
+    // Only cache GET requests that explicitly specify `cache: true` in config
+    if (config.method?.toLowerCase() === 'get' && config.cache) {
+      const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`
+      const cachedResponse = apiCache.get(cacheKey)
+      
+      if (cachedResponse && (Date.now() - cachedResponse.timestamp < (config.cacheTTL || 60000))) {
+        console.log(`⚡ Cache hit for URL: ${config.url}`)
+        config.adapter = () => Promise.resolve({
+          data: cachedResponse.data,
+          headers: cachedResponse.headers,
+          config,
+          status: 200,
+          statusText: 'OK'
+        })
+      }
+    }
+    
     return config
   },
   (error) => {
@@ -53,6 +93,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log('📥 API Response:', response.status, response.config.url)
+    
+    const config = response.config
+    if (config && config.method?.toLowerCase() === 'get' && config.cache) {
+      const cacheKey = `${config.url}?${new URLSearchParams(config.params || {}).toString()}`
+      apiCache.set(cacheKey, {
+        data: response.data,
+        headers: response.headers,
+        timestamp: Date.now()
+      })
+      console.log(`💾 Cached response for URL: ${config.url}`)
+    }
+    
     return response
   },
   async (error) => {

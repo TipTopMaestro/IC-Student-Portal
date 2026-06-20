@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService.wrapper'
-import api from '@/services/api'
+import api, { clearApiCache } from '@/services/api'
+import { clearSwrCache } from '@/composables/useSWR'
+import { useFeeStore } from '@/stores/fees'
+import { useStudentStore } from '@/stores/students'
+import { useEventStore } from '@/stores/events'
+import { useAttendanceStore } from '@/stores/attendance'
+import { usePostStore } from '@/stores/posts'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -257,9 +263,41 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = () => {
     authService.logout()
+    clearTokens()
     user.value = null
     error.value = null
     hasToken.value = false
+
+    // Clear all caching layers on logout
+    clearApiCache()
+    clearSwrCache()
+    
+    // Invalidate other Pinia stores
+    try {
+      useFeeStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate fee store:', e)
+    }
+    try {
+      useStudentStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate student store:', e)
+    }
+    try {
+      useEventStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate event store:', e)
+    }
+    try {
+      useAttendanceStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate attendance store:', e)
+    }
+    try {
+      usePostStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate post store:', e)
+    }
   }
 
   const initialize = async () => {

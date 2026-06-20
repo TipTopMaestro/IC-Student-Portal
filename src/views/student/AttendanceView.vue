@@ -1,9 +1,14 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-900">Attendance</h1>
-      <p class="text-gray-500 text-sm mt-0.5">View your event attendance records</p>
+    <div class="mb-6">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold text-gray-900">Attendance</h1>
+        <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
+          Syncing...
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mt-0.5">View your event attendance records</p>
     </div>
 
     <!-- Loading State -->
@@ -107,7 +112,7 @@
       </div>
 
       <!-- Pagination -->
-      <div v-if="totalPages > 15" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
+      <div v-if="totalPages > 1" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
         <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
         <div class="flex items-center gap-2">
           <button 
@@ -132,17 +137,59 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { listAttendanceRecords } from '@/services/eventService'
+import { useSWR } from '@/composables/useSWR'
 
 const authStore = useAuthStore()
 
-const isLoading = ref(false)
 const records = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalRecords = ref(0)
+
+const studentId = computed(() => authStore.user?.student?.id || null)
+
+// Set dynamic cache key based on studentId and page
+const cacheKey = computed(() => {
+  const sid = studentId.value
+  return sid ? `attendance-student-${sid}-page-${currentPage.value}` : null
+})
+
+// Fetch attendance records using the useSWR composable
+const {
+  data: swrData,
+  isLoading,
+  isRefreshing
+} = useSWR(
+  cacheKey,
+  () => listAttendanceRecords({
+    current_page: currentPage.value,
+    per_page: 20,
+    student_id: studentId.value
+  }),
+  { ttl: 60000, immediate: true }
+)
+
+// Watch SWR response updates and sync with local view variables
+watch(swrData, (newVal) => {
+  if (newVal) {
+    const responseData = newVal.data || newVal
+    const pageData = responseData.data || responseData
+
+    if (Array.isArray(pageData)) {
+      records.value = pageData
+    } else if (Array.isArray(pageData?.data)) {
+      records.value = pageData.data
+    } else {
+      records.value = []
+    }
+
+    totalRecords.value = responseData.total_items || pageData.total_items || records.value.length
+    totalPages.value = responseData.total_pages || pageData.total_pages || 1
+  }
+}, { immediate: true })
 
 const attendedCount = computed(() => {
   return records.value.filter(r =>
@@ -170,47 +217,8 @@ const formatTime = (time) => {
   return `${h12}:${m} ${ampm}`
 }
 
-const loadRecords = async () => {
-  isLoading.value = true
-  try {
-    const studentId = authStore.user?.student?.id
-    if (!studentId) {
-      console.warn('No student ID available for attendance query')
-      isLoading.value = false
-      return
-    }
-
-    const params = { current_page: currentPage.value, per_page: 20, student_id: studentId }
-
-    const result = await listAttendanceRecords(params)
-    if (result.success) {
-      const responseData = result.data.data || result.data
-      const pageData = responseData.data || responseData
-
-      if (Array.isArray(pageData)) {
-        records.value = pageData
-      } else if (Array.isArray(pageData?.data)) {
-        records.value = pageData.data
-      } else {
-        records.value = []
-      }
-
-      totalRecords.value = responseData.total_items || pageData.total_items || records.value.length
-      totalPages.value = responseData.total_pages || pageData.total_pages || 1
-    }
-  } catch (err) {
-    console.error('Failed to load attendance:', err)
-  }
-  isLoading.value = false
-}
-
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
-  loadRecords()
 }
-
-onMounted(() => {
-  loadRecords()
-})
 </script>

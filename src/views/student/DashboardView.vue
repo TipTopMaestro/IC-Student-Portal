@@ -1,8 +1,13 @@
 <template>
   <div class="space-y-5">
     <!-- Header -->
-    <div>
-      <h1 class="text-2xl font-semibold text-gray-900">{{ greeting }}, {{ firstName }}</h1>
+    <div class="mb-4">
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold text-gray-900">{{ greeting }}, {{ firstName }}</h1>
+        <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
+          Syncing...
+        </div>
+      </div>
       <p class="text-gray-500 text-sm mt-0.5">{{ currentDate }}</p>
     </div>
 
@@ -189,12 +194,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getStudentFees } from '@/services/feeService'
 import { listInstituteEvents, listAttendanceRecords } from '@/services/eventService'
 import { listPosts, extractPosts } from '@/services/postService'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
+import { useSWR } from '@/composables/useSWR'
 
 const authStore = useAuthStore()
 
@@ -211,7 +217,6 @@ const currentDate = computed(() => {
   return new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 })
 
-const isLoading = ref(true)
 const attendanceRate = ref(0)
 const unpaidFees = ref(0)
 const upcomingEventsCount = ref(0)
@@ -221,139 +226,152 @@ const attendedEvents = ref(0)
 const totalUnpaidAmount = ref(0)
 const pendingFeesList = ref([])
 const upcomingEventsList = ref([])
-const postsLoading = ref(true)
 const recentPosts = ref([])
 
-const loadFeeStats = async () => {
-  const studentId = authStore.user?.student?.id
-  if (!studentId) return
-  try {
-    const result = await getStudentFees(studentId, { perPage: 100 })
-    if (result.success) {
-      const allFees = result.data
-      const pending = allFees.filter(f => f.status !== 'paid')
-      unpaidFees.value = pending.length
-      totalUnpaidAmount.value = pending.reduce((sum, f) => sum + (parseFloat(f.balance) || 0), 0)
-      
-      // Calculate Attendance Fines directly from fees that are linked to attendance events
-      totalFines.value = pending.reduce((sum, f) => {
-        // Robust check for attendance-related fees
-        const categoryName = (f.category_name || '').toLowerCase()
-        const isAttendanceFine = f.institute_attendance_event || 
-                               f.institute_attendance_event_id ||
-                               categoryName.includes('fine') ||
-                               categoryName.includes('absent') ||
-                               categoryName.includes('tardy') ||
-                               categoryName.includes('attendance')
-        
-        if (isAttendanceFine) {
-          return sum + (parseFloat(f.balance) || 0)
-        }
-        return sum
-      }, 0)
+const studentId = computed(() => authStore.user?.student?.id || authStore.user?.id || null)
 
-      pendingFeesList.value = pending.slice(0, 3).map(f => ({
-        id: f.id,
-        name: f.category_name,
-        amount: parseFloat(f.balance) || 0
-      }))
-    }
-  } catch (e) {
-    console.warn('Could not load fee stats:', e)
-  }
-}
-
-const loadEvents = async () => {
-  try {
-    const result = await listInstituteEvents({ per_page: 10 })
-    if (result.success) {
-      const responseData = result.data.data || result.data
-      const items = responseData.data || responseData
-      const eventList = Array.isArray(items) ? items : []
-
-      const now = new Date()
-      const upcoming = eventList.filter(e => {
-        const end = e.end_date ? new Date(e.end_date) : null
-        const start = e.start_date ? new Date(e.start_date) : null
-        return !end || end >= now || (start && start >= now)
-      })
-
-      upcomingEventsCount.value = upcoming.length
-      upcomingEventsList.value = upcoming.slice(0, 4).map(e => {
-        const startDate = e.start_date ? new Date(e.start_date) : null
-        return {
-          id: e.id,
-          name: e.attendance_event?.event_name || e.event_name || 'Unnamed Event',
-          date: e.start_date,
-          day: startDate ? String(startDate.getDate()).padStart(2, '0') : '--',
-          month: startDate ? startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '--',
-          semester: e.semester ? `${e.semester} Semester` : '',
-          academicYear: e.academic_year ? `AY ${e.academic_year}` : ''
-        }
-      })
-    }
-  } catch (e) {
-    console.warn('Could not load events:', e)
-  }
-}
-
-const loadAttendanceStats = async () => {
-  const studentId = authStore.user?.student?.id
-  if (!studentId) return
-  try {
-    // Note: The /attendance-records/ endpoint currently doesn't support student_id filtering
-    // and returns institute-wide data. We fetch it for the 'total record' count but 
-    // we no longer use it for fine calculations to ensure privacy and accuracy.
-    const result = await listAttendanceRecords({ per_page: 200 })
-    if (result.success) {
-      const responseData = result.data.data || result.data
-      const items = responseData.data || responseData
-      const records = Array.isArray(items) ? items : []
-
-      // Since we can't filter by student on this endpoint yet, we'll try to filter client-side
-      // if the student record is available in the response
-      const myRecords = records.filter(r => r.student?.id === studentId)
-
-      totalEvents.value = myRecords.length
-      const attended = myRecords.filter(r =>
-        r.morning_check_in || r.morning_check_out || r.afternoon_check_in || r.afternoon_check_out
-      )
-      attendedEvents.value = attended.length
-      attendanceRate.value = totalEvents.value > 0
-        ? Math.round((attendedEvents.value / totalEvents.value) * 100)
-        : 0
-      
-      // Fines are now calculated in loadFeeStats() for accuracy
-    }
-  } catch (e) {
-    console.warn('Could not load attendance stats:', e)
-  }
-}
-
-const loadRecentPosts = async () => {
-  postsLoading.value = true
-  try {
-    const result = await listPosts({ per_page: 3 })
-    if (result.success) {
-      const allPosts = extractPosts(result)
-      recentPosts.value = allPosts.filter(post => post.visibility === 'public').slice(0, 3)
-    }
-  } catch (e) {
-    console.warn('Could not load recent posts:', e)
-  } finally {
-    postsLoading.value = false
-  }
-}
-
-const loadDashboard = async () => {
-  isLoading.value = true
-  await Promise.allSettled([loadFeeStats(), loadEvents(), loadAttendanceStats(), loadRecentPosts()])
-  isLoading.value = false
-}
-
-onMounted(() => {
-  loadDashboard()
+// Cache key for SWR
+const cacheKey = computed(() => {
+  const sid = studentId.value
+  return sid ? `student-dashboard-data-${sid}` : null
 })
+
+// Unified dashboard fetcher function
+const fetchDashboardData = async () => {
+  const sid = authStore.user?.student?.id
+  if (!sid) return { success: false, error: 'No student ID' }
+
+  const [feesResult, eventsResult, attendanceResult, postsResult] = await Promise.all([
+    getStudentFees(sid, { perPage: 100 }),
+    listInstituteEvents({ per_page: 10 }),
+    listAttendanceRecords({ per_page: 200 }),
+    listPosts({ per_page: 3 })
+  ])
+
+  // Process fees
+  let unpaid = 0
+  let totalUnpaid = 0
+  let fines = 0
+  let pendingFees = []
+  if (feesResult.success) {
+    const allFees = feesResult.data
+    const pending = allFees.filter(f => f.status !== 'paid')
+    unpaid = pending.length
+    totalUnpaid = pending.reduce((sum, f) => sum + (parseFloat(f.balance) || 0), 0)
+    fines = pending.reduce((sum, f) => {
+      const categoryName = (f.category_name || '').toLowerCase()
+      const isAttendanceFine = f.institute_attendance_event || 
+                             f.institute_attendance_event_id ||
+                             categoryName.includes('fine') ||
+                             categoryName.includes('absent') ||
+                             categoryName.includes('tardy') ||
+                             categoryName.includes('attendance')
+      return isAttendanceFine ? sum + (parseFloat(f.balance) || 0) : sum
+    }, 0)
+    pendingFees = pending.slice(0, 3).map(f => ({
+      id: f.id,
+      name: f.category_name,
+      amount: parseFloat(f.balance) || 0
+    }))
+  }
+
+  // Process events
+  let upcomingCount = 0
+  let upcomingList = []
+  if (eventsResult.success) {
+    const responseData = eventsResult.data.data || eventsResult.data
+    const items = responseData.data || responseData
+    const eventList = Array.isArray(items) ? items : []
+    const now = new Date()
+    const upcoming = eventList.filter(e => {
+      const end = e.end_date ? new Date(e.end_date) : null
+      const start = e.start_date ? new Date(e.start_date) : null
+      return !end || end >= now || (start && start >= now)
+    })
+    upcomingCount = upcoming.length
+    upcomingList = upcoming.slice(0, 4).map(e => {
+      const startDate = e.start_date ? new Date(e.start_date) : null
+      return {
+        id: e.id,
+        name: e.attendance_event?.event_name || e.event_name || 'Unnamed Event',
+        date: e.start_date,
+        day: startDate ? String(startDate.getDate()).padStart(2, '0') : '--',
+        month: startDate ? startDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase() : '--',
+        semester: e.semester ? `${e.semester} Semester` : '',
+        academicYear: e.academic_year ? `AY ${e.academic_year}` : ''
+      }
+    })
+  }
+
+  // Process attendance
+  let totalRecs = 0
+  let attendedCount = 0
+  let rate = 0
+  if (attendanceResult.success) {
+    const responseData = attendanceResult.data.data || attendanceResult.data
+    const items = responseData.data || responseData
+    const records = Array.isArray(items) ? items : []
+    const myRecords = records.filter(r => r.student?.id === sid)
+    totalRecs = myRecords.length
+    const attended = myRecords.filter(r =>
+      r.morning_check_in || r.morning_check_out || r.afternoon_check_in || r.afternoon_check_out
+    )
+    attendedCount = attended.length
+    rate = totalRecs > 0 ? Math.round((attendedCount / totalRecs) * 100) : 0
+  }
+
+  // Process posts
+  let recent = []
+  if (postsResult.success) {
+    const allPosts = extractPosts(postsResult)
+    recent = allPosts.filter(post => post.visibility === 'public').slice(0, 3)
+  }
+
+  return {
+    success: true,
+    data: {
+      unpaidFees: unpaid,
+      totalUnpaidAmount: totalUnpaid,
+      totalFines: fines,
+      pendingFeesList: pendingFees,
+      upcomingEventsCount: upcomingCount,
+      upcomingEventsList: upcomingList,
+      totalEvents: totalRecs,
+      attendedEvents: attendedCount,
+      attendanceRate: rate,
+      recentPosts: recent
+    }
+  }
+}
+
+// Fetch dashboard data via useSWR
+const {
+  data: swrData,
+  isLoading,
+  isRefreshing
+} = useSWR(
+  cacheKey,
+  fetchDashboardData,
+  { ttl: 30000, immediate: true }
+)
+
+const postsLoading = computed(() => isLoading.value)
+
+// Sync SWR variables
+watch(swrData, (newVal) => {
+  if (newVal) {
+    unpaidFees.value = newVal.unpaidFees || 0
+    totalUnpaidAmount.value = newVal.totalUnpaidAmount || 0
+    totalFines.value = newVal.totalFines || 0
+    pendingFeesList.value = newVal.pendingFeesList || []
+    upcomingEventsCount.value = newVal.upcomingEventsCount || 0
+    upcomingEventsList.value = newVal.upcomingEventsList || []
+    totalEvents.value = newVal.totalEvents || 0
+    attendedEvents.value = newVal.attendedEvents || 0
+    attendanceRate.value = newVal.attendanceRate || 0
+    recentPosts.value = newVal.recentPosts || []
+  }
+}, { immediate: true })
 
 const formatDate = (dateString) => {
   if (!dateString) return ''

@@ -2,7 +2,12 @@
   <div class="space-y-6">
     <!-- Page Title -->
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+      <div class="flex items-center gap-3">
+        <h1 class="text-2xl font-semibold text-gray-900">Dashboard</h1>
+        <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
+          Syncing...
+        </div>
+      </div>
       <p class="text-gray-500 text-sm mt-0.5">Overview of your admin panel</p>
     </div>
 
@@ -136,14 +141,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { listStudents } from '@/services/studentService'
 import { listInstituteEvents, listAttendanceRecords } from '@/services/eventService'
 import { listPosts, extractPosts } from '@/services/postService'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
-
-const statsLoading = ref(true)
-const postsLoading = ref(true)
+import { useSWR } from '@/composables/useSWR'
 
 const stats = ref({
   totalStudents: 0,
@@ -179,10 +182,8 @@ const extractItems = (result) => {
   return Array.isArray(items) ? items : (items?.data || [])
 }
 
-const loadDashboard = async () => {
-  statsLoading.value = true
-  postsLoading.value = true
-
+// Fetch dashboard data via useSWR
+const fetchDashboardData = async () => {
   const [studentsRes, eventsRes, attendanceRes, postsRes] = await Promise.allSettled([
     listStudents({ per_page: 5 }),
     listInstituteEvents({ per_page: 5 }),
@@ -195,18 +196,39 @@ const loadDashboard = async () => {
   const attendanceResult = attendanceRes.status === 'fulfilled' ? attendanceRes.value : { success: false }
   const postsResult = postsRes.status === 'fulfilled' ? postsRes.value : { success: false }
 
-  stats.value.totalStudents = extractTotal(studentsResult)
-  stats.value.totalEvents = extractTotal(eventsResult)
-  stats.value.totalAttendance = extractTotal(attendanceResult)
-
-  recentEvents.value = extractItems(eventsResult).slice(0, 5)
-  recentPosts.value = extractPosts(postsResult).slice(0, 3)
-
-  statsLoading.value = false
-  postsLoading.value = false
+  return {
+    success: true,
+    data: {
+      totalStudents: extractTotal(studentsResult),
+      totalEvents: extractTotal(eventsResult),
+      totalAttendance: extractTotal(attendanceResult),
+      recentEvents: extractItems(eventsResult).slice(0, 5),
+      recentPosts: extractPosts(postsResult).slice(0, 3)
+    }
+  }
 }
 
-onMounted(() => {
-  loadDashboard()
-})
+const {
+  data: swrData,
+  isLoading,
+  isRefreshing
+} = useSWR(
+  'admin-dashboard-data',
+  fetchDashboardData,
+  { ttl: 30000, immediate: true }
+)
+
+const statsLoading = computed(() => isLoading.value)
+const postsLoading = computed(() => isLoading.value)
+
+// Sync SWR cache data
+watch(swrData, (newVal) => {
+  if (newVal) {
+    stats.value.totalStudents = newVal.totalStudents || 0
+    stats.value.totalEvents = newVal.totalEvents || 0
+    stats.value.totalAttendance = newVal.totalAttendance || 0
+    recentEvents.value = newVal.recentEvents || []
+    recentPosts.value = newVal.recentPosts || []
+  }
+}, { immediate: true })
 </script>
