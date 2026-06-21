@@ -211,10 +211,35 @@ export const updateStudentProfile = async (studentId, studentData) => {
   }
 }
 
+/**
+ * List all programs
+ * @returns {Promise} List of programs
+ */
+export const listPrograms = async () => {
+  try {
+    const response = await api.get('/api/v1/programs/', { 
+      cache: true,
+      cacheTTL: 300000 // 5 minutes TTL
+    })
+    return {
+      success: true,
+      data: response.data
+    }
+  } catch (error) {
+    console.error('Error fetching programs:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to load programs'
+    }
+  }
+}
+
 export default {
   getCurrentProfile,
   updateProfile,
   getStudentById,
   listStudents,
-  updateStudentProfile
+  updateStudentProfile,
+  listPrograms
 }
+

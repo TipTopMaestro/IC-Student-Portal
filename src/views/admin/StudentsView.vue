@@ -283,7 +283,7 @@
 
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
-import { listStudents } from '@/services/studentService'
+import { listStudents, listPrograms } from '@/services/studentService'
 import { useSWR } from '@/composables/useSWR'
 
 const searchQuery = ref('')
@@ -314,7 +314,9 @@ const getInitials = (s) => {
 // Generate dynamic cache key based on params
 const cacheKey = computed(() => {
   const search = searchQuery.value.trim()
-  return `students-page-${currentPage.value}-search-${search || 'none'}`
+  const year = filterYear.value
+  const course = filterCourse.value
+  return `students-page-${currentPage.value}-search-${search || 'none'}-year-${year || 'all'}-course-${course || 'all'}`
 })
 
 // Pass a wrapper function as the fetchFn to useSWR
@@ -329,24 +331,63 @@ const {
   () => listStudents({
     current_page: currentPage.value,
     per_page: perPage,
-    search: searchQuery.value.trim() || undefined
+    search: searchQuery.value.trim() || undefined,
+    s_lvl: filterYear.value ? parseInt(filterYear.value, 10) : undefined,
+    program__name: filterCourse.value || undefined
   }),
   { ttl: 60000, immediate: true }
 )
+
+// Fetch all programs to populate the course dropdown options
+const { data: programsData } = useSWR(
+  'all-programs',
+  listPrograms,
+  { ttl: 300000, immediate: true }
+)
+
+const loadedCourses = ref(['BSCS', 'BSIT', 'BSIS']) // Safe, standard fallbacks
+
+watch(programsData, (newVal) => {
+  if (newVal) {
+    const responseData = newVal.data || newVal
+    const progList = responseData.data || responseData
+    let list = []
+    if (Array.isArray(progList)) {
+      list = progList
+    } else if (Array.isArray(progList?.data)) {
+      list = progList.data
+    }
+    const names = list.map(p => p.name).filter(Boolean)
+    if (names.length > 0) {
+      // Deduplicate accumulated names and predefined courses
+      const uniqueNames = Array.from(new Set([...loadedCourses.value, ...names]))
+      loadedCourses.value = uniqueNames.sort()
+    }
+  }
+}, { immediate: true })
+
 
 // Sync SWR data to internal variables for backward compatibility and pagination calculations
 watch(swrData, (newVal) => {
   if (newVal) {
     const responseData = newVal.data || newVal
     const pageData = responseData.data || responseData
+    let list = []
 
     if (Array.isArray(pageData)) {
-      students.value = pageData
+      list = pageData
     } else if (Array.isArray(pageData?.data)) {
-      students.value = pageData.data
-    } else {
-      students.value = []
+      list = pageData.data
     }
+    students.value = list
+
+    // Dynamically collect courses so they persist in the dropdown options
+    list.forEach(s => {
+      if (s.program_name && !loadedCourses.value.includes(s.program_name)) {
+        loadedCourses.value.push(s.program_name)
+      }
+    })
+    loadedCourses.value.sort()
 
     // Extract pagination metadata
     totalItems.value = responseData.total_items || pageData.total_items || students.value.length
@@ -354,22 +395,19 @@ watch(swrData, (newVal) => {
   }
 }, { immediate: true })
 
-// Build course list dynamically from loaded data
-const availableCourses = computed(() => {
-  const courses = new Set(students.value.map(s => s.program_name).filter(Boolean))
-  return Array.from(courses).sort()
+// Reset to page 1 when filters change
+watch([filterYear, filterCourse], () => {
+  currentPage.value = 1
 })
 
-// Client-side filters on top of server-side search results
+// Build course list dynamically from loaded data
+const availableCourses = computed(() => {
+  return loadedCourses.value
+})
+
+// Displayed students mapped directly to API-side filtered results
 const displayedStudents = computed(() => {
-  let filtered = students.value
-  if (filterYear.value) {
-    filtered = filtered.filter(s => String(s.s_lvl) === filterYear.value)
-  }
-  if (filterCourse.value) {
-    filtered = filtered.filter(s => s.program_name === filterCourse.value)
-  }
-  return filtered
+  return students.value
 })
 
 // Pagination display
