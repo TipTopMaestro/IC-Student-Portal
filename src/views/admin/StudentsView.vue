@@ -345,7 +345,7 @@ const { data: programsData } = useSWR(
   { ttl: 300000, immediate: true }
 )
 
-const loadedCourses = ref(['BSCS', 'BSIT', 'BSIS']) // Safe, standard fallbacks
+const loadedCourses = ref(['BSIT', 'BSIS']) // Safe, standard fallbacks
 
 watch(programsData, (newVal) => {
   if (newVal) {
