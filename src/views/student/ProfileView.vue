@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-6">
     <!-- Loading State -->
-    <div v-if="isLoading && !studentData.username" class="card">
+    <div v-if="isLoading" class="card">
       <div class="flex items-center justify-center py-12">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-ic-primary"></div>
       </div>
@@ -15,12 +15,12 @@
         </svg>
         <h3 class="mt-4 text-lg font-medium text-gray-900">Failed to load profile</h3>
         <p class="mt-2 text-sm text-gray-500">{{ error }}</p>
-        <button @click="refresh" class="mt-4 btn-primary">Try Again</button>
+        <button @click="loadProfile" class="mt-4 btn-primary">Try Again</button>
       </div>
     </div>
 
     <!-- Profile Content -->
-    <template v-if="!error && (studentData.username || !isLoading)">
+    <template v-if="!isLoading && !error">
     <!-- Profile Header -->
     <div class="card">
       <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
@@ -55,13 +55,8 @@
 
         <!-- Student Info -->
         <div class="flex-1 text-center md:text-left">
-          <div class="flex flex-col md:flex-row items-center md:items-start gap-2 md:gap-3">
-            <h1 class="text-2xl font-bold text-gray-900">{{ fullName }}</h1>
-            <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium shrink-0">
-              Syncing...
-            </div>
-          </div>
-          <p class="text-gray-600 mt-1">{{ studentData.course }}</p>
+          <h1 class="text-2xl font-bold text-gray-900">{{ fullName }}</h1>
+          <p class="text-gray-600">{{ studentData.course }}</p>
           <div class="flex flex-wrap justify-center md:justify-start gap-2 mt-3">
             <span class="badge bg-ic-primary text-white">{{ studentData.studentId }}</span>
             <span v-if="studentData.yearLevel && studentData.section" class="badge badge-info">{{ studentData.yearLevel }} - {{ studentData.section }}</span>
@@ -106,46 +101,82 @@
       </div>
     </div>
 
-    <!-- Contact & Institutional Information -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Contact Information -->
-      <div class="card">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          Contact Information
-        </h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
-            <p class="text-gray-900 font-medium break-all">{{ studentData.email || 'N/A' }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">Username</label>
-            <p class="text-gray-900 font-medium">{{ studentData.username || 'N/A' }}</p>
-          </div>
+    <!-- Contact Information -->
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        Contact Information
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Email Address</label>
+          <p class="text-gray-900 font-medium">{{ studentData.email || 'N/A' }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Username</label>
+          <p class="text-gray-900 font-medium">{{ studentData.username || 'N/A' }}</p>
         </div>
       </div>
+    </div>
 
-      <!-- Institutional Information -->
-      <div class="card">
-        <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-          <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-          Institution Details
-        </h2>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">Department</label>
-            <p class="text-gray-900 font-medium">{{ studentData.institute || 'N/A' }}</p>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-500 mb-1">School</label>
-            <p class="text-gray-900 font-medium">{{ studentData.school || 'N/A' }}</p>
-          </div>
+    <!-- Academic Information -->
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M12 14l9-5-9-5-9 5 9 5z" />
+          <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" />
+        </svg>
+        Academic Information
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Student ID</label>
+          <p class="text-gray-900 font-medium">{{ studentData.studentId || 'N/A' }}</p>
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Status</label>
+          <span class="badge badge-success capitalize">{{ studentData.status || 'N/A' }}</span>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Program / Course</label>
+          <p class="text-gray-900 font-medium">{{ studentData.course || 'N/A' }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Year Level</label>
+          <p class="text-gray-900 font-medium">{{ studentData.yearLevel || 'N/A' }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-500 mb-1">Section</label>
+          <p class="text-gray-900 font-medium">{{ studentData.section || 'N/A' }}</p>
+        </div>
+        <div v-if="studentData.institute">
+          <label class="block text-sm font-medium text-gray-500 mb-1">Institute</label>
+          <p class="text-gray-900 font-medium">{{ studentData.institute }}</p>
+        </div>
+        <div v-if="studentData.school">
+          <label class="block text-sm font-medium text-gray-500 mb-1">School</label>
+          <p class="text-gray-900 font-medium">{{ studentData.school }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Groups/Roles -->
+    <div class="card">
+      <h2 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Groups & Roles
+      </h2>
+      
+      <div class="flex flex-wrap gap-2">
+        <span v-for="group in studentData.groups" :key="group" class="badge badge-info">{{ group }}</span>
+        <span v-if="!studentData.groups || studentData.groups.length === 0" class="text-gray-500">No groups assigned</span>
       </div>
     </div>
     </template>
@@ -197,6 +228,8 @@ const {
   () => getCurrentProfile(),
   { ttl: 300000, immediate: true }
 )
+
+const loadProfile = refresh
 
 // Synchronize cached profile records with local component state
 watch(swrData, (newVal) => {
