@@ -3,7 +3,12 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-900 mb-1">Students</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-semibold text-gray-900">Students</h1>
+          <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
+            Syncing...
+          </div>
+        </div>
         <p class="text-sm text-gray-500">{{ totalItems }} students registered</p>
       </div>
     </div>
@@ -51,7 +56,7 @@
       </svg>
       <p class="text-sm text-gray-900 font-medium mb-1">Failed to load students</p>
       <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
-      <button @click="loadStudents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+      <button @click="refresh" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
         Try Again
       </button>
     </div>
@@ -277,8 +282,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { listStudents } from '@/services/studentService'
+import { ref, computed, watch, onUnmounted } from 'vue'
+import { listStudents, listPrograms } from '@/services/studentService'
+import { useSWR } from '@/composables/useSWR'
 
 const searchQuery = ref('')
 const filterYear = ref('')
@@ -286,8 +292,6 @@ const filterCourse = ref('')
 const currentPage = ref(1)
 const perPage = 10
 
-const isLoading = ref(false)
-const error = ref(null)
 const students = ref([])
 const totalItems = ref(0)
 const totalPages = ref(1)
@@ -307,22 +311,103 @@ const getInitials = (s) => {
   return (f + l).toUpperCase() || '?'
 }
 
-// Build course list dynamically from loaded data
-const availableCourses = computed(() => {
-  const courses = new Set(students.value.map(s => s.program_name).filter(Boolean))
-  return Array.from(courses).sort()
+// Generate dynamic cache key based on params
+const cacheKey = computed(() => {
+  const search = searchQuery.value.trim()
+  const year = filterYear.value
+  const course = filterCourse.value
+  return `students-page-${currentPage.value}-search-${search || 'none'}-year-${year || 'all'}-course-${course || 'all'}`
 })
 
-// Client-side filters on top of server-side search results
+// Pass a wrapper function as the fetchFn to useSWR
+const { 
+  data: swrData, 
+  error, 
+  isLoading, 
+  isRefreshing, 
+  refresh 
+} = useSWR(
+  cacheKey,
+  () => listStudents({
+    current_page: currentPage.value,
+    per_page: perPage,
+    search: searchQuery.value.trim() || undefined,
+    s_lvl: filterYear.value ? parseInt(filterYear.value, 10) : undefined,
+    program__name: filterCourse.value || undefined
+  }),
+  { ttl: 60000, immediate: true }
+)
+
+// Fetch all programs to populate the course dropdown options
+const { data: programsData } = useSWR(
+  'all-programs',
+  listPrograms,
+  { ttl: 300000, immediate: true }
+)
+
+const loadedCourses = ref(['BSIT', 'BSIS']) // Safe, standard fallbacks
+
+watch(programsData, (newVal) => {
+  if (newVal) {
+    const responseData = newVal.data || newVal
+    const progList = responseData.data || responseData
+    let list = []
+    if (Array.isArray(progList)) {
+      list = progList
+    } else if (Array.isArray(progList?.data)) {
+      list = progList.data
+    }
+    const names = list.map(p => p.name).filter(Boolean)
+    if (names.length > 0) {
+      // Deduplicate accumulated names and predefined courses
+      const uniqueNames = Array.from(new Set([...loadedCourses.value, ...names]))
+      loadedCourses.value = uniqueNames.sort()
+    }
+  }
+}, { immediate: true })
+
+
+// Sync SWR data to internal variables for backward compatibility and pagination calculations
+watch(swrData, (newVal) => {
+  if (newVal) {
+    const responseData = newVal.data || newVal
+    const pageData = responseData.data || responseData
+    let list = []
+
+    if (Array.isArray(pageData)) {
+      list = pageData
+    } else if (Array.isArray(pageData?.data)) {
+      list = pageData.data
+    }
+    students.value = list
+
+    // Dynamically collect courses so they persist in the dropdown options
+    list.forEach(s => {
+      if (s.program_name && !loadedCourses.value.includes(s.program_name)) {
+        loadedCourses.value.push(s.program_name)
+      }
+    })
+    loadedCourses.value.sort()
+
+    // Extract pagination metadata
+    totalItems.value = responseData.total_items || pageData.total_items || students.value.length
+    totalPages.value = responseData.total_pages || pageData.total_pages || 1
+  }
+}, { immediate: true })
+
+// Reset to page 1 when filters change
+watch([filterYear, filterCourse], () => {
+  currentPage.value = 1
+})
+
+// Build course list dynamically from loaded data
+const availableCourses = computed(() => {
+  return loadedCourses.value
+})
+
+// Displayed students mapped directly to API-side filtered results
 const displayedStudents = computed(() => {
-  let filtered = students.value
-  if (filterYear.value) {
-    filtered = filtered.filter(s => String(s.s_lvl) === filterYear.value)
-  }
-  if (filterCourse.value) {
-    filtered = filtered.filter(s => s.program_name === filterCourse.value)
-  }
-  return filtered
+  return students.value
 })
 
 // Pagination display
@@ -335,49 +420,9 @@ const paginationEnd = computed(() => {
   return Math.min(currentPage.value * perPage, totalItems.value)
 })
 
-// Load students from API
-const loadStudents = async () => {
-  isLoading.value = true
-  error.value = null
-
-  try {
-    const params = { current_page: currentPage.value, per_page: perPage }
-    if (searchQuery.value.trim()) {
-      params.search = searchQuery.value.trim()
-    }
-
-    const result = await listStudents(params)
-
-    if (result.success) {
-      const responseData = result.data.data || result.data
-      const pageData = responseData.data || responseData
-
-      if (Array.isArray(pageData)) {
-        students.value = pageData
-      } else if (Array.isArray(pageData?.data)) {
-        students.value = pageData.data
-      } else {
-        students.value = []
-      }
-
-      // Extract pagination metadata
-      totalItems.value = responseData.total_items || pageData.total_items || students.value.length
-      totalPages.value = responseData.total_pages || pageData.total_pages || 1
-    } else {
-      error.value = result.error
-    }
-  } catch (err) {
-    console.error('Failed to load students:', err)
-    error.value = 'An unexpected error occurred'
-  }
-
-  isLoading.value = false
-}
-
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
-  loadStudents()
 }
 
 const viewStudent = (student) => {
@@ -391,11 +436,10 @@ watch(searchQuery, () => {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
     currentPage.value = 1
-    loadStudents()
   }, 400)
 })
 
-onMounted(() => {
-  loadStudents()
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
 })
 </script>

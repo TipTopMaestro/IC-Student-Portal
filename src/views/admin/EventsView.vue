@@ -174,7 +174,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import api from '@/services/api'
+import { listInstituteEvents } from '@/services/eventService'
 
 const filterStatus = ref('all')
 const currentPage = ref(1)
@@ -233,18 +233,27 @@ const displayedEvents = computed(() => {
   return events.value.filter(e => getEventStatus(e) === filterStatus.value)
 })
 
+let currentRequestId = 0
+
 const loadEvents = async () => {
+  const requestId = ++currentRequestId
   isLoading.value = true
   error.value = null
 
   try {
-    // Use institute-attendance-event for richer data (dates, academic year, semester, status)
-    const response = await api.get('/api/v1/institute-attendance-event/', {
-      params: { current_page: currentPage.value, per_page: 50 }
+    // Call the cached service helper
+    const result = await listInstituteEvents({
+      current_page: currentPage.value,
+      per_page: 50
     })
 
-    const result = response.data
-    const responseData = result.data || result
+    if (requestId !== currentRequestId) return // discard stale response
+
+    if (!result.success) {
+      throw new Error(result.error)
+    }
+
+    const responseData = result.data.data || result.data
     const pageData = responseData.data || responseData
 
     if (Array.isArray(pageData)) {
@@ -258,12 +267,17 @@ const loadEvents = async () => {
     totalItems.value = responseData.total_items || events.value.length
     totalPages.value = responseData.total_pages || 1
   } catch (err) {
-    console.error('Failed to load events:', err)
-    error.value = err.response?.data?.message || 'Failed to load events'
+    if (requestId === currentRequestId) {
+      console.error('Failed to load events:', err)
+      error.value = err.message || 'Failed to load events'
+    }
+  } finally {
+    if (requestId === currentRequestId) {
+      isLoading.value = false
+    }
   }
-
-  isLoading.value = false
 }
+
 
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return

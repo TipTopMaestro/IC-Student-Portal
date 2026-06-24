@@ -1,4 +1,5 @@
-import api from './api'
+import api, { invalidateApiCachePattern } from './api'
+import { invalidateCachePattern } from '@/composables/useSWR'
 
 /**
  * Fee Service - Handles all fee/payment-related API calls
@@ -150,6 +151,29 @@ export const submitPayment = async (submissionData) => {
     const response = await api.post('/api/v1/payment-submissions/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+
+    // Write-through cache invalidation safely:
+    try {
+      // 1. Invalidate SWR Cache for fees and payment submissions
+      invalidateCachePattern('fees')
+      invalidateCachePattern('payment-submissions')
+
+      // 2. Invalidate Axios cache for fees and payment submissions
+      invalidateApiCachePattern('/api/v1/fees/')
+      invalidateApiCachePattern('/api/v1/payment-submissions/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
+
+    // 3. Invalidate Pinia store
+    try {
+      const { useFeeStore } = await import('@/stores/fees')
+      const feeStore = useFeeStore()
+      feeStore.invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate Pinia fee store:', e)
+    }
+
     return {
       success: true,
       data: response.data

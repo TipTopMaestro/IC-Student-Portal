@@ -23,7 +23,10 @@ export const authService = {
 
   async getCurrentUser() {
     console.log('🔐 Fetching current user from real API...')
-    const response = await api.get('/api/v1/me/')
+    const response = await api.get('/api/v1/me/', {
+      cache: true,
+      cacheTTL: 300000 // 5 minutes TTL for user profile
+    })
     console.log('✅ Current user fetched:', response.data)
     return response.data
   },

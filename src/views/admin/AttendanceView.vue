@@ -375,7 +375,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { listAttendanceRecords, listInstituteEvents, uploadAttendance } from '@/services/eventService'
 
 const searchQuery = ref('')
@@ -399,11 +399,34 @@ const uploadSuccess = ref(null)
 const uploadEvents = ref([])
 const uploadData = ref({ eventId: '', file: null, fileName: '' })
 
-// Build unique dates from loaded records for the date filter
+// Helper to generate all dates within start and end date range (timezone-safe)
+const getDatesInRange = (startDateStr, endDateStr) => {
+  const dates = []
+  if (!startDateStr) return dates
+  
+  const start = new Date(startDateStr)
+  const end = endDateStr ? new Date(endDateStr) : start
+  
+  const current = new Date(start)
+  let count = 0
+  while (current <= end && count < 10) {
+    const yyyy = current.getFullYear()
+    const mm = String(current.getMonth() + 1).padStart(2, '0')
+    const dd = String(current.getDate()).padStart(2, '0')
+    dates.push(`${yyyy}-${mm}-${dd}`)
+    current.setDate(current.getDate() + 1)
+    count++
+  }
+  return dates
+}
+
+const loadedDates = ref([])
+
+// Build unique dates from loaded records and active events for the date filter
 const availableDates = computed(() => {
-  const dates = new Set(records.value.map(r => r.date).filter(Boolean))
-  return Array.from(dates).sort().reverse()
+  return loadedDates.value
 })
+
 
 // Client-side filters
 const displayedRecords = computed(() => {
@@ -452,13 +475,21 @@ const loadRecords = async () => {
       const responseData = result.data.data || result.data
       const pageData = responseData.data || responseData
 
+      let list = []
       if (Array.isArray(pageData)) {
-        records.value = pageData
+        list = pageData
       } else if (Array.isArray(pageData?.data)) {
-        records.value = pageData.data
-      } else {
-        records.value = []
+        list = pageData.data
       }
+      records.value = list
+
+      // Accumulate unique dates from records
+      list.forEach(r => {
+        if (r.date && !loadedDates.value.includes(r.date)) {
+          loadedDates.value.push(r.date)
+        }
+      })
+      loadedDates.value.sort().reverse()
 
       totalItems.value = responseData.total_items || pageData.total_items || records.value.length
       totalPages.value = responseData.total_pages || pageData.total_pages || 1
@@ -490,7 +521,19 @@ const loadUploadEvents = async () => {
     if (result.success) {
       const responseData = result.data.data || result.data
       const pageData = responseData.data || responseData
-      uploadEvents.value = Array.isArray(pageData) ? pageData : (pageData?.data || [])
+      const events = Array.isArray(pageData) ? pageData : (pageData?.data || [])
+      uploadEvents.value = events
+
+      // Extract all event dates to populate availableDates filter dropdown on load
+      events.forEach(event => {
+        const dates = getDatesInRange(event.start_date, event.end_date)
+        dates.forEach(d => {
+          if (!loadedDates.value.includes(d)) {
+            loadedDates.value.push(d)
+          }
+        })
+      })
+      loadedDates.value.sort().reverse()
     }
   } catch (err) {
     console.error('Failed to load events for upload:', err)
@@ -556,5 +599,9 @@ watch(searchQuery, () => {
 onMounted(() => {
   loadRecords()
   loadUploadEvents()
+})
+
+onUnmounted(() => {
+  if (searchTimeout) clearTimeout(searchTimeout)
 })
 </script>

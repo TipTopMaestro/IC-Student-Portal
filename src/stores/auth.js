@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService.wrapper'
-import api from '@/services/api'
+import api, { clearApiCache } from '@/services/api'
+import { clearSwrCache } from '@/composables/useSWR'
+import { useFeeStore } from '@/stores/fees'
+import { useStudentStore } from '@/stores/students'
+import { useEventStore } from '@/stores/events'
+import { useAttendanceStore } from '@/stores/attendance'
+import { usePostStore } from '@/stores/posts'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -31,17 +37,15 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     error.value = null
     hasToken.value = false
-    // Redirect to login if not already there
-    const currentPath = window.location.pathname
-    if (currentPath !== '/login') {
-      window.location.href = '/login'
-    }
+    // Note: main.js redirects using router.push to prevent hard reloads
   }
   window.addEventListener('auth:session-expired', handleSessionExpired)
 
   const isAuthenticated = computed(() => {
     const hasUser = !!user.value
-    console.log('🔐 isAuthenticated check:', { hasToken: hasToken.value, hasUser, result: hasToken.value && hasUser })
+    if (import.meta.env.DEV) {
+      console.log('🔐 isAuthenticated check:', { hasToken: hasToken.value, hasUser, result: hasToken.value && hasUser })
+    }
     return hasToken.value && hasUser
   })
 
@@ -171,7 +175,11 @@ export const useAuthStore = defineStore('auth', () => {
       const token = localStorage.getItem('accessToken')
       if (token) {
         try {
-          const jwtPayload = JSON.parse(atob(token.split('.')[1]))
+          const base64Url = token.split('.')[1]
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+          const padLen = (4 - (base64.length % 4)) % 4
+          const padded = base64 + '='.repeat(padLen)
+          const jwtPayload = JSON.parse(atob(padded))
           userData.id = jwtPayload.user_id || jwtPayload.id
         } catch (e) {
           console.warn('Could not decode JWT to get user ID')
@@ -255,11 +263,53 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = () => {
-    authService.logout()
+  const logout = async () => {
+    // Clear tokens first to prevent interceptor loop and race conditions
+    clearTokens()
     user.value = null
     error.value = null
     hasToken.value = false
+
+    try {
+      await authService.logout()
+    } catch (e) {
+      console.warn('Backend logout call error:', e)
+    }
+
+    // Clear all caching layers on logout safely
+    try {
+      clearApiCache()
+      clearSwrCache()
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache clearing error during logout:', e)
+    }
+    
+    // Invalidate other Pinia stores
+    try {
+      useFeeStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate fee store:', e)
+    }
+    try {
+      useStudentStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate student store:', e)
+    }
+    try {
+      useEventStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate event store:', e)
+    }
+    try {
+      useAttendanceStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate attendance store:', e)
+    }
+    try {
+      usePostStore().invalidate()
+    } catch (e) {
+      console.warn('Failed to invalidate post store:', e)
+    }
   }
 
   const initialize = async () => {
