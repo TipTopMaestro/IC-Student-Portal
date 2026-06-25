@@ -44,6 +44,16 @@ const router = createRouter({
           path: 'profile',
           name: 'admin-profile',
           component: () => import('@/views/admin/ProfileView.vue')
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/views/admin/SettingsView.vue')
+        },
+        {
+          path: 'about',
+          name: 'admin-about',
+          component: () => import('@/views/admin/AboutView.vue')
         }
       ]
     },
@@ -86,6 +96,16 @@ const router = createRouter({
           path: 'external-systems',
           name: 'external-systems',
           component: () => import('@/views/student/ExternalSystemsView.vue')
+        },
+        {
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/student/SettingsView.vue')
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('@/views/student/AboutView.vue')
         }
       ]
     },
