@@ -55,13 +55,14 @@
         <span class="text-[11px] text-gray-400">{{ formattedTime }}</span>
         
         <!-- Like Button with Hover Trigger -->
-        <div class="relative inline-block">
+        <div ref="actionsContainer" class="relative inline-block">
           <button
             @click="handleLikeClick"
             @mouseenter="handleMouseEnter"
             @mouseleave="handleMouseLeave"
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd"
+            @touchcancel="handleTouchCancel"
             class="text-[11px] font-semibold transition-colors"
             :class="localUserReaction ? 'text-ic-primary' : 'text-gray-500 hover:text-gray-700'"
           >
@@ -154,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, watch, onMounted } from 'vue'
+import { ref, computed, nextTick, watch, onMounted, onUnmounted } from 'vue'
 import { updateComment, deleteComment, getReplies, extractReplies, reactToComment, removeCommentReaction } from '@/services/commentService'
 import { useAuthStore } from '@/stores/auth'
 import ReactionPicker from './ReactionPicker.vue'
@@ -179,10 +180,35 @@ const repliesLoading = ref(false)
 
 const currentUser = computed(() => useAuthStore().user)
 
+// LocalStorage helpers to persist comment reactions (since backend doesn't return user_reaction in list query)
+const getReactionsKey = () => {
+  const userId = currentUser.value?.id || 'anon'
+  return `comment_reactions_${userId}`
+}
+
+const getStoredReactions = () => {
+  try {
+    return JSON.parse(localStorage.getItem(getReactionsKey()) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+const saveStoredReaction = (commentId, reactionType) => {
+  const reactions = getStoredReactions()
+  const key = String(commentId)
+  if (reactionType) {
+    reactions[key] = reactionType
+  } else {
+    delete reactions[key]
+  }
+  localStorage.setItem(getReactionsKey(), JSON.stringify(reactions))
+}
+
 // --- Reactions State ---
 const showPicker = ref(false)
 const isReacting = ref(false)
-const localUserReaction = ref(props.comment.user_reaction || null)
+const localUserReaction = ref(null)
 const localReactionCounts = ref({})
 const reactionEmojis = {
   like: '👍',
@@ -197,10 +223,18 @@ let hideTimer = null
 let showTimer = null
 let touchTimer = null
 let touchHandled = false
+let lastTouchTime = 0
+const actionsContainer = ref(null)
 
 // Initialize and sync reaction state
 const initializeReactions = (comment) => {
-  localUserReaction.value = comment.user_reaction || null
+  console.log('💬 initializeReactions for comment ID:', comment.id, 'content:', comment.content, 'reaction_counts:', comment.reaction_counts)
+  console.log('📋 Full comment data object:', comment)
+  
+  // Load from localStorage instead of relying on backend
+  const storedReactions = getStoredReactions()
+  localUserReaction.value = storedReactions[String(comment.id)] || null
+
   if (comment.reaction_counts) {
     if (typeof comment.reaction_counts === 'object') {
       localReactionCounts.value = { ...comment.reaction_counts }
@@ -208,6 +242,7 @@ const initializeReactions = (comment) => {
       try {
         localReactionCounts.value = JSON.parse(comment.reaction_counts)
       } catch (e) {
+        console.warn('Failed to parse reaction_counts JSON:', e)
         localReactionCounts.value = {}
       }
     }
@@ -228,15 +263,27 @@ watch(() => props.comment, (newComment) => {
   }
 }, { deep: true })
 
+watch(currentUser, () => {
+  initializeReactions(props.comment)
+})
+
 const totalReactionCount = computed(() => {
-  return Object.values(localReactionCounts.value).reduce((sum, count) => sum + (parseInt(count) || 0), 0)
+  // If the backend provides a direct "total" count, use it.
+  if (localReactionCounts.value && typeof localReactionCounts.value.total !== 'undefined') {
+    return parseInt(localReactionCounts.value.total) || 0
+  }
+  
+  // Otherwise, sum the individual reaction counts, excluding "total" if it exists
+  return Object.entries(localReactionCounts.value)
+    .filter(([key]) => key !== 'total')
+    .reduce((sum, [_, count]) => sum + (parseInt(count) || 0), 0)
 })
 
 const hasReactions = computed(() => totalReactionCount.value > 0)
 
 const topReactionTypes = computed(() => {
   return Object.entries(localReactionCounts.value)
-    .filter(([_, count]) => count > 0)
+    .filter(([type, count]) => type !== 'total' && count > 0)
     .sort((a, b) => (parseInt(b[1]) || 0) - (parseInt(a[1]) || 0))
     .slice(0, 3)
     .map(([type]) => type)
@@ -245,11 +292,24 @@ const topReactionTypes = computed(() => {
 // --- Reaction Handlers ---
 
 const handleReactionSelect = async (type) => {
+  console.log('👍 handleReactionSelect clicked. Type:', type, 'Current active reaction:', localUserReaction.value)
   if (isReacting.value) return
   
   const oldReaction = localUserReaction.value
   if (type === oldReaction) {
+    // If selecting the same emoji, unreact it
+    console.log('🔄 Selecting same emoji in picker, removing reaction...')
     showPicker.value = false
+    isReacting.value = true
+    updateLocalReaction(null)
+    const result = await removeCommentReaction(props.comment.id, oldReaction)
+    console.log('📥 removeCommentReaction result (from picker):', result)
+    if (!result.success) {
+      updateLocalReaction(oldReaction)
+    }
+    setTimeout(() => {
+      isReacting.value = false
+    }, 200)
     return
   }
 
@@ -260,6 +320,7 @@ const handleReactionSelect = async (type) => {
   updateLocalReaction(type)
 
   const result = await reactToComment(props.comment.id, type)
+  console.log('📥 reactToComment result (from picker):', result)
   if (!result.success) {
     // Rollback on failure
     updateLocalReaction(oldReaction)
@@ -272,25 +333,35 @@ const handleReactionSelect = async (type) => {
 }
 
 const handleLikeClick = async () => {
+  console.log('👍 handleLikeClick clicked. Current active reaction:', localUserReaction.value)
   if (isReacting.value || touchHandled) {
     touchHandled = false
     return
   }
+
+  // Immediately close picker and clear timers when clicking
+  showPicker.value = false
+  clearTimeout(showTimer)
+  clearHideTimer()
 
   const oldReaction = localUserReaction.value
   isReacting.value = true
   
   if (oldReaction) {
     // Remove reaction if already exists
+    console.log('🔄 Active reaction exists, removing reaction:', oldReaction)
     updateLocalReaction(null)
-    const result = await removeCommentReaction(props.comment.id)
+    const result = await removeCommentReaction(props.comment.id, oldReaction)
+    console.log('📥 removeCommentReaction result (from Like click):', result)
     if (!result.success) {
       updateLocalReaction(oldReaction)
     }
   } else {
     // Toggle default like
+    console.log('➕ No active reaction, adding default Like...')
     updateLocalReaction('like')
     const result = await reactToComment(props.comment.id, 'like')
+    console.log('📥 reactToComment result (from Like click):', result)
     if (!result.success) {
       updateLocalReaction(null)
     }
@@ -305,6 +376,9 @@ const updateLocalReaction = (newReaction) => {
   const oldReaction = localUserReaction.value
   if (newReaction === oldReaction) return
   
+  // Save to localStorage
+  saveStoredReaction(props.comment.id, newReaction)
+
   // Decrease count for old reaction
   if (oldReaction && localReactionCounts.value[oldReaction]) {
     localReactionCounts.value[oldReaction] = Math.max(0, (parseInt(localReactionCounts.value[oldReaction]) || 0) - 1)
@@ -314,6 +388,14 @@ const updateLocalReaction = (newReaction) => {
   if (newReaction) {
     localReactionCounts.value[newReaction] = (parseInt(localReactionCounts.value[newReaction]) || 0) + 1
   }
+
+  // Also update the total count if it exists in localReactionCounts
+  if (localReactionCounts.value && typeof localReactionCounts.value.total !== 'undefined') {
+    let diff = 0
+    if (oldReaction) diff -= 1
+    if (newReaction) diff += 1
+    localReactionCounts.value.total = Math.max(0, (parseInt(localReactionCounts.value.total) || 0) + diff)
+  }
   
   localUserReaction.value = newReaction
 }
@@ -321,6 +403,9 @@ const updateLocalReaction = (newReaction) => {
 // --- Hover & Touch Logic ---
 
 const handleMouseEnter = () => {
+  // Ignore hover emulated by touch events
+  if (Date.now() - lastTouchTime < 1000) return
+  
   clearHideTimer()
   showTimer = setTimeout(() => {
     showPicker.value = true
@@ -328,6 +413,9 @@ const handleMouseEnter = () => {
 }
 
 const handleMouseLeave = () => {
+  // Ignore hover emulated by touch events
+  if (Date.now() - lastTouchTime < 1000) return
+
   clearTimeout(showTimer)
   hideTimer = setTimeout(() => {
     showPicker.value = false
@@ -342,6 +430,7 @@ const clearHideTimer = () => {
 }
 
 const handleTouchStart = () => {
+  lastTouchTime = Date.now()
   touchHandled = false
   touchTimer = setTimeout(() => {
     showPicker.value = true
@@ -350,8 +439,36 @@ const handleTouchStart = () => {
 }
 
 const handleTouchEnd = () => {
+  lastTouchTime = Date.now()
   clearTimeout(touchTimer)
 }
+
+const handleTouchCancel = () => {
+  lastTouchTime = Date.now()
+  clearTimeout(touchTimer)
+}
+
+// Click outside logic to close picker on mobile
+const documentClickHandler = (event) => {
+  if (actionsContainer.value && !actionsContainer.value.contains(event.target)) {
+    showPicker.value = false
+  }
+}
+
+watch(showPicker, (isOpen) => {
+  if (isOpen) {
+    document.addEventListener('click', documentClickHandler)
+    document.addEventListener('touchstart', documentClickHandler)
+  } else {
+    document.removeEventListener('click', documentClickHandler)
+    document.removeEventListener('touchstart', documentClickHandler)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', documentClickHandler)
+  document.removeEventListener('touchstart', documentClickHandler)
+})
 
 // --- Rest of the component logic ---
 

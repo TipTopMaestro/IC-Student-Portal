@@ -156,7 +156,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/services/api'
-import { uploadImage } from '@/services/fileService'
+import { updateProfile } from '@/services/studentService'
 
 const authStore = useAuthStore()
 const isLoading = ref(true)
@@ -215,41 +215,54 @@ const onProfilePicSelected = async (event) => {
 
   isUploadingProfilePic.value = true
   try {
-    // 1. Upload to Cloudinary
-    const uploadResult = await uploadImage(file, 'profiles')
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error || 'Failed to upload image')
+    // 1. Update backend profile directly with the raw file
+    const updateResult = await updateProfile(authStore.user.id, {
+      firstName: profileData.value.firstName,
+      lastName: profileData.value.lastName,
+      email: profileData.value.email,
+      avatar: file // Send the raw File object directly
+    })
+
+    if (!updateResult.success) {
+      console.error('Profile update failed:', updateResult.error)
+      throw new Error(
+        typeof updateResult.error === 'object' 
+          ? JSON.stringify(updateResult.error) 
+          : updateResult.error || 'Failed to save profile picture'
+      )
     }
 
-    const imageUrl = uploadResult.data.image_url
-    console.log('✅ Image uploaded to Cloudinary:', imageUrl)
-
-    // 2. Update backend profile
-    // We send multiple possible field names for better compatibility with backend
-    const payload = {
-      first_name: profileData.firstName,
-      last_name: profileData.lastName,
-      email: profileData.email,
-      profile: imageUrl,
-      profile_picture: imageUrl,
-      user_avatar: imageUrl
+    // Extract the resolved URL from the backend response
+    const returnedUser = updateResult.data?.data || updateResult.data
+    const imageUrl = returnedUser.profile_url || returnedUser.profile
+    if (!imageUrl) {
+      console.error('Backend update response missing profile URL. Response data:', updateResult.data)
+      throw new Error('Profile updated, but backend did not return a profile URL.')
     }
 
-    console.log('📤 Sending profile update payload:', payload)
-    const response = await api.patch(`/api/v1/users/${authStore.user.id}/`, payload)
-    console.log('📥 Profile update response:', response.data)
+    console.log('✅ Backend profile updated successfully:', imageUrl)
 
-    // 3. Update local state & auth store
-    // Ensure we use the exact same property names the auth store uses
+    // 2. Update local state & auth store immediately
     profileData.value.profileImage = imageUrl
 
-    // Force a fresh fetch from the server to sync everything
-    await authStore.fetchCurrentUser()
-
-    // Update local state again from the store to be absolutely sure
-    if (authStore.user?.user_avatar) {
-      profileData.value.profileImage = authStore.user.user_avatar
+    if (authStore.user) {
+      authStore.user.user_avatar = imageUrl
+      authStore.user.profile = imageUrl
+      authStore.user.profile_url = imageUrl
+      localStorage.setItem('user_data', JSON.stringify(authStore.user))
     }
+
+    // 3. Delayed refetch to sync with backend once it has processed
+    setTimeout(async () => {
+      try {
+        await authStore.fetchCurrentUser()
+        if (authStore.user?.user_avatar) {
+          profileData.value.profileImage = authStore.user.user_avatar
+        }
+      } catch (e) {
+        console.warn('Delayed user refetch failed:', e)
+      }
+    }, 3000)
 
     alert('Profile picture updated successfully!')
   } catch (err) {

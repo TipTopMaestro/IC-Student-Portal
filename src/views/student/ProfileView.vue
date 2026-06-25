@@ -274,40 +274,66 @@ const onProfilePicSelected = async (event) => {
 
   isUploadingProfilePic.value = true
   try {
-    // 1. Upload to Cloudinary
-    const uploadResult = await uploadImage(file, 'profiles')
-    if (!uploadResult.success) {
-      throw new Error(uploadResult.error || 'Failed to upload image')
-    }
-
-    const imageUrl = uploadResult.data.image_url
-
-    // 2. Update backend profile
-    let updateResult;
-    
-    // If we have a student record, update the student image field (s_image)
-    // This is more reliable for students as they may not have permission to patch the User object
-    if (studentData.value.id) {
-      updateResult = await updateStudentProfile(studentData.value.id, {
-        s_image: imageUrl
-      })
-    } else {
-      // Fallback for cases where student record isn't linked yet (though id should be there)
-      updateResult = await updateProfile(authStore.user.id, {
-        firstName: studentData.value.firstName,
-        lastName: studentData.value.lastName,
-        email: studentData.value.email,
-        avatar: imageUrl
-      })
-    }
+    // 1. Update backend user profile directly with the raw file
+    const updateResult = await updateProfile(authStore.user.id, {
+      firstName: studentData.value.firstName,
+      lastName: studentData.value.lastName,
+      email: studentData.value.email,
+      avatar: file // Send the raw File object directly
+    })
 
     if (!updateResult.success) {
-      throw new Error(updateResult.error || 'Failed to save profile picture')
+      console.error('Profile update failed:', updateResult.error)
+      throw new Error(
+        typeof updateResult.error === 'object' 
+          ? JSON.stringify(updateResult.error) 
+          : updateResult.error || 'Failed to save profile picture'
+      )
     }
 
-    // 3. Update local state & auth store
+    // Extract the resolved URL from the backend response
+    const returnedUser = updateResult.data?.data || updateResult.data
+    const imageUrl = returnedUser.profile_url || returnedUser.profile
+    if (!imageUrl) {
+      console.error('Backend update response missing profile URL. Response data:', updateResult.data)
+      throw new Error('Profile updated, but backend did not return a profile URL.')
+    }
+
+    console.log('✅ Backend profile updated successfully:', imageUrl)
+
+    // 2. Also try updating student record s_image (non-blocking)
+    if (studentData.value.id) {
+      try {
+        await updateStudentProfile(studentData.value.id, { s_image: imageUrl })
+      } catch (studentErr) {
+        console.warn('Could not update student record image (expected if read-only):', studentErr)
+      }
+    }
+
+    // 3. Update local state immediately
     studentData.value.avatar = imageUrl
-    await authStore.fetchCurrentUser()
+
+    // Update auth store user object so the sidebar/navbar avatar updates too
+    if (authStore.user) {
+      authStore.user.user_avatar = imageUrl
+      authStore.user.profile = imageUrl
+      authStore.user.profile_url = imageUrl
+      if (authStore.user.student) {
+        authStore.user.student.s_image = imageUrl
+      }
+      // Persist to localStorage so it survives page reload until next fetchCurrentUser
+      localStorage.setItem('user_data', JSON.stringify(authStore.user))
+    }
+
+    // 4. Delayed refetch — give backend time to process the image URL
+    // Without this delay, /api/v1/me/ may return stale data and overwrite our local state
+    setTimeout(async () => {
+      try {
+        await authStore.fetchCurrentUser()
+      } catch (e) {
+        console.warn('Delayed user refetch failed:', e)
+      }
+    }, 3000)
   } catch (err) {
     console.error('Profile pic upload error:', err)
     alert(err.message || 'An error occurred while updating profile picture')

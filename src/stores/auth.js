@@ -188,15 +188,16 @@ export const useAuthStore = defineStore('auth', () => {
         userData.student.profile_picture = normalizeUrl(userData.student.profile_picture)
       }
 
-      // Map to user_avatar for consistency, preferring student profile picture
-      userData.user_avatar = userData.student?.s_image ||
-                           userData.student?.profile_picture || 
-                           userData.profile_url ||
+      // Map to user_avatar for consistency, prioritizing user-uploaded custom pictures over student records
+      userData.user_avatar = userData.profile_url ||
                            userData.profile ||
+                           userData.profile_picture ||
                            userData.user_avatar || 
+                           userData.avatar || 
+                           userData.student?.s_image ||
+                           userData.student?.profile_picture || 
                            userData.user_profile || 
                            userData.picture || 
-                           userData.avatar || 
                            userData.google_avatar || 
                            '/default_profile.png'
       
