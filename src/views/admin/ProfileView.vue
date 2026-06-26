@@ -6,10 +6,66 @@
       <p class="text-gray-500 text-sm mt-0.5">Your account information</p>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="bg-white border border-gray-200 rounded-2xl p-5">
-      <div class="flex items-center justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-ic-primary"></div>
+    <!-- Loading State (Skeleton Screen) -->
+    <div v-if="isLoading" class="space-y-6">
+      <!-- Profile Card Skeleton -->
+      <div class="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm">
+        <!-- Banner Skeleton -->
+        <div class="h-32 md:h-44 w-full bg-gray-200 animate-pulse"></div>
+        
+        <!-- Header Info Skeleton -->
+        <div class="px-6 pb-6 pt-16 md:pt-6 md:pl-44 flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
+          <!-- Overlapping Circular Avatar Skeleton -->
+          <div class="absolute -top-14 left-6 md:left-8">
+            <div class="h-28 w-28 md:h-32 md:w-32 rounded-full bg-gray-300 border-4 border-white animate-pulse shadow-md"></div>
+          </div>
+          
+          <!-- Name & Details Skeleton -->
+          <div class="flex-1 text-left space-y-2">
+            <div class="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div class="h-4 w-32 bg-gray-200 rounded animate-pulse mt-1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard Grid Skeleton -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="md:col-span-1 space-y-6">
+          <div class="bg-white border border-gray-200/80 rounded-2xl p-5 space-y-4">
+            <div class="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div class="flex flex-wrap gap-1.5">
+              <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+              <div class="h-5 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div class="bg-white border border-gray-200/80 rounded-2xl p-5 space-y-4">
+            <div class="h-4 w-24 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div class="space-y-3">
+              <div class="space-y-1">
+                <div class="h-3 w-16 bg-gray-100 rounded animate-pulse"></div>
+                <div class="h-4 w-36 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div class="space-y-1">
+                <div class="h-3 w-16 bg-gray-100 rounded animate-pulse"></div>
+                <div class="h-4 w-44 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="md:col-span-2 space-y-6">
+          <div class="bg-white border border-gray-200/80 rounded-2xl p-6 space-y-6">
+            <div class="h-4 w-28 bg-gray-200 rounded animate-pulse pb-2 border-b border-gray-100"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div v-for="i in 4" :key="i" class="p-4 bg-gray-50/50 border border-gray-100 rounded-xl space-y-1.5">
+                <div class="h-3 w-16 bg-gray-200/60 rounded animate-pulse"></div>
+                <div class="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -30,10 +86,10 @@
     <!-- Profile Content -->
     <template v-if="!isLoading && !error">
       <!-- Profile Card (Banner & Overlapping Avatar) -->
-      <div class="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div class="bg-white border border-gray-200/80 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 relative">
         <!-- Cover Banner -->
-        <div class="h-32 md:h-44 w-full bg-ic-primary relative">
-          <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="h-32 md:h-44 w-full bg-ic-primary rounded-t-2xl relative">
+          <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] bg-size-[16px_16px]"></div>
           <!-- Corner Console Tag -->
           <span class="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/10">
             Admin Profile
@@ -44,7 +100,7 @@
         <div class="px-6 pb-6 pt-16 md:pt-6 md:pl-44 flex flex-col md:flex-row md:items-end justify-between gap-4 relative">
           <!-- Overlapping Circular Avatar -->
           <div class="absolute -top-14 left-6 md:left-8 group">
-            <div class="h-28 w-28 md:h-32 md:w-32 rounded-full overflow-hidden bg-gradient-to-br from-ic-primary to-purple-400 flex items-center justify-center text-white text-3xl md:text-4xl font-bold border-4 border-white shadow-md relative transition-transform duration-300 group-hover:scale-102">
+            <div class="h-28 w-28 md:h-32 md:w-32 rounded-full overflow-hidden bg-linear-to-br from-ic-primary to-purple-400 flex items-center justify-center text-white text-3xl md:text-4xl font-bold border-4 border-white shadow-md relative transition-transform duration-300 group-hover:scale-102">
               <img v-if="profileData.profileImage" :src="profileData.profileImage" alt="Profile" class="h-full w-full object-cover" />
               <span v-else>{{ userInitials }}</span>
               
@@ -183,6 +239,34 @@ const isLoading = ref(true)
 const error = ref(null)
 const isUploadingProfilePic = ref(false)
 
+const normalizeUrl = (url) => {
+  if (!url || typeof url !== 'string') return ''
+  
+  // Handle local frontend assets
+  if (
+    url === '/default_profile.png' || 
+    url === '/ic-building.png' || 
+    url === '/icsa_logo.png' || 
+    url.startsWith('/src/') || 
+    url.startsWith('/assets/') || 
+    url.startsWith('/@')
+  ) {
+    return url
+  }
+  
+  // If it's already an absolute URL
+  if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {
+    return url.replace(/^http:\/\//i, 'https://')
+  }
+  
+  // Prepends backend URL for relative backend paths
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com').replace(/\/$/, '')
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`
+  }
+  return `${baseUrl}/${url}`
+}
+
 const profileData = ref({
   username: '',
   firstName: '',
@@ -211,7 +295,10 @@ const loadProfile = async () => {
       firstName: data.first_name || '',
       lastName: data.last_name || '',
       email: data.email || '',
-      profileImage: data.profile_url || data.profile || data.user_avatar || '',
+      profileImage: (typeof data.profile_url === 'string' ? normalizeUrl(data.profile_url) : '') ||
+                    (typeof data.profile === 'string' ? normalizeUrl(data.profile) : '') ||
+                    (typeof data.user_avatar === 'string' ? normalizeUrl(data.user_avatar) : '') ||
+                    '/default_profile.png',
       institute: data.institute?.institute_name || '',
       school: data.institute?.school?.school_name || '',
       groups: data.groups || []
@@ -254,7 +341,8 @@ const onProfilePicSelected = async (event) => {
 
     // Extract the resolved URL from the backend response
     const returnedUser = updateResult.data?.data || updateResult.data
-    const imageUrl = returnedUser.profile_url || returnedUser.profile
+    const rawImageUrl = returnedUser.profile_url || returnedUser.profile
+    const imageUrl = normalizeUrl(rawImageUrl)
     if (!imageUrl) {
       console.error('Backend update response missing profile URL. Response data:', updateResult.data)
       throw new Error('Profile updated, but backend did not return a profile URL.')

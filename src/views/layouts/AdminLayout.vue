@@ -205,7 +205,7 @@
             </div>
 
             <div class="border-t border-gray-100">
-              <button @click="handleLogout" class="more-menu-item w-full text-red-500 hover:!bg-red-50">
+              <button @click="handleLogout" class="more-menu-item w-full text-red-500 hover:bg-red-50!">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -228,24 +228,96 @@
     </aside>
 
     <!-- Mobile Bottom Navigation -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-bottom">
-      <div class="flex items-center h-16 px-2">
+    <div v-if="!showMobileMenu" ref="floatingNavRef" class="md:hidden floating-mobile-nav select-none shadow-notch">
+      <!-- Background Curved Notch SVG -->
+      <svg class="absolute inset-0 w-full h-24 z-0" :viewBox="'0 0 ' + containerWidth + ' 96'" preserveAspectRatio="none">
+        <path :d="svgPath" fill="white" stroke="#cbd5e1" stroke-width="1.2" />
+      </svg>
+
+      <!-- Navigation Icons Layer -->
+      <div class="relative flex items-center justify-around h-14 mt-8 z-10">
+        <!-- Dashboard Link -->
         <router-link
-          v-for="item in navItems"
-          :key="item.path"
-          :to="item.path"
-          class="flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors"
-          :class="isActiveRoute(item.path) ? 'text-ic-primary' : 'text-gray-600'"
+          to="/admin"
+          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
         >
           <component 
-            :is="item.icon" 
-            class="w-5 h-5"
-            :stroke-width="isActiveRoute(item.path) ? 2.5 : 2"
+            :is="HomeIcon" 
+            class="w-5.5 h-5.5 transition-all duration-300 transform"
+            :stroke-width="isActiveRoute('/admin') ? 2.2 : 1.8"
+            :class="isActiveRoute('/admin') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
           />
-          <span class="text-xs" :class="isActiveRoute(item.path) ? 'font-medium' : 'font-normal'">{{ item.name }}</span>
+          <span 
+            class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
+            :class="isActiveRoute('/admin') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'"
+          ></span>
+        </router-link>
+
+        <!-- Students Link -->
+        <router-link
+          to="/admin/students"
+          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
+        >
+          <component 
+            :is="UsersIcon" 
+            class="w-5.5 h-5.5 transition-all duration-300 transform"
+            :stroke-width="isActiveRoute('/admin/students') ? 2.2 : 1.8"
+            :class="isActiveRoute('/admin/students') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+          />
+          <span 
+            class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
+            :class="isActiveRoute('/admin/students') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'"
+          ></span>
+        </router-link>
+
+        <!-- Center Plus Button (Sleek Solid & Floating) -->
+        <div class="relative flex-1 flex items-center justify-center h-full">
+          <button 
+            @click="handlePlusClick"
+            class="absolute -top-6 w-13 h-13 bg-ic-primary text-white rounded-full flex items-center justify-center shadow-md shadow-ic-primary/30 hover:shadow-lg hover:shadow-ic-primary/40 transition-all duration-200 active:scale-95 hover:-translate-y-0.5 z-20"
+            title="Create Post"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Events Link -->
+        <router-link
+          to="/admin/events"
+          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
+        >
+          <component 
+            :is="CalendarIcon" 
+            class="w-5.5 h-5.5 transition-all duration-300 transform"
+            :stroke-width="isActiveRoute('/admin/events') ? 2.2 : 1.8"
+            :class="isActiveRoute('/admin/events') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+          />
+          <span 
+            class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
+            :class="isActiveRoute('/admin/events') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'"
+          ></span>
+        </router-link>
+
+        <!-- Posts Link -->
+        <router-link
+          to="/admin/posts"
+          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
+        >
+          <component 
+            :is="PostsIcon" 
+            class="w-5.5 h-5.5 transition-all duration-300 transform"
+            :stroke-width="isActiveRoute('/admin/posts') ? 2.2 : 1.8"
+            :class="isActiveRoute('/admin/posts') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+          />
+          <span 
+            class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
+            :class="isActiveRoute('/admin/posts') ? 'scale-x-100 opacity-100' : 'scale-x-0 opacity-0'"
+          ></span>
         </router-link>
       </div>
-    </nav>
+    </div>
 
     <!-- Main Content -->
     <main class="md:ml-18 pt-14 pb-20 md:pt-0 md:pb-0">
@@ -270,11 +342,41 @@ const showMobileMenu = ref(false)
 const showMoreMenu = ref(false)
 const moreMenuContainer = ref(null)
 
+const floatingNavRef = ref(null)
+const containerWidth = ref(375) // default mobile width fallback
+
+const updateWidth = () => {
+  if (floatingNavRef.value) {
+    containerWidth.value = floatingNavRef.value.clientWidth
+  }
+}
+
+const svgPath = computed(() => {
+  const W = containerWidth.value
+  const cx = W / 2
+  const top = 28
+  const bottom = 96
+  const w = 65
+  const c = 25
+  const cp = 26
+  const y_dip = 64
+  return `M 20 ${top} L ${cx - w} ${top} C ${cx - c} ${top}, ${cx - cp} ${y_dip}, ${cx} ${y_dip} C ${cx + cp} ${y_dip}, ${cx + c} ${top}, ${cx + w} ${top} L ${W - 20} ${top} A 16 16 0 0 1 ${W - 4} ${top + 16} L ${W - 4} ${bottom - 16} A 16 16 0 0 1 ${W - 20} ${bottom} L 20 ${bottom} A 16 16 0 0 1 4 ${bottom - 16} L 4 ${top + 16} A 16 16 0 0 1 20 ${top} Z`
+})
+
+const handlePlusClick = async () => {
+  if (route.path !== '/admin/posts') {
+    await router.push('/admin/posts')
+  }
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('open-create-post'))
+  }, 100)
+}
+
 const reportProblemUrl = computed(() => {
   const email = 'icsp-support@dnsc.edu.ph'
   const subject = encodeURIComponent('ICSP Admin - Report a Problem')
   const body = encodeURIComponent(`Hi ICSP Support,\n\nI'd like to report the following issue:\n\n[Describe your problem here]\n\nBrowser: ${navigator.userAgent}\nPage: ${window.location.href}\n\nThank you.`)
-  return `mailto:${email}?subject=${subject}&body=${body}`
+  return `mailto:${email}?subject=${subject}?body=${body}`
 })
 
 const openReportProblem = () => {
@@ -296,10 +398,13 @@ const handleClickOutside = (event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  updateWidth()
+  window.addEventListener('resize', updateWidth)
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', updateWidth)
 })
 
 // Icons - keeping them simple and clean
@@ -436,5 +541,28 @@ const handleLogout = async () => {
 
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.floating-mobile-nav {
+  position: fixed;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 2rem);
+  max-width: 28rem; /* 448px */
+  z-index: 50;
+  height: 96px;
+}
+
+.path-morph {
+  transition: d 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.circle-slide {
+  transition: cx 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.shadow-notch {
+  filter: drop-shadow(0 -3px 8px rgba(0, 0, 0, 0.05)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
 }
 </style>
