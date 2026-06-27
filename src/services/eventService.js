@@ -93,20 +93,3 @@ export const listInstituteEvents = async (params = {}) => {
   }
 }
 
-export const uploadAttendance = async (formData) => {
-  try {
-    const response = await api.post('/api/v1/attendance-records/import_attendance_records/', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-    return {
-      success: true,
-      data: response.data
-    }
-  } catch (error) {
-    console.error('Error uploading attendance:', error)
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Failed to upload attendance'
-    }
-  }
-}

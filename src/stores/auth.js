@@ -11,10 +11,31 @@ export const useAuthStore = defineStore('auth', () => {
   // Reactive token flag — keeps isAuthenticated truly reactive
   const hasToken = ref(!!localStorage.getItem('accessToken'))
 
+  const setSessionCookie = () => {
+    document.cookie = "session_alive=true; path=/; SameSite=Lax"
+  }
+
+  const clearSessionCookie = () => {
+    document.cookie = "session_alive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+  }
+
+  const checkSessionCookie = () => {
+    const isSessionActive = document.cookie.split(';').some(item => item.trim().startsWith('session_alive='))
+    if (!isSessionActive) {
+      console.log('🚪 Session cookie is missing. Clearing persistent localStorage tokens.')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user_data')
+      return false
+    }
+    return true
+  }
+
   // Sync reactive flag whenever we modify localStorage tokens
   const setTokens = (access, refresh) => {
     if (access) localStorage.setItem('accessToken', access)
     if (refresh) localStorage.setItem('refreshToken', refresh)
+    setSessionCookie()
     hasToken.value = true
   }
 
@@ -22,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user_data')
+    clearSessionCookie()
     hasToken.value = false
   }
 
@@ -292,11 +314,17 @@ export const useAuthStore = defineStore('auth', () => {
   const initialize = async () => {
     if (initialized.value) return
 
+    // Check if session cookie is active. If not, this is a fresh browser run.
+    checkSessionCookie()
+
     const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
     
     if (token) {
       hasToken.value = true
+      
+      // Ensure the session cookie remains set / refreshed
+      setSessionCookie()
       
       // Restore cached user immediately for fast UI render
       if (storedUser) {
@@ -314,6 +342,8 @@ export const useAuthStore = defineStore('auth', () => {
         console.error('Failed to initialize auth:', err)
         logout()
       }
+    } else {
+      hasToken.value = false
     }
 
     initialized.value = true

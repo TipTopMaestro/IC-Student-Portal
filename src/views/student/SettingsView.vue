@@ -298,6 +298,7 @@ const toggleDarkMode = () => {
 const clearLocalData = async () => {
   if (confirm('This will clear all cached data and sign you out. Continue?')) {
     await authStore.logout()
+    sessionStorage.clear()
     localStorage.clear()
     router.push('/login')
   }
