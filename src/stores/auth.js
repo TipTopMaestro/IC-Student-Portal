@@ -310,8 +310,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const logout = () => {
-    authService.logout()
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch (err) {
+      console.warn('⚠️ Error during authService.logout:', err)
+    }
     user.value = null
     error.value = null
     hasToken.value = false
@@ -355,7 +359,7 @@ export const useAuthStore = defineStore('auth', () => {
         await fetchCurrentUser()
       } catch (err) {
         console.error('Failed to initialize auth:', err)
-        logout()
+        await logout()
       }
     } else {
       hasToken.value = false
