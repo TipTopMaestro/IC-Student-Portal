@@ -49,4 +49,9 @@ Thumbs.db
 *.temp
 api_schema.yaml
 
+# AI & Developer Private Context
+.github/
+GEMINI.md
+
+
 
