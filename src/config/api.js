@@ -1,12 +1,8 @@
 // API Configuration
-const USE_MOCK = import.meta.env.VITE_USE_MOCK_API === 'true'
 
 export const API_CONFIG = {
-  // When mock is off, use empty BASE_URL so requests go to Vite's proxy (same origin → no CORS)
-  BASE_URL: USE_MOCK ? '' : '',
-  
-  // Use mock API for development (set VITE_USE_MOCK_API=true to enable)
-  USE_MOCK,
+  // Requests go to Vite's proxy (same origin → no CORS)
+  BASE_URL: '',
   
   // API Endpoints
   ENDPOINTS: {
@@ -38,9 +34,6 @@ export const API_CONFIG = {
   
   // Request timeout (increased for Render.com free tier cold starts)
   TIMEOUT: 120000, // 120 seconds (2 minutes)
-  
-  // Mock delay (for development)
-  MOCK_DELAY: 800,
 }
 
 // Helper to get full API URL
