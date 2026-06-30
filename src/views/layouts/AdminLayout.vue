@@ -511,6 +511,7 @@ const handleSystemRedirect = async (sys) => {
       // Provide multiple query parameter formats to support all potential target system configurations
       url.searchParams.set('token', transferToken)
       url.searchParams.set('token_url', transferToken)
+      url.searchParams.set('transfer_token', transferToken)
       url.searchParams.set('sso_token', transferToken)
       url.searchParams.set('redeem_url', 'https://dnsc-systems-api.onrender.com/api/v1/transfer_token/redeem/')
       window.open(url.toString(), '_blank', 'noopener,noreferrer')
