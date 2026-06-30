@@ -1,10 +1,21 @@
-import api from './api'
+import api, { invalidateApiCachePattern } from './api'
+import { invalidateCachePattern } from '@/composables/useSWR'
 
 /**
  * Comment Service - Handles post comments API calls
  */
 
 const COMMENTS_ENDPOINT = '/api/v1/posts_comments/'
+
+// Helper to invalidate comment caches
+const invalidateCommentCaches = () => {
+  try {
+    invalidateCachePattern('comments')
+    invalidateApiCachePattern('/api/v1/posts_comments/')
+  } catch (e) {
+    console.warn('⚠️ Non-fatal cache invalidation error:', e)
+  }
+}
 
 /**
  * Extracts error message from API error response
@@ -28,7 +39,9 @@ const getErrorMessage = (error, fallback) => {
 export const listComments = async (postId, params = {}) => {
   try {
     const response = await api.get(COMMENTS_ENDPOINT, {
-      params: { post_id: postId, ...params }
+      params: { post_id: postId, ...params },
+      cache: true,
+      cacheTTL: 10000 // 10 seconds cache for comments list
     })
     return { success: true, data: response.data }
   } catch (error) {
@@ -54,6 +67,7 @@ export const createComment = async (postId, content, parentCommentId = null) => 
       payload.parent_comment = parentCommentId
     }
     const response = await api.post(COMMENTS_ENDPOINT, payload)
+    invalidateCommentCaches()
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error creating comment:', error)
@@ -70,6 +84,7 @@ export const createComment = async (postId, content, parentCommentId = null) => 
 export const updateComment = async (commentId, content) => {
   try {
     const response = await api.patch(`${COMMENTS_ENDPOINT}${commentId}/`, { content })
+    invalidateCommentCaches()
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error updating comment:', error)
@@ -85,6 +100,7 @@ export const updateComment = async (commentId, content) => {
 export const deleteComment = async (commentId) => {
   try {
     await api.delete(`${COMMENTS_ENDPOINT}${commentId}/`)
+    invalidateCommentCaches()
     return { success: true }
   } catch (error) {
     console.error('Error deleting comment:', error)
@@ -101,6 +117,7 @@ export const deleteComment = async (commentId) => {
 export const reactToComment = async (commentId, type) => {
   try {
     const response = await api.post(`${COMMENTS_ENDPOINT}${commentId}/react/`, { type })
+    invalidateCommentCaches()
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error reacting to comment:', error)
@@ -117,6 +134,7 @@ export const removeCommentReaction = async (commentId, type = 'like') => {
   try {
     console.log(`📤 Attempting DELETE request to ${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
     const response = await api.delete(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
+    invalidateCommentCaches()
     return { success: true, data: response.data }
   } catch (error) {
     // If the backend returns 404 because the reaction is already removed or non-existent, treat it as success
@@ -125,6 +143,7 @@ export const removeCommentReaction = async (commentId, type = 'like') => {
                       error.response?.data?.detail;
     if (error.response?.status === 404 && errDetail === 'no reaction') {
       console.log('✅ Comment has no reaction in database (already unreacted). Treating as success.')
+      invalidateCommentCaches()
       return { success: true, data: error.response?.data }
     }
 
@@ -133,18 +152,21 @@ export const removeCommentReaction = async (commentId, type = 'like') => {
       try {
         const toggleResponse = await api.post(`${COMMENTS_ENDPOINT}${commentId}/react/`, { type })
         console.log('✅ Fallback 1: POST react/ succeeded:', toggleResponse.data)
+        invalidateCommentCaches()
         return { success: true, data: toggleResponse.data }
       } catch (toggleError) {
         console.warn('❌ Fallback 1: POST react/ failed. Attempting Fallback 2: POST to remove_react/ ...')
         try {
           const postRemoveResponse = await api.post(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
           console.log('✅ Fallback 2: POST remove_react/ succeeded:', postRemoveResponse.data)
+          invalidateCommentCaches()
           return { success: true, data: postRemoveResponse.data }
         } catch (postRemoveError) {
           console.warn('❌ Fallback 2: POST remove_react/ failed. Attempting Fallback 3: DELETE to react/ ...')
           try {
             const deleteResponse = await api.delete(`${COMMENTS_ENDPOINT}${commentId}/react/`)
             console.log('✅ Fallback 3: DELETE react/ succeeded:', deleteResponse.data)
+            invalidateCommentCaches()
             return { success: true, data: deleteResponse.data }
           } catch (deleteError) {
             console.error('❌ All unreact fallbacks failed.')
@@ -165,7 +187,10 @@ export const removeCommentReaction = async (commentId, type = 'like') => {
  */
 export const getReplies = async (commentId) => {
   try {
-    const response = await api.get(`${COMMENTS_ENDPOINT}${commentId}/replies/`)
+    const response = await api.get(`${COMMENTS_ENDPOINT}${commentId}/replies/`, {
+      cache: true,
+      cacheTTL: 10000 // 10 seconds cache for comment replies
+    })
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error fetching replies:', error)

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '@/services/authService'
-import api from '@/services/api'
+import api, { clearApiCache } from '@/services/api'
+import { clearSwrCache } from '@/composables/useSWR'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -100,6 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       console.log('🔐 Auth Store: Fetching current user...')
       await fetchCurrentUser()
+      initialized.value = true
       
       console.log('🔐 Auth Store: User fetched, isAdmin:', isAdmin.value, 'user:', user.value)
       
@@ -144,6 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
       setTokens(tokens.access, tokens.refresh)
       
       await fetchCurrentUser()
+      initialized.value = true
       
       return { success: true }
     } catch (err) {
@@ -312,6 +315,15 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     error.value = null
     hasToken.value = false
+    initialized.value = false
+    
+    // Clear caches safely
+    try {
+      clearApiCache()
+      clearSwrCache()
+    } catch (e) {
+      console.warn('⚠️ Error clearing caches during logout:', e)
+    }
   }
 
   const initialize = async () => {

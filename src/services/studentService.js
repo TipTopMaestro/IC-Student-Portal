@@ -1,4 +1,5 @@
-import api from './api'
+import api, { invalidateApiCachePattern } from './api'
+import { invalidateCachePattern } from '@/composables/useSWR'
 
 /**
  * Student Service - Handles all student-related API calls
@@ -10,7 +11,10 @@ import api from './api'
  */
 export const getCurrentProfile = async () => {
   try {
-    const response = await api.get('/api/v1/me/')
+    const response = await api.get('/api/v1/me/', {
+      cache: true,
+      cacheTTL: 300000 // 5 minutes TTL for user profile
+    })
     // Backend wraps response in { status_code, message, data: {...}, errors }
     const userData = response.data.data || response.data
 
@@ -22,7 +26,9 @@ export const getCurrentProfile = async () => {
         if (nameParts.length >= 1) {
           const searchTerm = nameParts[0]
           const studentsResp = await api.get('/api/v1/students/', {
-            params: { search: searchTerm }
+            params: { search: searchTerm },
+            cache: true,
+            cacheTTL: 60000 // 1 minute TTL
           })
           const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
           // Find exact match by comparing name parts from username
@@ -91,6 +97,26 @@ export const updateProfile = async (userId, profileData) => {
     }
 
     const response = await api.patch(`/api/v1/users/${userId}/`, payload, { headers })
+
+    // Write-through cache invalidation safely
+    try {
+      invalidateCachePattern('profile')
+      invalidateCachePattern('me')
+      
+      invalidateApiCachePattern('/api/v1/me/')
+      invalidateApiCachePattern(`/api/v1/users/${userId}/`)
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
+
+    try {
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      await authStore.fetchCurrentUser()
+    } catch (e) {
+      console.warn('Failed to sync auth store user:', e)
+    }
+
     const userData = response.data.data || response.data
     return {
       success: true,
@@ -112,7 +138,10 @@ export const updateProfile = async (userId, profileData) => {
  */
 export const getStudentById = async (studentId) => {
   try {
-    const response = await api.get(`/api/v1/students/${studentId}/`)
+    const response = await api.get(`/api/v1/students/${studentId}/`, {
+      cache: true,
+      cacheTTL: 120000 // 2 minutes
+    })
     return {
       success: true,
       data: response.data
@@ -133,7 +162,11 @@ export const getStudentById = async (studentId) => {
  */
 export const listStudents = async (params = {}) => {
   try {
-    const response = await api.get('/api/v1/students/', { params })
+    const response = await api.get('/api/v1/students/', { 
+      params,
+      cache: true,
+      cacheTTL: 60000 // 1 minute
+    })
     return {
       success: true,
       data: response.data
@@ -156,6 +189,19 @@ export const listStudents = async (params = {}) => {
 export const updateStudentProfile = async (studentId, studentData) => {
   try {
     const response = await api.patch(`/api/v1/students/${studentId}/`, studentData)
+
+    // Write-through cache invalidation safely
+    try {
+      invalidateCachePattern('students')
+      invalidateCachePattern('profile')
+      invalidateCachePattern('me')
+      
+      invalidateApiCachePattern('/api/v1/students/')
+      invalidateApiCachePattern('/api/v1/me/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
+
     return {
       success: true,
       data: response.data.data || response.data

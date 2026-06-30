@@ -27,19 +27,104 @@ const addRefreshSubscriber = (callback) => {
   refreshSubscribers.push(callback)
 }
 
-// Request interceptor - Add auth token to requests
+// Simple in-memory response cache
+export const apiCache = new Map()
+const MAX_API_CACHE_SIZE = 100
+
+const setApiCache = (key, value) => {
+  if (apiCache.size >= MAX_API_CACHE_SIZE) {
+    const oldestKey = apiCache.keys().next().value
+    apiCache.delete(oldestKey)
+  }
+  apiCache.set(key, value)
+}
+
+// Global cache clear function
+export const clearApiCache = () => {
+  try {
+    apiCache.clear()
+    console.log('🧹 API cache cleared')
+  } catch (error) {
+    console.warn('⚠️ Error clearing API cache:', error)
+  }
+}
+
+// Invalidate API cache by pattern
+export const invalidateApiCachePattern = (pattern) => {
+  try {
+    let count = 0
+    for (const key of apiCache.keys()) {
+      if (key.includes(pattern)) {
+        apiCache.delete(key)
+        count++
+      }
+    }
+    if (count > 0) {
+      console.log(`🧹 Invalidated ${count} API cache entries matching pattern: ${pattern}`)
+    }
+  } catch (error) {
+    console.warn('⚠️ Error during API cache invalidation:', error)
+  }
+}
+
+// Request staggering scheduler to prevent concurrent request bursts triggering rate limits
+let lastRequestTime = 0
+const MIN_REQUEST_INTERVAL = 150 // minimum 150ms between outgoing network requests
+
+const staggerRequest = async () => {
+  const now = Date.now()
+  const elapsed = now - lastRequestTime
+  if (elapsed < MIN_REQUEST_INTERVAL) {
+    const delay = MIN_REQUEST_INTERVAL - elapsed
+    lastRequestTime = now + delay
+    await new Promise(resolve => setTimeout(resolve, delay))
+  } else {
+    lastRequestTime = now
+  }
+}
+
+// Request interceptor - Add auth token to requests, apply caching, and staggering
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    console.log('📤 API Request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      hasAuth: !!token
-    })
+    if (import.meta.env.DEV) {
+      console.log('📤 API Request:', {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        hasAuth: !!token
+      })
+    }
+    
+    // Check in-memory cache for GET requests
+    let isCacheHit = false
+    if (config.method?.toLowerCase() === 'get' && config.cache) {
+      const sortedParams = Object.entries(config.params || {}).sort(([a],[b]) => a.localeCompare(b))
+      const cacheKey = `${config.url}?${new URLSearchParams(sortedParams).toString()}`
+      const cachedResponse = apiCache.get(cacheKey)
+      
+      if (cachedResponse && (Date.now() - cachedResponse.timestamp < (config.cacheTTL || 60000))) {
+        if (import.meta.env.DEV) {
+          console.log(`⚡ Cache hit for URL: ${config.url}`)
+        }
+        config.adapter = () => Promise.resolve({
+          data: cachedResponse.data,
+          headers: cachedResponse.headers,
+          config,
+          status: 200,
+          statusText: 'OK'
+        })
+        isCacheHit = true
+      }
+    }
+
+    // Only stagger requests that actually hit the network
+    if (!isCacheHit) {
+      await staggerRequest()
+    }
     
     return config
   },
@@ -49,10 +134,27 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor - Handle token refresh and errors
+// Response interceptor - Handle token refresh, caching, and errors
 api.interceptors.response.use(
   (response) => {
-    console.log('📥 API Response:', response.status, response.config.url)
+    if (import.meta.env.DEV) {
+      console.log('📥 API Response:', response.status, response.config.url)
+    }
+    
+    const config = response.config
+    if (config && config.method?.toLowerCase() === 'get' && config.cache) {
+      const sortedParams = Object.entries(config.params || {}).sort(([a],[b]) => a.localeCompare(b))
+      const cacheKey = `${config.url}?${new URLSearchParams(sortedParams).toString()}`
+      setApiCache(cacheKey, {
+        data: response.data,
+        headers: response.headers,
+        timestamp: Date.now()
+      })
+      if (import.meta.env.DEV) {
+        console.log(`💾 Cached response for URL: ${config.url}`)
+      }
+    }
+    
     return response
   },
   async (error) => {
@@ -67,8 +169,24 @@ api.interceptors.response.use(
       responseData: error.response?.data
     })
 
+    // Handle 429 - Too Many Requests (rate limited)
+    if (error.response?.status === 429 && originalRequest && !originalRequest._retryRateLimit) {
+      originalRequest._retryRateLimit = true
+      const retryAfterHeader = error.response.headers?.['retry-after'] || error.response.headers?.['Retry-After']
+      const retryAfter = parseInt(retryAfterHeader, 10) || 2 // Default to 2 seconds
+      
+      console.warn(`⚠️ Rate limited (429). Retrying request in ${retryAfter} seconds:`, originalRequest.url)
+      
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000))
+      
+      // Update lastRequestTime to prevent immediate concurrent request bursts after wait
+      lastRequestTime = Date.now()
+      
+      return api(originalRequest)
+    }
+
     // Handle 401 - Unauthorized (token expired)
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true
 
       // If already refreshing, queue this request to retry after refresh completes

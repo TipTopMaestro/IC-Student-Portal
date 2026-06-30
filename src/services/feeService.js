@@ -1,4 +1,5 @@
-import api from './api'
+import api, { invalidateApiCachePattern } from './api'
+import { invalidateCachePattern } from '@/composables/useSWR'
 
 /**
  * Fee Service - Handles all fee/payment-related API calls
@@ -23,7 +24,11 @@ export const getStudentFees = async (studentId, { page = 1, perPage = 10 } = {})
     if (studentId) {
       params.student_id = studentId
     }
-    const response = await api.get('/api/v1/fees/', { params })
+    const response = await api.get('/api/v1/fees/', { 
+      params,
+      cache: true,
+      cacheTTL: 60000 // 1 minute TTL
+    })
     console.log('💰 Raw API response:', response.data)
     
     // Backend wraps response in { status_code, message, data: { current_page, per_page, total_pages, total_items, data: [...] } }
@@ -111,7 +116,11 @@ export const getPaymentSubmissions = async (studentId) => {
       params.student_id = studentId
       params.per_page = 100
     }
-    const response = await api.get('/api/v1/payment-submissions/', { params })
+    const response = await api.get('/api/v1/payment-submissions/', { 
+      params,
+      cache: true,
+      cacheTTL: 60000 // 1 minute TTL
+    })
     const data = response.data.data?.data || response.data.data || response.data || []
     return {
       success: true,
@@ -150,6 +159,20 @@ export const submitPayment = async (submissionData) => {
     const response = await api.post('/api/v1/payment-submissions/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+
+    // Write-through cache invalidation safely:
+    try {
+      // 1. Invalidate SWR Cache for fees and payment submissions
+      invalidateCachePattern('fees')
+      invalidateCachePattern('payment-submissions')
+
+      // 2. Invalidate Axios cache for fees and payment submissions
+      invalidateApiCachePattern('/api/v1/fees/')
+      invalidateApiCachePattern('/api/v1/payment-submissions/')
+    } catch (e) {
+      console.warn('⚠️ Non-fatal cache invalidation error:', e)
+    }
+
     return {
       success: true,
       data: response.data
@@ -172,7 +195,10 @@ export const submitPayment = async (submissionData) => {
  */
 export const getPaymentReceipt = async (submissionId) => {
   try {
-    const response = await api.get(`/api/v1/payment-submissions/${submissionId}/`)
+    const response = await api.get(`/api/v1/payment-submissions/${submissionId}/`, {
+      cache: true,
+      cacheTTL: 120000 // 2 minutes TTL
+    })
     const data = response.data.data || response.data
     return {
       success: true,
