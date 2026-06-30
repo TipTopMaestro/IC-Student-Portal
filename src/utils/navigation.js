@@ -141,7 +141,10 @@ export const safeRedirectWithSSO = async (sys, fetchTokenFn) => {
       url.searchParams.set('token_url', transferToken)
       url.searchParams.set('transfer_token', transferToken)
       url.searchParams.set('sso_token', transferToken)
-      url.searchParams.set('redeem_url', 'https://dnsc-systems-api.onrender.com/api/v1/transfer_token/redeem/')
+      url.searchParams.set(
+        'redeem_url',
+        new URL('/api/v1/transfer_token/redeem/', import.meta.env.VITE_API_BASE_URL).toString()
+      )
 
       const finalUrl = url.toString()
       if (newWindow && !newWindow.closed) {
