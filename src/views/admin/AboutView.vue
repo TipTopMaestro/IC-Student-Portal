@@ -58,9 +58,9 @@
             </div>
             <div class="flex justify-between items-center py-2.5">
               <span class="text-gray-600 font-semibold text-xs">Active Mode</span>
-              <span :class="useMockApi ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold">
-                <span :class="useMockApi ? 'bg-amber-500' : 'bg-emerald-500'" class="w-1.5 h-1.5 rounded-full"></span>
-                {{ useMockApi ? 'Mock Sandbox' : 'Live Production' }}
+              <span class="bg-emerald-50 text-emerald-700 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Live Production
               </span>
             </div>
           </div>
@@ -179,7 +179,6 @@
 
 <script setup>
 const currentYear = new Date().getFullYear()
-const useMockApi = import.meta.env.VITE_USE_MOCK_API === 'true' || import.meta.env.VITE_USE_MOCK_API === true
 </script>
 
 <style scoped>

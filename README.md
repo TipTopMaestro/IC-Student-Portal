@@ -102,7 +102,6 @@ src/
 VITE_API_BASE_URL=https://dnsc-systems-api.onrender.com
 VITE_APP_NAME=Student Portal
 VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
-VITE_USE_MOCK_API=false
 VITE_CMS_URL=http://localhost:5174
 ```
 
@@ -110,7 +109,6 @@ VITE_CMS_URL=http://localhost:5174
 |----------|-------------|
 | `VITE_API_BASE_URL` | Backend API URL |
 | `VITE_GOOGLE_CLIENT_ID` | Google OAuth client ID |
-| `VITE_USE_MOCK_API` | Use mock data for development |
 | `VITE_CMS_URL` | Collection Management System URL |
 
 ## Scripts
