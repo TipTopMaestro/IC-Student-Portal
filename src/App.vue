@@ -1,4 +1,5 @@
 <template>
+  <Analytics />
   <div id="app">
     <!-- Offline Banner -->
     <Transition name="slide-down">
@@ -20,6 +21,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
+import { Analytics } from '@vercel/analytics/vue';
 
 const isOffline = ref(!navigator.onLine)
 
