@@ -1,8 +1,8 @@
 // API Configuration
 
 export const API_CONFIG = {
-  // Requests go to Vite's proxy (same origin → no CORS) or direct to backend in production
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://dnsc-systems-api.onrender.com' : ''),
+  // Requests go to Vite's proxy (same origin → no CORS) or Vercel rewrite in production
+  BASE_URL: '',
   
   // API Endpoints
   ENDPOINTS: {
