@@ -13,9 +13,23 @@ export const safeRedirectWithSSO = async (sys, fetchTokenFn) => {
     return null
   }
 
-  // Validate URL protocol to prevent open redirect and javascript: scheme XSS vulnerabilities
-  if (!sys.url.startsWith('http://') && !sys.url.startsWith('https://')) {
-    console.error('Security alert: Blocked invalid redirect URL protocol')
+  // Parse sys.url once at the beginning
+  let parsedUrl
+  try {
+    parsedUrl = new URL(sys.url)
+  } catch (err) {
+    console.error('Security alert: Invalid URL format')
+    return null
+  }
+
+  // Define policy helper: https:// by default, http:// allowed only for local/dev hosts
+  const isPolicyValid = (urlObj) => {
+    const isLocal = urlObj.hostname === 'localhost' || urlObj.hostname === '127.0.0.1' || urlObj.hostname.endsWith('.localhost')
+    return urlObj.protocol === 'https:' || (urlObj.protocol === 'http:' && isLocal)
+  }
+
+  if (!isPolicyValid(parsedUrl)) {
+    console.error('Security alert: Insecure HTTP redirect to non-local host is blocked')
     return null
   }
 
@@ -135,18 +149,22 @@ export const safeRedirectWithSSO = async (sys, fetchTokenFn) => {
     const transferToken = data.transfer_token
 
     if (transferToken) {
-      const url = new URL(sys.url)
+      // Re-verify policy before appending the transfer token
+      if (!isPolicyValid(parsedUrl)) {
+        throw new Error('Security policy violation: Prohibited token appending to insecure URL')
+      }
+
       // Provide multiple query parameter formats to support all potential target system configurations
-      url.searchParams.set('token', transferToken)
-      url.searchParams.set('token_url', transferToken)
-      url.searchParams.set('transfer_token', transferToken)
-      url.searchParams.set('sso_token', transferToken)
-      url.searchParams.set(
+      parsedUrl.searchParams.set('token', transferToken)
+      parsedUrl.searchParams.set('token_url', transferToken)
+      parsedUrl.searchParams.set('transfer_token', transferToken)
+      parsedUrl.searchParams.set('sso_token', transferToken)
+      parsedUrl.searchParams.set(
         'redeem_url',
         new URL('/api/v1/transfer_token/redeem/', import.meta.env.VITE_API_BASE_URL).toString()
       )
 
-      const finalUrl = url.toString()
+      const finalUrl = parsedUrl.toString()
       if (newWindow && !newWindow.closed) {
         newWindow.location.replace(finalUrl)
       } else if (!newWindow) {
