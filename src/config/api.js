@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
   // Requests go to Vite's proxy (same origin → no CORS) or Vercel rewrite in production
-  BASE_URL: '',
+  BASE_URL: import.meta.env.PROD ? '/proxy' : '',
   
   // API Endpoints
   ENDPOINTS: {
