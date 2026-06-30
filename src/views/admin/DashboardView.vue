@@ -341,16 +341,16 @@
 
           <!-- Footer Copyright links mimicking instagram -->
           <div class="px-1 text-[10px] text-gray-400 leading-relaxed font-medium">
-            <div class="flex flex-wrap gap-x-1.5 gap-y-0.5">
-              <span class="hover:underline cursor-pointer">About</span>
+            <div class="flex flex-wrap gap-x-1.5 gap-y-0.5 select-none">
+              <router-link to="/admin/about" class="hover:underline">About</router-link>
               <span>·</span>
-              <span class="hover:underline cursor-pointer">Help</span>
+              <router-link to="/admin/about#support" class="hover:underline">Help</router-link>
               <span>·</span>
-              <span class="hover:underline cursor-pointer">DNSC IC</span>
+              <a href="https://dnsc.edu.ph" target="_blank" rel="noopener noreferrer" class="hover:underline">DNSC IC</a>
               <span>·</span>
-              <span class="hover:underline cursor-pointer">Terms</span>
+              <button @click="openLegalModal('terms')" class="hover:underline cursor-pointer text-left">Terms</button>
               <span>·</span>
-              <span class="hover:underline cursor-pointer">Privacy</span>
+              <button @click="openLegalModal('privacy')" class="hover:underline cursor-pointer text-left">Privacy</button>
             </div>
             <p class="mt-2 text-gray-400 uppercase tracking-wider">© 2026 IC STUDENT PORTAL</p>
           </div>
@@ -358,6 +358,85 @@
         </div>
       </div>
     </div>
+
+    <!-- Terms / Privacy Modal -->
+    <Transition name="modal-fade">
+      <div 
+        v-if="activeModalType" 
+        class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[200]"
+        @click="closeLegalModal"
+      >
+        <div 
+          @click.stop
+          class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-gray-100 relative animate-modal-pop max-h-[80vh] flex flex-col"
+        >
+          <!-- Header -->
+          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-gray-900 capitalize">
+              {{ activeModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy' }}
+            </h3>
+            <button @click="closeLegalModal" class="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Content -->
+          <div class="p-6 overflow-y-auto text-xs text-gray-600 space-y-4 leading-relaxed flex-1">
+            <template v-if="activeModalType === 'terms'">
+              <p class="font-semibold text-gray-900">Welcome to the IC Student Portal (ICSP).</p>
+              <p>By accessing or using this system, you agree to comply with and be bound by the DNSC Student Handbook rules and the following terms:</p>
+              
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">1. Account Responsibility</p>
+                <p>Students and administrators are responsible for maintaining the confidentiality of their session tokens and login credentials. Any activity logged under your account is deemed your responsibility.</p>
+              </div>
+
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">2. Portal Usage & Conduct</p>
+                <p>The portal is dedicated to academic management, RFID attendance check-ins, fee clearance logs, and institutional announcements. Unauthorized attempts to bypass API auth, scrape student records, or inject malicious payloads will result in immediate suspension and disciplinary action by the Institute of Computing.</p>
+              </div>
+
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">3. System Integration (SSO)</p>
+                <p>This portal connects with other official DNSC Campus Systems. Session transfer tokens are issued temporarily and expire automatically. Bypassing token exchanges or attempting to access unauthorized destination domains is strictly prohibited.</p>
+              </div>
+            </template>
+
+            <template v-if="activeModalType === 'privacy'">
+              <p class="font-semibold text-gray-900">Data Privacy Compliance (RA 10173)</p>
+              <p>In compliance with the <strong>Republic Act No. 10173</strong> (Data Privacy Act of 2012 of the Philippines), the Institute of Computing at DNSC is committed to protecting your personal information.</p>
+              
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">1. Information We Collect</p>
+                <p>We process standard institutional credentials including student name, ID number, DNSC Google Workspace email, RFID scanner logs (attendance times), and academic fee status.</p>
+              </div>
+
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">2. Purpose of Processing</p>
+                <p>Your data is processed solely for academic identification, class check-ins, tracking local organization obligations, publishing posts, and facilitating authentication across integrated campus services.</p>
+              </div>
+
+              <div class="space-y-2">
+                <p class="font-bold text-gray-800">3. Security Measures</p>
+                <p>All token requests and API responses are encrypted using HTTPS and verified via JSON Web Tokens (JWT). Access is strictly restricted based on role permissions (Student or Administrator).</p>
+              </div>
+            </template>
+          </div>
+          
+          <!-- Footer -->
+          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <button 
+              @click="closeLegalModal" 
+              class="px-4 py-2 bg-ic-primary hover:bg-ic-secondary text-white text-xs font-semibold rounded-xl transition-all duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Event Detail Dialog Modal (Solid header) -->
     <Transition name="modal-fade">
@@ -563,6 +642,14 @@ const loadDashboard = async () => {
 
   statsLoading.value = false
   postsLoading.value = false
+}
+
+const activeModalType = ref(null)
+const openLegalModal = (type) => {
+  activeModalType.value = type
+}
+const closeLegalModal = () => {
+  activeModalType.value = null
 }
 
 onMounted(() => {
