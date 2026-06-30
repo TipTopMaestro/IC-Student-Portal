@@ -216,7 +216,7 @@
               <!-- Metrics -->
               <div class="flex-1 space-y-1.5 min-w-0">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-500">Attended Events</span>
+                  <span class="text-gray-500">Attended Sessions</span>
                   <span class="font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
                 </div>
                 <div class="pt-1.5 border-t border-gray-100 flex items-center gap-1.5">
@@ -359,7 +359,7 @@
               <!-- Metrics -->
               <div class="flex-1 space-y-1.5 min-w-0">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-500">Attended</span>
+                  <span class="text-gray-500">Attended Sessions</span>
                   <span class="font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
                 </div>
                 <div class="pt-1.5 border-t border-gray-100 flex items-center gap-1.5">
@@ -645,11 +645,15 @@ const loadAttendanceStats = async () => {
 
       const myRecords = records.filter(r => r.student?.id === studentId)
 
-      totalEvents.value = myRecords.length
-      const attended = myRecords.filter(r =>
-        r.morning_check_in || r.morning_check_out || r.afternoon_check_in || r.afternoon_check_out
-      )
-      attendedEvents.value = attended.length
+      totalEvents.value = myRecords.length * 4
+      attendedEvents.value = myRecords.reduce((sum, r) => {
+        let count = 0
+        if (r.morning_check_in) count++
+        if (r.morning_check_out) count++
+        if (r.afternoon_check_in) count++
+        if (r.afternoon_check_out) count++
+        return sum + count
+      }, 0)
       attendanceRate.value = totalEvents.value > 0
         ? Math.round((attendedEvents.value / totalEvents.value) * 100)
         : 0

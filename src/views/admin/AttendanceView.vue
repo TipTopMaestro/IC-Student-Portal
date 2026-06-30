@@ -49,8 +49,9 @@
 
     <!-- Records Table -->
     <template v-else>
-      <div class="border border-gray-200 rounded-lg overflow-hidden">
-        <!-- Table Header -->
+      <div class="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+        <div class="min-w-[900px]">
+          <!-- Table Header -->
         <div class="bg-gray-50 border-b border-gray-200">
           <div class="grid grid-cols-12 gap-2 px-4 py-3">
             <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</div>
@@ -155,6 +156,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
           <p class="text-sm text-gray-500">No attendance records found</p>
+        </div>
         </div>
       </div>
 

@@ -28,10 +28,53 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="isLoading" class="bg-white border border-gray-200 rounded-xl p-8 text-center">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-ic-primary mx-auto mb-3"></div>
-      <p class="text-sm text-gray-500">Loading events...</p>
+    <!-- Loading Skeletons -->
+    <div v-if="isLoading" class="space-y-6">
+      <!-- Calendar Grid Skeleton -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <!-- Days of Week Header -->
+        <div class="grid grid-cols-7 gap-2 mb-2">
+          <div v-for="day in daysOfWeek" :key="day" class="text-center py-2">
+            <span class="text-xs font-semibold text-gray-500 uppercase">{{ day }}</span>
+          </div>
+        </div>
+
+        <!-- Grid Cells Skeleton -->
+        <div class="grid grid-cols-7 gap-2">
+          <div
+            v-for="i in 35"
+            :key="i"
+            class="min-h-20 p-2 border border-gray-200 rounded-lg animate-pulse bg-gray-50/50 space-y-2"
+          >
+            <div class="w-6 h-4 bg-gray-200 rounded"></div>
+            <div v-if="i % 5 === 2 || i % 7 === 4" class="space-y-1">
+              <div class="h-4 bg-gray-200 rounded w-full"></div>
+              <div v-if="i % 7 === 4" class="h-4 bg-gray-200 rounded w-3/4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events List Skeleton -->
+      <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div class="p-5 border-b border-gray-200">
+          <div class="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+        </div>
+        <div class="divide-y divide-gray-200">
+          <div v-for="i in 3" :key="i" class="p-4 flex items-start gap-4 animate-pulse">
+            <div class="shrink-0">
+              <div class="h-12 w-12 rounded-lg bg-gray-200"></div>
+            </div>
+            <div class="flex-1 space-y-2.5 min-w-0">
+              <div class="flex items-center gap-2">
+                <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div class="h-4 bg-gray-200 rounded w-16 rounded-full"></div>
+              </div>
+              <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <template v-else>
