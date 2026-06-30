@@ -1,10 +1,21 @@
-import api from './api'
+import api, { invalidateApiCachePattern } from './api'
+import { invalidateCachePattern } from '@/composables/useSWR'
 
 /**
  * Post Service - Handles posts API calls for the Instagram-style posts feature
  */
 
 const POSTS_ENDPOINT = '/api/v1/posts/'
+
+// Helper to invalidate post caches
+const invalidatePostCaches = () => {
+  try {
+    invalidateCachePattern('posts')
+    invalidateApiCachePattern('/api/v1/posts/')
+  } catch (e) {
+    console.warn('⚠️ Non-fatal cache invalidation error:', e)
+  }
+}
 
 /**
  * Extracts error message from API error response
@@ -29,7 +40,11 @@ const getErrorMessage = (error, fallback) => {
  */
 export const listPosts = async (params = {}) => {
   try {
-    const response = await api.get(POSTS_ENDPOINT, { params })
+    const response = await api.get(POSTS_ENDPOINT, { 
+      params,
+      cache: true,
+      cacheTTL: 15000 // 15 seconds TTL for posts list to keep it relatively fresh but prevent spamming
+    })
     return {
       success: true,
       data: response.data
@@ -50,7 +65,10 @@ export const listPosts = async (params = {}) => {
  */
 export const getPostById = async (postId) => {
   try {
-    const response = await api.get(`${POSTS_ENDPOINT}${postId}/`)
+    const response = await api.get(`${POSTS_ENDPOINT}${postId}/`, {
+      cache: true,
+      cacheTTL: 30000 // 30 seconds TTL for individual post detail
+    })
     return {
       success: true,
       data: response.data
@@ -92,6 +110,9 @@ export const createPost = async (postData, images = []) => {
     const response = await api.post(POSTS_ENDPOINT, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
+    
+    // Invalidate caches
+    invalidatePostCaches()
     
     return {
       success: true,
@@ -150,6 +171,9 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     
+    // Invalidate caches
+    invalidatePostCaches()
+    
     return {
       success: true,
       data: response.data
@@ -171,6 +195,10 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
 export const deletePost = async (postId) => {
   try {
     await api.delete(`${POSTS_ENDPOINT}${postId}/`)
+    
+    // Invalidate caches
+    invalidatePostCaches()
+    
     return {
       success: true
     }
@@ -310,6 +338,10 @@ export const reactToPost = async (postId, reactionType = 'heart') => {
     const response = await api.post(`${POSTS_ENDPOINT}${postId}/react/`, {
       type: reactionType
     })
+    
+    // Invalidate caches
+    invalidatePostCaches()
+    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error reacting to post:', error)
@@ -327,6 +359,10 @@ export const reactToPost = async (postId, reactionType = 'heart') => {
 export const removeReaction = async (postId) => {
   try {
     const response = await api.delete(`${POSTS_ENDPOINT}${postId}/remove_react/`)
+    
+    // Invalidate caches
+    invalidatePostCaches()
+    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error removing reaction:', error)
@@ -342,6 +378,10 @@ export const removeReaction = async (postId) => {
 export const togglePostComments = async (postId) => {
   try {
     const response = await api.patch(`${POSTS_ENDPOINT}${postId}/toggle_comments/`)
+    
+    // Invalidate caches
+    invalidatePostCaches()
+    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error toggling comments:', error)
