@@ -227,6 +227,17 @@ export const authServiceMock = {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user_data')
+  },
+
+  async issueTransferToken(intendedFor = '') {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return {
+      success: true,
+      data: {
+        transfer_token: 'mock-transfer-token-' + Math.random().toString(36).substring(2, 15),
+        expires_at: new Date(Date.now() + 60 * 1000).toISOString()
+      }
+    }
   }
 }
 

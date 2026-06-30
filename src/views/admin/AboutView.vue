@@ -22,7 +22,7 @@
           </div>
           <h2 class="text-xl font-semibold text-gray-900">IC Administration Hub</h2>
           <p class="text-sm text-gray-600 leading-relaxed max-w-xl">
-            The central management console for administrative personnel. Streamlining student profiles, RFID check-in events, fee logs, announcements, and portal settings.
+            The central management console for administrative personnel. Streamlining student profiles, RFID check-in events, fee logs, posts, and portal settings.
           </p>
         </div>
         

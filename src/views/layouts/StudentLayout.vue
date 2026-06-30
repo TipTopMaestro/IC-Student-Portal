@@ -3,11 +3,67 @@
     <!-- Mobile Header -->
     <header class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 safe-area-top">
       <div class="flex items-center justify-between h-14 px-4">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 cursor-pointer relative systems-trigger select-none" @click.stop="toggleSystemsMenu">
           <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
           <span class="text-base font-semibold text-gray-900">ICSP</span>
+          <svg 
+            class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" 
+            :class="{ 'rotate-180': showSystemsMenu }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <!-- Mobile Systems Dropdown Popover -->
+          <Transition
+            enter-active-class="transition duration-200 ease-out"
+            enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+            enter-to-class="transform scale-100 opacity-100 translate-y-0"
+            leave-active-class="transition duration-150 ease-in"
+            leave-from-class="transform scale-100 opacity-100 translate-y-0"
+            leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+          >
+            <div
+              v-if="showSystemsMenu"
+              class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[100] systems-dropdown"
+              @click.stop
+            >
+              <div class="p-3 border-b border-gray-50">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+              </div>
+              <div class="py-1">
+                <button 
+                  v-for="sys in externalSystems" 
+                  :key="sys.id" 
+                  @click="handleSystemRedirect(sys)" 
+                  class="w-full flex items-start gap-3 px-4 py-2.5 text-left hover:bg-gray-50 transition-colors"
+                >
+                  <div class="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" :class="sys.bg">
+                    <span v-if="isRedirectingSystemId === sys.id" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" :class="sys.textColor"></span>
+                    <template v-else>
+                      <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </template>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-gray-900 truncate">{{ sys.name }}</p>
+                    <p class="text-[9px] text-gray-500 truncate mt-0.5">{{ sys.desc }}</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </Transition>
         </div>
-        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg">
+        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg ml-auto">
           <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -89,17 +145,7 @@
             <span class="text-sm">Calendar</span>
           </router-link>
 
-          <router-link
-            to="/external-systems"
-            @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/external-systems') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
-            </svg>
-            <span class="text-sm">External Systems</span>
-          </router-link>
+
 
           <router-link
             to="/posts"
@@ -180,16 +226,77 @@
 
     <!-- Desktop Sidebar -->
     <aside class="hidden md:flex fixed left-0 top-0 h-screen w-18 hover:w-61 bg-white flex-col transition-all duration-300 ease-out z-50 group ">
-      <!-- Logo -->
-      <div class="flex items-center px-6 py-3">
+      <!-- Logo with Dropdown Trigger -->
+      <div 
+        @click.stop="toggleSystemsMenu"
+        class="flex items-center px-6 py-3 cursor-pointer hover:bg-gray-50 transition-colors relative systems-trigger select-none"
+      >
         <div class="w-7 h-7 shrink-0 flex items-center justify-center">
           <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
         </div>
-        <span class="ml-4 text-xl font-semibold text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">ICSP</span>
+        <div class="flex items-center justify-between flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap ml-4">
+          <span class="text-xl font-semibold text-gray-900">ICSP</span>
+          <svg 
+            class="w-4 h-4 text-gray-500 transition-transform duration-200" 
+            :class="{ 'rotate-180': showSystemsMenu }"
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+
+        <!-- Desktop Systems Dropdown Popover -->
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+          enter-to-class="transform scale-100 opacity-100 translate-y-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="transform scale-100 opacity-100 translate-y-0"
+          leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+        >
+          <div
+            v-if="showSystemsMenu"
+            class="absolute top-full left-6 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 systems-dropdown"
+            @click.stop
+          >
+            <div class="p-3 border-b border-gray-50">
+              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+            </div>
+            <div class="py-1">
+              <button 
+                v-for="sys in externalSystems" 
+                :key="sys.id" 
+                @click="handleSystemRedirect(sys)" 
+                class="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+              >
+                <div class="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" :class="sys.bg">
+                  <span v-if="isRedirectingSystemId === sys.id" class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" :class="sys.textColor"></span>
+                  <template v-else>
+                    <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </template>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-semibold text-gray-900 truncate">{{ sys.name }}</p>
+                  <p class="text-[10px] text-gray-500 truncate mt-0.5">{{ sys.desc }}</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </Transition>
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 py-2 space-y-1">
+      <nav class="flex-1 px-3 py-2 flex flex-col justify-center space-y-1">
         <router-link
           to="/"   
           class="sidebar-link"
@@ -240,19 +347,6 @@
             </svg>
           </div>
           <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Calendar</span>
-        </router-link>
-
-        <router-link
-          to="/external-systems"
-          class="sidebar-link"
-          :class="{ 'sidebar-link-active': isActive('/external-systems') }"
-        >
-          <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/external-systems') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-            </svg>
-          </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">External Systems</span>
         </router-link>
 
         <router-link
@@ -382,6 +476,23 @@
           </svg>
         </router-link>
 
+        <!-- Attendance Link -->
+        <router-link 
+          to="/attendance" 
+          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
+        >
+          <svg 
+            class="w-5.5 h-5.5 transition-all duration-300 transform" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24" 
+            :stroke-width="isActive('/attendance') ? 2.2 : 1.8"
+            :class="isActive('/attendance') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </router-link>
+
         <!-- Fees Link -->
         <router-link 
           to="/fees" 
@@ -400,9 +511,9 @@
           </svg>
         </router-link>
 
-        <!-- External Systems Link -->
+        <!-- Posts Link -->
         <router-link 
-          to="/external-systems" 
+          to="/posts" 
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
         >
           <svg 
@@ -410,27 +521,10 @@
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24" 
-            :stroke-width="isActive('/external-systems') ? 2.2 : 1.8"
-            :class="isActive('/external-systems') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+            :stroke-width="isActive('/posts') ? 2.2 : 1.8"
+            :class="isActive('/posts') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
           >
-            <rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>
-          </svg>
-        </router-link>
-
-        <!-- Calendar Link -->
-        <router-link 
-          to="/calendar" 
-          class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
-        >
-          <svg 
-            class="w-5.5 h-5.5 transition-all duration-300 transform" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            :stroke-width="isActive('/calendar') ? 2.2 : 1.8"
-            :class="isActive('/calendar') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
-          >
-            <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
           </svg>
         </router-link>
 
@@ -468,19 +562,84 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { authService } from '@/services/authService'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const showMobileMenu = ref(false)
+
 const showMoreMenu = ref(false)
 const moreMenuContainer = ref(null)
+const showSystemsMenu = ref(false)
+const isRedirectingSystemId = ref(null)
+
+const externalSystems = [
+  {
+    id: 'cms',
+    name: 'Collection Management',
+    desc: 'Fees & payment submissions',
+    url: import.meta.env.VITE_CMS_URL || 'http://localhost:5174',
+    bg: 'bg-purple-50',
+    textColor: 'text-purple-600',
+    iconType: 'cms',
+    intendedFor: 'collection-management-system'
+  },
+  {
+    id: 'voting',
+    name: 'Voting System',
+    desc: 'Student elections & polls',
+    url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
+    bg: 'bg-emerald-50',
+    textColor: 'text-emerald-600',
+    iconType: 'voting',
+    intendedFor: 'voting-system'
+  },
+  {
+    id: 'locker',
+    name: 'Locker System',
+    desc: 'Locker reservations',
+    url: import.meta.env.VITE_LOCKER_URL || 'http://localhost:5176',
+    bg: 'bg-blue-50',
+    textColor: 'text-blue-600',
+    iconType: 'locker',
+    intendedFor: 'locker-system'
+  }
+]
+
+const toggleSystemsMenu = () => {
+  showSystemsMenu.value = !showSystemsMenu.value
+}
+
+const handleSystemRedirect = async (sys) => {
+  if (isRedirectingSystemId.value) return
+  isRedirectingSystemId.value = sys.id
+  try {
+    const result = await authService.issueTransferToken(sys.intendedFor)
+    const data = result.data || result
+    const transferToken = data.transfer_token
+    if (transferToken) {
+      const url = new URL(sys.url)
+      url.searchParams.set('token_url', transferToken)
+      window.open(url.toString(), '_blank', 'noopener,noreferrer')
+    } else {
+      console.error('Failed to retrieve transfer token: missing transfer_token', result)
+      window.open(sys.url, '_blank', 'noopener,noreferrer')
+    }
+  } catch (error) {
+    console.error('Error during SSO redirect:', error)
+    window.open(sys.url, '_blank', 'noopener,noreferrer')
+  } finally {
+    isRedirectingSystemId.value = null
+    showSystemsMenu.value = false
+  }
+}
 
 const activeIndex = computed(() => {
   if (route.path === '/') return 0
-  if (route.path.startsWith('/fees')) return 1
-  if (route.path.startsWith('/external-systems')) return 2
-  if (route.path.startsWith('/calendar')) return 3
+  if (route.path.startsWith('/attendance')) return 1
+  if (route.path.startsWith('/fees')) return 2
+  if (route.path.startsWith('/posts')) return 3
   if (route.path.startsWith('/profile')) return 4
   return -1
 })
@@ -520,6 +679,11 @@ const handleNavigate = (path) => {
 const handleClickOutside = (event) => {
   if (moreMenuContainer.value && !moreMenuContainer.value.contains(event.target)) {
     showMoreMenu.value = false
+  }
+
+  const isSystemsClick = event.target.closest('.systems-trigger') || event.target.closest('.systems-dropdown')
+  if (!isSystemsClick) {
+    showSystemsMenu.value = false
   }
 }
 

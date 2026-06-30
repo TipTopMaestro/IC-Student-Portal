@@ -201,7 +201,7 @@
         <!-- Recent Posts Feed -->
         <div class="space-y-4">
           <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-semibold text-gray-900">Recent Announcements</h2>
+            <h2 class="text-sm font-semibold text-gray-900">Recent Posts</h2>
             <router-link to="/admin/posts" class="text-xs text-ic-primary hover:underline transition-colors">View all posts</router-link>
           </div>
 
@@ -232,7 +232,7 @@
             <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4a2 2 0 00-2-2m-2 3h.01M5.071 8.243a2 2 0 00-2.828 2.828m0 0l6.364 6.364m-6.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <p class="text-sm text-gray-400 font-medium">No announcements published yet</p>
+            <p class="text-sm text-gray-400 font-medium">No posts published yet</p>
           </div>
         </div>
 
@@ -334,7 +334,7 @@
                 to="/admin/posts" 
                 class="block w-full py-2 text-center border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Manage Announcements
+                Manage Posts
               </router-link>
             </div>
           </div>

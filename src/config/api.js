@@ -47,3 +47,37 @@ export const API_CONFIG = {
 export const getApiUrl = (endpoint) => {
   return `${API_CONFIG.BASE_URL}${endpoint}`
 }
+
+// Helper to normalize backend media/avatar URLs to production domains and HTTPS
+export const normalizeUrl = (url) => {
+  if (!url || typeof url !== 'string') return ''
+  
+  // Handle local frontend assets
+  if (
+    url === '/default_profile.png' || 
+    url === '/ic-building.png' || 
+    url === '/icsa_logo.png' || 
+    url.startsWith('/src/') || 
+    url.startsWith('/assets/') || 
+    url.startsWith('/@')
+  ) {
+    return url
+  }
+  
+  let normalized = url
+  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+  
+  // If it's already an absolute URL, rewrite local domains to production
+  if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {
+    normalized = normalized.replace(/(?:localhost|127\.0\.0\.1|10\.0\.2\.2)(?::\d+)?/g, activeDomain)
+    return normalized.replace(/^http:\/\//i, 'https://')
+  }
+  
+  // Prepends backend URL for relative backend paths
+  const baseUrl = activeBaseUrl.replace(/\/$/, '')
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`
+  }
+  return `${baseUrl}/${url}`
+}

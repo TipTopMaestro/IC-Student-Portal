@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <!-- Feed Announcement Skeleton -->
+        <!-- Feed Post Skeleton -->
         <div class="space-y-4">
           <div class="flex justify-between items-center px-1">
             <div class="h-4 bg-gray-200 rounded w-1/3 animate-pulse"></div>
@@ -236,11 +236,10 @@
         <!-- Recent Posts Feed -->
         <div class="space-y-4">
           <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-semibold text-gray-900">Recent Announcements</h2>
-            <router-link to="/posts" class="text-xs text-ic-primary hover:underline transition-colors">View all posts</router-link>
+            <h2 class="text-sm font-semibold text-gray-900">Recent Posts</h2>
           </div>
 
-          <div v-if="postsLoading" class="space-y-4">
+          <div class="space-y-4" v-if="postsLoading">
             <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-xl p-5 space-y-4 animate-pulse">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gray-200"></div>
@@ -261,13 +260,26 @@
               :show-actions="false"
               class="border border-gray-200! shadow-xs!"
             />
+
+            <!-- More Link -->
+            <div class="pt-4 text-center">
+              <router-link
+                to="/posts"
+                class="inline-flex items-center gap-1 text-[13px] font-semibold text-gray-500 hover:text-ic-primary transition-colors duration-200 select-none"
+              >
+                <span>more</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+              </router-link>
+            </div>
           </div>
 
           <div v-else class="bg-white border border-gray-200 rounded-xl py-12 px-5 text-center">
             <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4a2 2 0 00-2-2m-2 3h.01M5.071 8.243a2 2 0 00-2.828 2.828m0 0l6.364 6.364m-6.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <p class="text-sm text-gray-400 font-medium">No announcements published yet</p>
+            <p class="text-sm text-gray-400 font-medium">No posts published yet</p>
           </div>
         </div>
 

@@ -45,5 +45,12 @@ export const authService = {
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('user_data')
     }
+  },
+
+  async issueTransferToken(intendedFor = '') {
+    const response = await api.post('/api/v1/transfer_token/issue/', {
+      intended_for: intendedFor
+    })
+    return response.data
   }
 }

@@ -102,7 +102,7 @@
               <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-ic-primary rounded-md">Institute Bulletins</span>
             </h4>
             <p class="text-xs text-gray-600 leading-relaxed">
-              Read administrative announcements, events calendar, and academic posts.
+              Read administrative posts, events calendar, and academic feed.
             </p>
           </div>
         </div>
