@@ -100,6 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       console.log('🔐 Auth Store: Fetching current user...')
       await fetchCurrentUser()
+      initialized.value = true
       
       console.log('🔐 Auth Store: User fetched, isAdmin:', isAdmin.value, 'user:', user.value)
       
@@ -144,6 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
       setTokens(tokens.access, tokens.refresh)
       
       await fetchCurrentUser()
+      initialized.value = true
       
       return { success: true }
     } catch (err) {
@@ -312,6 +314,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     error.value = null
     hasToken.value = false
+    initialized.value = false
   }
 
   const initialize = async () => {
