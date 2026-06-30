@@ -1,27 +1,10 @@
-import api, { invalidateApiCachePattern } from './api'
-import { invalidateCachePattern } from '@/composables/useSWR'
+import api from './api'
 
 /**
  * Post Service - Handles posts API calls for the Instagram-style posts feature
  */
 
 const POSTS_ENDPOINT = '/api/v1/posts/'
-
-// Helper to invalidate post caches
-const invalidatePostCaches = () => {
-  try {
-    invalidateCachePattern('posts')
-    invalidateApiCachePattern('/api/v1/posts/')
-  } catch (e) {
-    console.warn('⚠️ Non-fatal cache invalidation error:', e)
-  }
-  
-  import('@/stores/posts').then(({ usePostStore }) => {
-    usePostStore().invalidate()
-  }).catch(err => {
-    console.warn('Failed to invalidate Pinia posts store:', err)
-  })
-}
 
 /**
  * Extracts error message from API error response
@@ -46,11 +29,7 @@ const getErrorMessage = (error, fallback) => {
  */
 export const listPosts = async (params = {}) => {
   try {
-    const response = await api.get(POSTS_ENDPOINT, { 
-      params,
-      cache: true,
-      cacheTTL: 15000 // 15 seconds TTL for posts list to keep it relatively fresh but prevent spamming
-    })
+    const response = await api.get(POSTS_ENDPOINT, { params })
     return {
       success: true,
       data: response.data
@@ -71,10 +50,7 @@ export const listPosts = async (params = {}) => {
  */
 export const getPostById = async (postId) => {
   try {
-    const response = await api.get(`${POSTS_ENDPOINT}${postId}/`, {
-      cache: true,
-      cacheTTL: 30000 // 30 seconds TTL for individual post detail
-    })
+    const response = await api.get(`${POSTS_ENDPOINT}${postId}/`)
     return {
       success: true,
       data: response.data
@@ -116,9 +92,6 @@ export const createPost = async (postData, images = []) => {
     const response = await api.post(POSTS_ENDPOINT, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
-    
-    // Invalidate caches
-    invalidatePostCaches()
     
     return {
       success: true,
@@ -177,9 +150,6 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     
-    // Invalidate caches
-    invalidatePostCaches()
-    
     return {
       success: true,
       data: response.data
@@ -201,10 +171,6 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
 export const deletePost = async (postId) => {
   try {
     await api.delete(`${POSTS_ENDPOINT}${postId}/`)
-    
-    // Invalidate caches
-    invalidatePostCaches()
-    
     return {
       success: true
     }
@@ -223,8 +189,22 @@ export const deletePost = async (postId) => {
  * @returns {string} HTTPS URL
  */
 const normalizeMediaUrl = (url) => {
-  if (!url) return ''
-  return url.replace(/^http:\/\//i, 'https://')
+  if (!url || typeof url !== 'string') return ''
+  
+  let normalized = url
+  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+  
+  if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {
+    normalized = normalized.replace(/(?:localhost|127\.0\.0\.1|10\.0\.2\.2)(?::\d+)?/g, activeDomain)
+    return normalized.replace(/^http:\/\//i, 'https://')
+  }
+  
+  const baseUrl = activeBaseUrl.replace(/\/$/, '')
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`
+  }
+  return `${baseUrl}/${url}`
 }
 
 /**
@@ -235,15 +215,13 @@ const normalizeMediaUrl = (url) => {
 const normalizePostMedia = (post) => {
   if (!post) return post
   
-  const normalized = { ...post }
-
-  // Log a small sample to see structure once (only in development)
-  if (import.meta.env.DEV && Math.random() < 0.01) {
+  // Log a small sample to see structure once (don't flood console)
+  if (Math.random() < 0.01) {
     console.log('📬 Post structure sample:', JSON.stringify(post, null, 2))
   }
 
   if (post.media && Array.isArray(post.media)) {
-    normalized.media = post.media.map(m => ({
+    post.media = post.media.map(m => ({
       ...m,
       media_url: normalizeMediaUrl(m.media_url)
     }))
@@ -272,9 +250,9 @@ const normalizePostMedia = (post) => {
   }
 
   // Set normalized user_avatar for consistent use in components
-  normalized.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
+  post.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
 
-  return normalized
+  return post
 }
 
 /**
@@ -332,10 +310,6 @@ export const reactToPost = async (postId, reactionType = 'heart') => {
     const response = await api.post(`${POSTS_ENDPOINT}${postId}/react/`, {
       type: reactionType
     })
-    
-    // Invalidate caches
-    invalidatePostCaches()
-    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error reacting to post:', error)
@@ -353,10 +327,6 @@ export const reactToPost = async (postId, reactionType = 'heart') => {
 export const removeReaction = async (postId) => {
   try {
     const response = await api.delete(`${POSTS_ENDPOINT}${postId}/remove_react/`)
-    
-    // Invalidate caches
-    invalidatePostCaches()
-    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error removing reaction:', error)
@@ -372,10 +342,6 @@ export const removeReaction = async (postId) => {
 export const togglePostComments = async (postId) => {
   try {
     const response = await api.patch(`${POSTS_ENDPOINT}${postId}/toggle_comments/`)
-    
-    // Invalidate caches
-    invalidatePostCaches()
-    
     return { success: true, data: response.data }
   } catch (error) {
     console.error('Error toggling comments:', error)

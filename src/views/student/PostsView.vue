@@ -2,12 +2,7 @@
   <div>
     <!-- Header -->
     <div class="mb-6">
-      <div class="flex items-center gap-3">
-        <h1 class="text-2xl font-semibold text-gray-900">Posts</h1>
-        <div v-if="isRefreshing" class="px-2 py-0.5 text-xs text-ic-secondary bg-ic-light/30 rounded-full animate-pulse font-medium">
-          Syncing...
-        </div>
-      </div>
+      <h1 class="text-2xl font-semibold text-gray-900">Posts</h1>
       <p class="text-sm text-gray-500 mt-0.5">Stay updated with the latest news and updates</p>
     </div>
 
@@ -40,7 +35,7 @@
         <p class="text-gray-900 font-medium mb-1">Something went wrong</p>
         <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
         <button
-          @click="refresh"
+          @click="loadPosts"
           class="text-sm font-medium text-ic-primary hover:text-ic-secondary"
         >
           Try again
@@ -64,10 +59,10 @@
     <!-- Posts Feed -->
     <div v-else class="max-w-xl space-y-6">
       <PostFeedItem
-         v-for="post in posts"
-         :key="post.id"
-         :post="post"
-         :show-actions="false"
+        v-for="post in posts"
+        :key="post.id"
+        :post="post"
+        :show-actions="false"
       />
 
       <!-- Pagination -->
@@ -97,12 +92,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 import { listPosts, extractPosts, extractPagination } from '@/services/postService'
-import { useSWR } from '@/composables/useSWR'
 
 const posts = ref([])
+const isLoading = ref(true)
+const error = ref('')
 const pagination = reactive({
   currentPage: 1,
   perPage: 10,
@@ -110,40 +106,41 @@ const pagination = reactive({
   totalItems: 0
 })
 
-const cacheKey = computed(() => `posts-page-${pagination.currentPage}`)
+const loadPosts = async () => {
+  isLoading.value = true
+  error.value = ''
 
-const {
-  data: swrData,
-  error,
-  isLoading,
-  isRefreshing,
-  refresh
-} = useSWR(
-  cacheKey,
-  () => listPosts({
-    current_page: pagination.currentPage,
-    per_page: pagination.perPage
-  }),
-  { ttl: 15000, immediate: true }
-)
+  try {
+    const result = await listPosts({
+      current_page: pagination.currentPage,
+      per_page: pagination.perPage
+    })
 
-watch(swrData, (newVal) => {
-  if (newVal) {
-    const result = { success: true, data: newVal }
-    const allPosts = extractPosts(result)
-    posts.value = allPosts.filter(post => post.visibility === 'public')
-    const paginationData = extractPagination(result)
-    
-    // Prevent reactivity loops by only updating non-key pagination state
-    pagination.totalPages = paginationData.totalPages || 1
-    pagination.totalItems = paginationData.totalItems || 0
-    pagination.perPage = paginationData.perPage || 10
+    if (result.success) {
+      const allPosts = extractPosts(result)
+      // Client-side filter: students only see public posts
+      posts.value = allPosts.filter(post => post.visibility === 'public')
+      const paginationData = extractPagination(result)
+      Object.assign(pagination, paginationData)
+    } else {
+      error.value = result.error || 'Failed to load posts'
+    }
+  } catch (err) {
+    console.error('Error loading posts:', err)
+    error.value = 'An unexpected error occurred'
+  } finally {
+    isLoading.value = false
   }
-}, { immediate: true })
+}
 
 const goToPage = (page) => {
   if (page < 1 || page > pagination.totalPages) return
   pagination.currentPage = page
+  loadPosts()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
+
+onMounted(() => {
+  loadPosts()
+})
 </script>

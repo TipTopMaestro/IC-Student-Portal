@@ -113,11 +113,46 @@ export const reactToComment = async (commentId, type) => {
  * @param {number|string} commentId - Comment ID
  * @returns {Promise<{success: boolean, error?: string}>}
  */
-export const removeCommentReaction = async (commentId) => {
+export const removeCommentReaction = async (commentId, type = 'like') => {
   try {
-    await api.delete(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
-    return { success: true }
+    console.log(`📤 Attempting DELETE request to ${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
+    const response = await api.delete(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
+    return { success: true, data: response.data }
   } catch (error) {
+    // If the backend returns 404 because the reaction is already removed or non-existent, treat it as success
+    const errDetail = error.response?.data?.errors?.status || 
+                      error.response?.data?.errors?.detail || 
+                      error.response?.data?.detail;
+    if (error.response?.status === 404 && errDetail === 'no reaction') {
+      console.log('✅ Comment has no reaction in database (already unreacted). Treating as success.')
+      return { success: true, data: error.response?.data }
+    }
+
+    if (error.response?.status === 404) {
+      console.warn('⚠️ DELETE remove_react/ returned 404. Attempting Fallback 1: POST to react/ with type to test toggle...')
+      try {
+        const toggleResponse = await api.post(`${COMMENTS_ENDPOINT}${commentId}/react/`, { type })
+        console.log('✅ Fallback 1: POST react/ succeeded:', toggleResponse.data)
+        return { success: true, data: toggleResponse.data }
+      } catch (toggleError) {
+        console.warn('❌ Fallback 1: POST react/ failed. Attempting Fallback 2: POST to remove_react/ ...')
+        try {
+          const postRemoveResponse = await api.post(`${COMMENTS_ENDPOINT}${commentId}/remove_react/`)
+          console.log('✅ Fallback 2: POST remove_react/ succeeded:', postRemoveResponse.data)
+          return { success: true, data: postRemoveResponse.data }
+        } catch (postRemoveError) {
+          console.warn('❌ Fallback 2: POST remove_react/ failed. Attempting Fallback 3: DELETE to react/ ...')
+          try {
+            const deleteResponse = await api.delete(`${COMMENTS_ENDPOINT}${commentId}/react/`)
+            console.log('✅ Fallback 3: DELETE react/ succeeded:', deleteResponse.data)
+            return { success: true, data: deleteResponse.data }
+          } catch (deleteError) {
+            console.error('❌ All unreact fallbacks failed.')
+            return { success: false, error: getErrorMessage(deleteError, 'Failed to remove reaction') }
+          }
+        }
+      }
+    }
     console.error('Error removing reaction from comment:', error)
     return { success: false, error: getErrorMessage(error, 'Failed to remove reaction') }
   }
@@ -188,10 +223,8 @@ const normalizeMediaUrl = (url) => {
 const normalizeComment = (comment) => {
   if (!comment) return comment
   
-  const normalized = { ...comment }
-  
-  // Log a small sample to see structure once (only in development)
-  if (import.meta.env.DEV && Math.random() < 0.01) {
+  // Log a small sample to see structure once (don't flood console)
+  if (Math.random() < 0.01) {
     console.log('💬 Comment structure sample:', JSON.stringify(comment, null, 2))
   }
   
@@ -218,14 +251,14 @@ const normalizeComment = (comment) => {
   }
 
   // Set normalized user_avatar for consistent use in components
-  normalized.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
+  comment.user_avatar = avatarUrl ? normalizeMediaUrl(avatarUrl) : null
   
   // Normalize replies if they exist
   if (comment.replies && Array.isArray(comment.replies)) {
-    normalized.replies = comment.replies.map(normalizeComment)
+    comment.replies = comment.replies.map(normalizeComment)
   }
   
-  return normalized
+  return comment
 }
 
 /**

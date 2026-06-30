@@ -9,13 +9,13 @@
     </div>
 
     <!-- Filters -->
-    <div class="flex items-center gap-3 mb-6">
+    <div class="flex flex-wrap items-center gap-2 mb-6">
       <button 
         v-for="status in ['all', 'upcoming', 'ongoing', 'completed']"
         :key="status"
         @click="filterStatus = status"
         :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize',
+          'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors capitalize',
           filterStatus === status ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >
@@ -174,7 +174,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { listInstituteEvents } from '@/services/eventService'
+import api from '@/services/api'
 
 const filterStatus = ref('all')
 const currentPage = ref(1)
@@ -233,27 +233,18 @@ const displayedEvents = computed(() => {
   return events.value.filter(e => getEventStatus(e) === filterStatus.value)
 })
 
-let currentRequestId = 0
-
 const loadEvents = async () => {
-  const requestId = ++currentRequestId
   isLoading.value = true
   error.value = null
 
   try {
-    // Call the cached service helper
-    const result = await listInstituteEvents({
-      current_page: currentPage.value,
-      per_page: 50
+    // Use institute-attendance-event for richer data (dates, academic year, semester, status)
+    const response = await api.get('/api/v1/institute-attendance-event/', {
+      params: { current_page: currentPage.value, per_page: 50 }
     })
 
-    if (requestId !== currentRequestId) return // discard stale response
-
-    if (!result.success) {
-      throw new Error(result.error)
-    }
-
-    const responseData = result.data.data || result.data
+    const result = response.data
+    const responseData = result.data || result
     const pageData = responseData.data || responseData
 
     if (Array.isArray(pageData)) {
@@ -267,17 +258,12 @@ const loadEvents = async () => {
     totalItems.value = responseData.total_items || events.value.length
     totalPages.value = responseData.total_pages || 1
   } catch (err) {
-    if (requestId === currentRequestId) {
-      console.error('Failed to load events:', err)
-      error.value = err.message || 'Failed to load events'
-    }
-  } finally {
-    if (requestId === currentRequestId) {
-      isLoading.value = false
-    }
+    console.error('Failed to load events:', err)
+    error.value = err.response?.data?.message || 'Failed to load events'
   }
-}
 
+  isLoading.value = false
+}
 
 const goToPage = (page) => {
   if (page < 1 || page > totalPages.value) return

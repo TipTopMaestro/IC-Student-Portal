@@ -1,5 +1,4 @@
-import api, { invalidateApiCachePattern } from './api'
-import { invalidateCachePattern } from '@/composables/useSWR'
+import api from './api'
 
 /**
  * Student Service - Handles all student-related API calls
@@ -11,10 +10,7 @@ import { invalidateCachePattern } from '@/composables/useSWR'
  */
 export const getCurrentProfile = async () => {
   try {
-    const response = await api.get('/api/v1/me/', {
-      cache: true,
-      cacheTTL: 300000 // 5 minutes TTL for user profile
-    })
+    const response = await api.get('/api/v1/me/')
     // Backend wraps response in { status_code, message, data: {...}, errors }
     const userData = response.data.data || response.data
 
@@ -26,9 +22,7 @@ export const getCurrentProfile = async () => {
         if (nameParts.length >= 1) {
           const searchTerm = nameParts[0]
           const studentsResp = await api.get('/api/v1/students/', {
-            params: { search: searchTerm },
-            cache: true,
-            cacheTTL: 60000 // 1 minute TTL
+            params: { search: searchTerm }
           })
           const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
           // Find exact match by comparing name parts from username
@@ -71,40 +65,32 @@ export const getCurrentProfile = async () => {
  */
 export const updateProfile = async (userId, profileData) => {
   try {
-    // Backend uses student object format, not profile
-    // We can only update what the API allows
-    const payload = {
-      first_name: profileData.firstName,
-      last_name: profileData.lastName,
-      email: profileData.email
-    }
-    
-    // Include profile image URL if provided
-    if (profileData.avatar) {
-      payload.profile = profileData.avatar
-    }
+    const isMultipart = profileData.avatar instanceof File
+    let payload
+    let headers = {}
 
-    const response = await api.patch(`/api/v1/users/${userId}/`, payload)
-    
-    // Write-through cache invalidation safely
-    try {
-      invalidateCachePattern('profile')
-      invalidateCachePattern('me')
+    if (isMultipart) {
+      payload = new FormData()
+      if (profileData.firstName !== undefined) payload.append('first_name', profileData.firstName)
+      if (profileData.lastName !== undefined) payload.append('last_name', profileData.lastName)
+      if (profileData.email !== undefined) payload.append('email', profileData.email)
+      payload.append('profile', profileData.avatar)
+      headers['Content-Type'] = 'multipart/form-data'
+    } else {
+      payload = {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email
+      }
       
-      invalidateApiCachePattern('/api/v1/me/')
-      invalidateApiCachePattern(`/api/v1/users/${userId}/`)
-    } catch (e) {
-      console.warn('⚠️ Non-fatal cache invalidation error:', e)
-    }
-    
-    try {
-      const { useAuthStore } = await import('@/stores/auth')
-      const authStore = useAuthStore()
-      await authStore.fetchCurrentUser()
-    } catch (e) {
-      console.warn('Failed to sync auth store user:', e)
+      // If avatar is null, send it to clear the profile pic.
+      // If it's a string URL, omit it to avoid "The submitted data was not a file" error.
+      if (profileData.avatar === null) {
+        payload.profile = null
+      }
     }
 
+    const response = await api.patch(`/api/v1/users/${userId}/`, payload, { headers })
     const userData = response.data.data || response.data
     return {
       success: true,
@@ -126,10 +112,7 @@ export const updateProfile = async (userId, profileData) => {
  */
 export const getStudentById = async (studentId) => {
   try {
-    const response = await api.get(`/api/v1/students/${studentId}/`, {
-      cache: true,
-      cacheTTL: 120000 // 2 minutes
-    })
+    const response = await api.get(`/api/v1/students/${studentId}/`)
     return {
       success: true,
       data: response.data
@@ -150,11 +133,7 @@ export const getStudentById = async (studentId) => {
  */
 export const listStudents = async (params = {}) => {
   try {
-    const response = await api.get('/api/v1/students/', { 
-      params,
-      cache: true,
-      cacheTTL: 60000 // 1 minute
-    })
+    const response = await api.get('/api/v1/students/', { params })
     return {
       success: true,
       data: response.data
@@ -177,27 +156,6 @@ export const listStudents = async (params = {}) => {
 export const updateStudentProfile = async (studentId, studentData) => {
   try {
     const response = await api.patch(`/api/v1/students/${studentId}/`, studentData)
-    
-    // Write-through cache invalidation safely
-    try {
-      invalidateCachePattern('students')
-      invalidateCachePattern('profile')
-      invalidateCachePattern('me')
-      
-      invalidateApiCachePattern('/api/v1/students/')
-      invalidateApiCachePattern('/api/v1/me/')
-    } catch (e) {
-      console.warn('⚠️ Non-fatal cache invalidation error:', e)
-    }
-    
-    try {
-      const { useStudentStore } = await import('@/stores/students')
-      const studentStore = useStudentStore()
-      studentStore.invalidate()
-    } catch (e) {
-      console.warn('Failed to invalidate Pinia student store:', e)
-    }
-
     return {
       success: true,
       data: response.data.data || response.data
@@ -211,35 +169,10 @@ export const updateStudentProfile = async (studentId, studentData) => {
   }
 }
 
-/**
- * List all programs
- * @returns {Promise} List of programs
- */
-export const listPrograms = async () => {
-  try {
-    const response = await api.get('/api/v1/programs/', { 
-      cache: true,
-      cacheTTL: 300000 // 5 minutes TTL
-    })
-    return {
-      success: true,
-      data: response.data
-    }
-  } catch (error) {
-    console.error('Error fetching programs:', error)
-    return {
-      success: false,
-      error: error.response?.data?.message || 'Failed to load programs'
-    }
-  }
-}
-
 export default {
   getCurrentProfile,
   updateProfile,
   getStudentById,
   listStudents,
-  updateStudentProfile,
-  listPrograms
+  updateStudentProfile
 }
-

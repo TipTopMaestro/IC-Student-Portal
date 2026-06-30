@@ -23,10 +23,7 @@ export const authService = {
 
   async getCurrentUser() {
     console.log('🔐 Fetching current user from real API...')
-    const response = await api.get('/api/v1/me/', {
-      cache: true,
-      cacheTTL: 300000 // 5 minutes TTL for user profile
-    })
+    const response = await api.get('/api/v1/me/')
     console.log('✅ Current user fetched:', response.data)
     return response.data
   },
@@ -48,5 +45,12 @@ export const authService = {
       localStorage.removeItem('refreshToken')
       localStorage.removeItem('user_data')
     }
+  },
+
+  async issueTransferToken(intendedFor = '') {
+    const response = await api.post('/api/v1/transfer_token/issue/', {
+      intended_for: intendedFor
+    })
+    return response.data
   }
 }
