@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authService } from '@/services/authService.wrapper'
+import { authService } from '@/services/authService'
 import api from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -11,10 +11,31 @@ export const useAuthStore = defineStore('auth', () => {
   // Reactive token flag — keeps isAuthenticated truly reactive
   const hasToken = ref(!!localStorage.getItem('accessToken'))
 
+  const setSessionCookie = () => {
+    document.cookie = "session_alive=true; path=/; SameSite=Lax"
+  }
+
+  const clearSessionCookie = () => {
+    document.cookie = "session_alive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+  }
+
+  const checkSessionCookie = () => {
+    const isSessionActive = document.cookie.split(';').some(item => item.trim().startsWith('session_alive='))
+    if (!isSessionActive) {
+      console.log('🚪 Session cookie is missing. Clearing persistent localStorage tokens.')
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user_data')
+      return false
+    }
+    return true
+  }
+
   // Sync reactive flag whenever we modify localStorage tokens
   const setTokens = (access, refresh) => {
     if (access) localStorage.setItem('accessToken', access)
     if (refresh) localStorage.setItem('refreshToken', refresh)
+    setSessionCookie()
     hasToken.value = true
   }
 
@@ -22,6 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user_data')
+    clearSessionCookie()
     hasToken.value = false
   }
 
@@ -133,8 +155,34 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const normalizeUrl = (url) => {
-    if (!url || typeof url !== 'string') return url
-    return url.replace(/^http:\/\//i, 'https://')
+    if (!url || typeof url !== 'string') return ''
+    
+    // Handle local frontend assets
+    if (
+      url === '/default_profile.png' || 
+      url === '/ic-building.png' || 
+      url === '/icsa_logo.png' || 
+      url.startsWith('/src/') || 
+      url.startsWith('/assets/') || 
+      url.startsWith('/@')
+    ) {
+      return url
+    }
+    
+    // If it's already an absolute URL
+    if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {
+      const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+      const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+      let normalized = url.replace(/(?:localhost|127\.0\.0\.1|10\.0\.2\.2)(?::\d+)?/g, activeDomain)
+      return normalized.replace(/^http:\/\//i, 'https://')
+    }
+    
+    // Prepends backend URL for relative backend paths
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com').replace(/\/$/, '')
+    if (url.startsWith('/')) {
+      return `${baseUrl}${url}`
+    }
+    return `${baseUrl}/${url}`
   }
 
   const fetchCurrentUser = async () => {
@@ -164,7 +212,10 @@ export const useAuthStore = defineStore('auth', () => {
       ]
       
       picFields.forEach(field => {
-        if (userData[field]) userData[field] = normalizeUrl(userData[field])
+        // Only normalize if it's a string. Don't overwrite objects/relations (e.g. userData.profile)
+        if (userData[field] && typeof userData[field] === 'string') {
+          userData[field] = normalizeUrl(userData[field])
+        }
       })
       
       // The backend /me/ endpoint doesn't return the user ID. We must decode the JWT or use student.user
@@ -181,23 +232,24 @@ export const useAuthStore = defineStore('auth', () => {
         userData.id = userData.student.user
       }
 
-      if (userData.student?.s_image) {
+      if (userData.student?.s_image && typeof userData.student.s_image === 'string') {
         userData.student.s_image = normalizeUrl(userData.student.s_image)
       }
-      if (userData.student?.profile_picture) {
+      if (userData.student?.profile_picture && typeof userData.student.profile_picture === 'string') {
         userData.student.profile_picture = normalizeUrl(userData.student.profile_picture)
       }
 
-      // Map to user_avatar for consistency, preferring student profile picture
-      userData.user_avatar = userData.student?.s_image ||
-                           userData.student?.profile_picture || 
-                           userData.profile_url ||
-                           userData.profile ||
-                           userData.user_avatar || 
-                           userData.user_profile || 
-                           userData.picture || 
-                           userData.avatar || 
-                           userData.google_avatar || 
+      // Map to user_avatar for consistency, prioritizing user-uploaded custom pictures over student records
+      userData.user_avatar = (typeof userData.profile_url === 'string' ? userData.profile_url : '') ||
+                           (typeof userData.profile === 'string' ? userData.profile : '') ||
+                           (typeof userData.profile_picture === 'string' ? userData.profile_picture : '') ||
+                           (typeof userData.user_avatar === 'string' ? userData.user_avatar : '') || 
+                           (typeof userData.avatar === 'string' ? userData.avatar : '') || 
+                           (typeof userData.student?.s_image === 'string' ? userData.student.s_image : '') ||
+                           (typeof userData.student?.profile_picture === 'string' ? userData.student.profile_picture : '') || 
+                           (typeof userData.user_profile === 'string' ? userData.user_profile : '') || 
+                           (typeof userData.picture === 'string' ? userData.picture : '') || 
+                           (typeof userData.google_avatar === 'string' ? userData.google_avatar : '') || 
                            '/default_profile.png'
       
       user.value = userData
@@ -265,11 +317,17 @@ export const useAuthStore = defineStore('auth', () => {
   const initialize = async () => {
     if (initialized.value) return
 
+    // Check if session cookie is active. If not, this is a fresh browser run.
+    checkSessionCookie()
+
     const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
     
     if (token) {
       hasToken.value = true
+      
+      // Ensure the session cookie remains set / refreshed
+      setSessionCookie()
       
       // Restore cached user immediately for fast UI render
       if (storedUser) {
@@ -287,6 +345,8 @@ export const useAuthStore = defineStore('auth', () => {
         console.error('Failed to initialize auth:', err)
         logout()
       }
+    } else {
+      hasToken.value = false
     }
 
     initialized.value = true

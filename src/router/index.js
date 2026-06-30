@@ -44,6 +44,16 @@ const router = createRouter({
           path: 'profile',
           name: 'admin-profile',
           component: () => import('@/views/admin/ProfileView.vue')
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/views/admin/SettingsView.vue')
+        },
+        {
+          path: 'about',
+          name: 'admin-about',
+          component: () => import('@/views/admin/AboutView.vue')
         }
       ]
     },
@@ -83,9 +93,14 @@ const router = createRouter({
           component: () => import('@/views/student/CalendarView.vue')
         },
         {
-          path: 'external-systems',
-          name: 'external-systems',
-          component: () => import('@/views/student/ExternalSystemsView.vue')
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/student/SettingsView.vue')
+        },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('@/views/student/AboutView.vue')
         }
       ]
     },
@@ -139,6 +154,38 @@ router.beforeEach(async (to, from, next) => {
   } else {
     console.log('🔀 No guard conditions, allowing navigation')
     next()
+  }
+})
+
+router.afterEach((to) => {
+  const baseTitle = 'IC Student Portal'
+  
+  const customTitles = {
+    'login': 'Login',
+    'admin-dashboard': 'Admin Dashboard',
+    'admin-students': 'Manage Students',
+    'admin-events': 'Manage Events',
+    'admin-posts': 'Manage Posts',
+    'admin-attendance': 'Attendance Records',
+    'admin-profile': 'Admin Profile',
+    'admin-settings': 'Admin Settings',
+    'admin-about': 'About Portal',
+    'dashboard': 'Student Dashboard',
+    'profile': 'My Profile',
+    'attendance': 'My Attendance',
+    'fees': 'My Fees & Obligations',
+    'student-posts': 'Posts Feed',
+    'calendar': 'Academic Calendar',
+    'settings': 'Settings',
+    'about': 'About Portal'
+  }
+  
+  const title = customTitles[to.name] || to.meta.title || ''
+  
+  if (title) {
+    document.title = `${title} | ${baseTitle}`
+  } else {
+    document.title = baseTitle
   }
 })
 

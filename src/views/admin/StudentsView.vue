@@ -58,8 +58,9 @@
 
     <!-- Students Table -->
     <template v-else>
-      <div class="border border-gray-200 rounded-lg overflow-hidden">
-        <!-- Table Header -->
+      <div class="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+        <div class="min-w-[800px]">
+          <!-- Table Header -->
         <div class="bg-gray-50 border-b border-gray-200">
           <div class="grid grid-cols-12 gap-4 px-6 py-3">
             <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</div>
@@ -157,6 +158,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           <p class="text-sm text-gray-500">No students found</p>
+        </div>
         </div>
       </div>
 

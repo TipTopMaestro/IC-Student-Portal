@@ -15,7 +15,7 @@ The **IC Student Portal** is a web-based management system for the Institute of 
 
 ## Directory Structure
 - `src/config/`: Application-wide configuration (API endpoints, constants).
-- `src/services/`: API service layer. Uses a wrapper pattern to switch between Real and Mock APIs (`VITE_USE_MOCK_API`).
+- `src/services/`: API service layer.
 - `src/stores/`: Pinia state management (Auth, etc.).
 - `src/views/`: Page components, split into `admin/`, `student/`, and `auth/`.
 - `src/components/`: Reusable UI components, organized by feature (e.g., `posts/`).
@@ -45,7 +45,6 @@ npm run preview
     - Queueing failed requests during token refresh to prevent race conditions.
     - Dispatching `auth:session-expired` events on 401 failures.
 - Use Service modules for feature-specific logic (e.g., `postService.js`).
-- If implementing new services, follow the wrapper pattern to support mock mode if applicable.
 
 ### 2. State Management (Pinia)
 - Use Pinia stores for shared state (Auth, User profile).
@@ -73,4 +72,3 @@ npm run preview
 Ensure a `.env` file exists based on `.env.example`:
 - `VITE_API_BASE_URL`: Target backend URL.
 - `VITE_GOOGLE_CLIENT_ID`: OAuth client ID.
-- `VITE_USE_MOCK_API`: Set to `true` to use mock services.

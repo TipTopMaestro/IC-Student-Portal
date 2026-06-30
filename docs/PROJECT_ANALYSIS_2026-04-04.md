@@ -43,24 +43,26 @@ The **IC Student Portal** is a Vue 3 + Tailwind CSS web application (~90% comple
 ## Missing or Incomplete Components
 
 ### Backend Dependencies (Blocking)
-
-| Component | Issue | Impact |
-|-----------|-------|--------|
-| **Announcements API** | `/api/v1/announcements/` endpoint may not exist | Both student and admin views show "Coming Soon" |
+*None. The announcements block has been resolved by implementing the Posts system (featuring full CRUD, dashboard feeds, reactions, and nested comments).*
 
 ### Partial Implementations
 
 | Component | File | Issue |
 |-----------|------|-------|
-| **Profile Update** | `src/views/student/ProfileView.vue` | Edit form exists but noted as "not yet tested" (line 1 comment) |
 | **Student Record Linking** | `src/stores/auth.js` | Works via username search fallback but may fail for some users |
 
 ### Not Implemented
 
 | Component | Notes |
 |-----------|-------|
-| **Admin CRUD Operations** | Students/Events views are read-only (no create/edit/delete) |
 | **Test Suite** | No `npm test` script or test files present |
+
+### Business Rule Constraints (Intentionally Read-Only)
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| **Admin Students Page** | 🔒 Read-Only | Read-only per business rules (data synchronized from DNSC Registrar/Enrollment systems) |
+| **Admin Events Page** | 🔒 Read-Only | Read-only per business rules (attendance events handled by separate system) |
 
 ---
 
@@ -68,10 +70,7 @@ The **IC Student Portal** is a Vue 3 + Tailwind CSS web application (~90% comple
 
 | # | Task | Priority | Justification |
 |---|------|----------|---------------|
-| 1 | **Implement Announcements** | 🔴 Blocking | Core feature gap affecting both portals |
-| 2 | **Test Profile Update** | 🟡 Important | User-facing edit feature is present but untested |
-| 3 | **Add Admin CRUD Operations** | 🟢 Nice-to-have | Allow admins to create/edit/delete students/events |
-| 4 | **Add Test Suite** | 🟢 Nice-to-have | Improve reliability with unit/e2e tests |
+| 1 | **Add Test Suite** | 🟢 Nice-to-have | Improve reliability with unit/e2e tests |
 
 ---
 
@@ -203,11 +202,11 @@ npm run preview   # Preview production build
 
 | Category | Complete | Total | Progress |
 |----------|----------|-------|----------|
-| Student Views | 6 | 6 | 100% |
-| Admin Views | 5 | 6 | 83% |
-| API Services | 5 | 5 | 100% |
+| Student Views | 7 | 7 | 100% |
+| Admin Views | 6 | 6 | 100% |
+| API Services | 7 | 7 | 100% |
 | Auth Features | 8 | 8 | 100% |
-| **Overall** | **~93%** | - | - |
+| **Overall** | **~97%** | - | - |
 
 ---
 

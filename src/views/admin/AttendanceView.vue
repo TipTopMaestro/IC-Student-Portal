@@ -6,15 +6,6 @@
         <h1 class="text-2xl font-semibold text-gray-900 mb-1">Attendance Records</h1>
         <p class="text-sm text-gray-500">{{ totalItems.toLocaleString() }} records</p>
       </div>
-      <button 
-        @click="showUploadModal = true"
-        class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors flex items-center gap-2"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-        Upload Attendance
-      </button>
     </div>
 
     <!-- Filters -->
@@ -58,8 +49,9 @@
 
     <!-- Records Table -->
     <template v-else>
-      <div class="border border-gray-200 rounded-lg overflow-hidden">
-        <!-- Table Header -->
+      <div class="border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
+        <div class="min-w-[900px]">
+          <!-- Table Header -->
         <div class="bg-gray-50 border-b border-gray-200">
           <div class="grid grid-cols-12 gap-2 px-4 py-3">
             <div class="col-span-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</div>
@@ -164,6 +156,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
           </svg>
           <p class="text-sm text-gray-500">No attendance records found</p>
+        </div>
         </div>
       </div>
 
@@ -288,95 +281,14 @@
         >
           Close
         </button>
-      </div>
-    </div>
-
-    <!-- Upload Modal -->
-    <div 
-      v-if="showUploadModal"
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showUploadModal = false"
-    >
-      <div class="bg-white rounded-xl max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-semibold">Upload Attendance</h2>
-          <button @click="closeUploadModal" class="p-1 hover:bg-gray-50 rounded-lg">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <form @submit.prevent="handleUpload" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Select Event</label>
-            <select 
-              v-model="uploadData.eventId"
-              required
-              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-ic-primary"
-            >
-              <option value="">Choose an event...</option>
-              <option v-for="event in uploadEvents" :key="event.id" :value="event.id">
-                {{ event.attendance_event?.event_name || event.event_name || 'Event #' + event.id }}
-              </option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-900 mb-2">Upload File</label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-ic-primary transition-colors cursor-pointer">
-              <input 
-                type="file" 
-                @change="handleFileSelect"
-                accept=".csv,.xlsx,.xls"
-                class="hidden"
-                id="fileInput"
-              />
-              <label for="fileInput" class="cursor-pointer">
-                <svg class="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p class="text-sm font-medium mb-1">
-                  {{ uploadData.fileName || 'Click to upload or drag and drop' }}
-                </p>
-                <p class="text-xs text-gray-500">CSV or Excel file</p>
-              </label>
-            </div>
-          </div>
-
-          <div v-if="uploadError" class="text-sm text-red-500 bg-red-50 rounded-lg p-3">
-            {{ uploadError }}
-          </div>
-
-          <div v-if="uploadSuccess" class="text-sm text-green-600 bg-green-50 rounded-lg p-3">
-            {{ uploadSuccess }}
-          </div>
-
-          <div class="flex gap-3 pt-2">
-            <button 
-              type="button"
-              @click="closeUploadModal"
-              class="flex-1 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button 
-              type="submit"
-              :disabled="!uploadData.eventId || !uploadData.file || isUploading"
-              class="flex-1 px-4 py-2 text-sm font-semibold bg-ic-primary text-white rounded-lg hover:bg-ic-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {{ isUploading ? 'Uploading...' : 'Upload' }}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   </div>
+</div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { listAttendanceRecords, listInstituteEvents, uploadAttendance } from '@/services/eventService'
+import { listAttendanceRecords } from '@/services/eventService'
 
 const searchQuery = ref('')
 const filterDate = ref('')
@@ -391,13 +303,6 @@ const totalPages = ref(1)
 
 const showViewModal = ref(false)
 const selectedRecord = ref(null)
-
-const showUploadModal = ref(false)
-const isUploading = ref(false)
-const uploadError = ref(null)
-const uploadSuccess = ref(null)
-const uploadEvents = ref([])
-const uploadData = ref({ eventId: '', file: null, fileName: '' })
 
 // Build unique dates from loaded records for the date filter
 const availableDates = computed(() => {
@@ -484,65 +389,6 @@ const viewRecord = (record) => {
   showViewModal.value = true
 }
 
-const loadUploadEvents = async () => {
-  try {
-    const result = await listInstituteEvents({ per_page: 100 })
-    if (result.success) {
-      const responseData = result.data.data || result.data
-      const pageData = responseData.data || responseData
-      uploadEvents.value = Array.isArray(pageData) ? pageData : (pageData?.data || [])
-    }
-  } catch (err) {
-    console.error('Failed to load events for upload:', err)
-  }
-}
-
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    uploadData.value.file = file
-    uploadData.value.fileName = file.name
-  }
-}
-
-const handleUpload = async () => {
-  if (!uploadData.value.eventId || !uploadData.value.file) return
-
-  isUploading.value = true
-  uploadError.value = null
-  uploadSuccess.value = null
-
-  try {
-    const formData = new FormData()
-    formData.append('file', uploadData.value.file)
-    formData.append('event_id', uploadData.value.eventId)
-
-    const result = await uploadAttendance(formData)
-
-    if (result.success) {
-      uploadSuccess.value = 'Attendance records uploaded successfully!'
-      setTimeout(() => {
-        closeUploadModal()
-        loadRecords()
-      }, 1500)
-    } else {
-      uploadError.value = result.error
-    }
-  } catch (err) {
-    console.error('Upload failed:', err)
-    uploadError.value = 'An unexpected error occurred during upload'
-  }
-
-  isUploading.value = false
-}
-
-const closeUploadModal = () => {
-  showUploadModal.value = false
-  uploadError.value = null
-  uploadSuccess.value = null
-  uploadData.value = { eventId: '', file: null, fileName: '' }
-}
-
 // Debounced search resets to page 1
 let searchTimeout = null
 watch(searchQuery, () => {
@@ -555,6 +401,5 @@ watch(searchQuery, () => {
 
 onMounted(() => {
   loadRecords()
-  loadUploadEvents()
 })
 </script>

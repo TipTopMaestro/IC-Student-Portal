@@ -65,20 +65,32 @@ export const getCurrentProfile = async () => {
  */
 export const updateProfile = async (userId, profileData) => {
   try {
-    // Backend uses student object format, not profile
-    // We can only update what the API allows
-    const payload = {
-      first_name: profileData.firstName,
-      last_name: profileData.lastName,
-      email: profileData.email
-    }
-    
-    // Include profile image URL if provided
-    if (profileData.avatar) {
-      payload.profile = profileData.avatar
+    const isMultipart = profileData.avatar instanceof File
+    let payload
+    let headers = {}
+
+    if (isMultipart) {
+      payload = new FormData()
+      if (profileData.firstName !== undefined) payload.append('first_name', profileData.firstName)
+      if (profileData.lastName !== undefined) payload.append('last_name', profileData.lastName)
+      if (profileData.email !== undefined) payload.append('email', profileData.email)
+      payload.append('profile', profileData.avatar)
+      headers['Content-Type'] = 'multipart/form-data'
+    } else {
+      payload = {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        email: profileData.email
+      }
+      
+      // If avatar is null, send it to clear the profile pic.
+      // If it's a string URL, omit it to avoid "The submitted data was not a file" error.
+      if (profileData.avatar === null) {
+        payload.profile = null
+      }
     }
 
-    const response = await api.patch(`/api/v1/users/${userId}/`, payload)
+    const response = await api.patch(`/api/v1/users/${userId}/`, payload, { headers })
     const userData = response.data.data || response.data
     return {
       success: true,

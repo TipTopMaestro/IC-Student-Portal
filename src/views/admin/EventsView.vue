@@ -9,13 +9,13 @@
     </div>
 
     <!-- Filters -->
-    <div class="flex items-center gap-3 mb-6">
+    <div class="flex flex-wrap items-center gap-2 mb-6">
       <button 
         v-for="status in ['all', 'upcoming', 'ongoing', 'completed']"
         :key="status"
         @click="filterStatus = status"
         :class="[
-          'px-4 py-2 text-sm font-medium rounded-lg transition-colors capitalize',
+          'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors capitalize',
           filterStatus === status ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
         ]"
       >

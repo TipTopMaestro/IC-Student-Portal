@@ -24,17 +24,17 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-3 gap-3">
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Total Records</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalRecords }}</p>
+        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Total Sessions</p>
+        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalSlots }}</p>
       </div>
 
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Attended</p>
+        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Attended Sessions</p>
         <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendedCount }}</p>
       </div>
 
       <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Rate</p>
+        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Rate</p>
         <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendanceRate }}%</p>
       </div>
     </div>
@@ -46,7 +46,7 @@
       </div>
       
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-[760px] w-full divide-y divide-gray-200">
           <thead>
             <tr class="bg-gray-50">
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
@@ -145,14 +145,21 @@ const totalPages = ref(1)
 const totalRecords = ref(0)
 
 const attendedCount = computed(() => {
-  return records.value.filter(r =>
-    r.morning_check_in || r.morning_check_out || r.afternoon_check_in || r.afternoon_check_out
-  ).length
+  return records.value.reduce((sum, r) => {
+    let count = 0
+    if (r.morning_check_in) count++
+    if (r.morning_check_out) count++
+    if (r.afternoon_check_in) count++
+    if (r.afternoon_check_out) count++
+    return sum + count
+  }, 0)
 })
 
+const totalSlots = computed(() => records.value.length * 4)
+
 const attendanceRate = computed(() => {
-  return records.value.length > 0
-    ? Math.round((attendedCount.value / records.value.length) * 100)
+  return totalSlots.value > 0
+    ? Math.round((attendedCount.value / totalSlots.value) * 100)
     : 0
 })
 

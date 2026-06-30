@@ -106,7 +106,7 @@
     <button
       v-if="posts.length > 0"
       @click="openCreateModal"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-ic-primary text-white rounded-full shadow-lg hover:bg-ic-secondary hover:shadow-xl transition-all flex items-center justify-center z-40 md:bottom-8 md:right-8"
+      class="hidden md:flex fixed bottom-8 right-8 w-14 h-14 bg-ic-primary text-white rounded-full shadow-lg hover:bg-ic-secondary hover:shadow-xl transition-all items-center justify-center z-40"
       title="Create new post"
     >
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +133,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import CreatePostModal from '@/components/posts/CreatePostModal.vue'
 import DeleteConfirmModal from '@/components/posts/DeleteConfirmModal.vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
@@ -228,7 +228,16 @@ const handlePostUpdated = (updatedPost) => {
   }
 }
 
+const handleOpenCreatePost = () => {
+  openCreateModal()
+}
+
 onMounted(() => {
+  window.addEventListener('open-create-post', handleOpenCreatePost)
   loadPosts()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('open-create-post', handleOpenCreatePost)
 })
 </script>

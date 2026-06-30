@@ -128,8 +128,34 @@ const hasMedia = computed(() => props.post.media && props.post.media.length > 0)
 
 // Normalize URL to use HTTPS
 const normalizeUrl = (url) => {
-  if (!url) return ''
-  return url.replace(/^http:\/\//i, 'https://')
+  if (!url || typeof url !== 'string') return ''
+  
+  // Handle local frontend assets
+  if (
+    url === '/default_profile.png' || 
+    url === '/ic-building.png' || 
+    url === '/icsa_logo.png' || 
+    url.startsWith('/src/') || 
+    url.startsWith('/assets/') || 
+    url.startsWith('/@')
+  ) {
+    return url
+  }
+  
+  let normalized = url
+  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
+  
+  if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {
+    normalized = normalized.replace(/(?:localhost|127\.0\.0\.1|10\.0\.2\.2)(?::\d+)?/g, activeDomain)
+    return normalized.replace(/^http:\/\//i, 'https://')
+  }
+  
+  const baseUrl = activeBaseUrl.replace(/\/$/, '')
+  if (url.startsWith('/')) {
+    return `${baseUrl}${url}`
+  }
+  return `${baseUrl}/${url}`
 }
 
 const totalReactions = computed(() => {

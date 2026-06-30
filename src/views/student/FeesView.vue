@@ -44,152 +44,153 @@
 
     <!-- Content (only show when not loading) -->
     <template v-else>
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Total</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ totalFees.toLocaleString() }}</p>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Paid</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ paidFees.toLocaleString() }}</p>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500">Pending</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ outstandingFees.toLocaleString() }}</p>
-      </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="bg-white border border-gray-200 rounded-xl p-4">
-      <div class="flex flex-wrap gap-3">
-        <select v-model="filterStatus" class="text-sm border-gray-300 rounded-lg focus:ring-ic-primary focus:border-ic-primary">
-          <option value="all">All Status</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
-          <option value="unpaid">Unpaid</option>
-        </select>
-        <select v-model="filterSemester" class="text-sm border-gray-300 rounded-lg focus:ring-ic-primary focus:border-ic-primary">
-          <option value="all">All Semesters</option>
-          <option v-for="semester in availableSemesters" :key="semester" :value="semester">
-            {{ semester }}
-          </option>
-        </select>
-        <button @click="resetFilters" class="text-sm text-gray-600 hover:text-gray-900">Reset</button>
-      </div>
-    </div>
-
-    <!-- Fees List -->
-    <div class="space-y-3">
-      <div 
-        v-for="fee in paginatedFees" 
-        :key="fee.id" 
-        class="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
-              <h3 class="text-sm font-medium text-gray-900">{{ fee.description }}</h3>
-              <span 
-                class="text-xs px-2 py-0.5 rounded-full shrink-0 capitalize"
-                :class="getStatusClass(fee.status)"
-              >
-                {{ fee.status }}
-              </span>
-            </div>
-            <p class="text-xs text-gray-500">{{ fee.category }} • {{ fee.semester }}</p>
-            <div class="flex items-center gap-4 mt-2">
-              <div>
-                <p class="text-lg font-semibold text-gray-900">₱{{ fee.totalAmount.toLocaleString() }}</p>
-                <p v-if="fee.balance > 0 && fee.balance < fee.totalAmount" class="text-xs text-amber-600">Balance: ₱{{ fee.balance.toLocaleString() }}</p>
-              </div>
-              <p class="text-xs text-gray-500">{{ fee.dueDate }}</p>
-            </div>
-          </div>
-          <span 
-            v-if="fee.status === 'paid'" 
-            class="text-xs text-gray-400 shrink-0"
-          >
-            Fully paid
-          </span>
-          <button 
-            v-else 
-            class="text-sm text-ic-primary hover:text-ic-primary/80 font-medium shrink-0"
-            @click="openPaymentModal(fee)"
-          >
-            Pay
-          </button>
+      <!-- Summary Cards -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+          <p class="text-xs text-gray-500">Total</p>
+          <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ totalFees.toLocaleString() }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+          <p class="text-xs text-gray-500">Paid</p>
+          <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ paidFees.toLocaleString() }}</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+          <p class="text-xs text-gray-500">Pending</p>
+          <p class="text-2xl font-semibold text-gray-900 mt-1">₱{{ outstandingFees.toLocaleString() }}</p>
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-if="filteredFees.length === 0" class="bg-white border border-gray-200 rounded-xl p-12 text-center">
-        <p class="text-sm text-gray-500">No fees found</p>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
-        <p class="text-xs text-gray-500">
-          Page {{ currentPage }} of {{ totalPages }} ({{ filteredFees.length }} total)
-        </p>
-        <div class="flex items-center gap-1">
-          <button 
-            @click="goToPage(currentPage - 1)" 
-            :disabled="currentPage <= 1"
-            class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <template v-for="page in paginationPages" :key="page">
-            <button 
-              v-if="page !== '...'"
-              @click="goToPage(page)" 
-              class="px-3 py-1.5 text-xs rounded-lg"
-              :class="page === currentPage ? 'bg-ic-primary text-white' : 'border border-gray-300 hover:bg-gray-50'"
-            >
-              {{ page }}
-            </button>
-            <span v-else class="px-2 text-xs text-gray-400">...</span>
-          </template>
-          <button 
-            @click="goToPage(currentPage + 1)" 
-            :disabled="currentPage >= totalPages"
-            class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+      <!-- Filters -->
+      <div class="bg-white border border-gray-200 rounded-xl p-4">
+        <div class="flex flex-wrap gap-3">
+          <select v-model="filterStatus" class="text-sm border-gray-300 rounded-lg focus:ring-ic-primary focus:border-ic-primary">
+            <option value="all">All Status</option>
+            <option value="paid">Paid</option>
+            <option value="pending">Pending</option>
+            <option value="unpaid">Unpaid</option>
+          </select>
+          <select v-model="filterSemester" class="text-sm border-gray-300 rounded-lg focus:ring-ic-primary focus:border-ic-primary">
+            <option value="all">All Semesters</option>
+            <option v-for="semester in availableSemesters" :key="semester" :value="semester">
+              {{ semester }}
+            </option>
+          </select>
+          <button @click="resetFilters" class="text-sm text-gray-600 hover:text-gray-900">Reset</button>
         </div>
       </div>
-    </div>
 
-    <!-- Payment Submissions History -->
-    <div v-if="submissions.length > 0">
-      <h2 class="text-lg font-semibold text-gray-900 mb-3">Payment Submissions</h2>
-      <div class="space-y-3">
+      <!-- Fees List Header & Action -->
+      <div class="flex items-center justify-between mt-6">
+        <h2 class="text-base font-semibold text-gray-900">Fees List</h2>
+        <button 
+          @click="openPaymentModal(null)" 
+          class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors flex items-center gap-2 shadow-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <span>Pay via CMS</span>
+        </button>
+      </div>
+
+      <!-- Fees List -->
+      <div class="space-y-3 mt-3">
         <div 
-          v-for="sub in submissions" 
-          :key="sub.id" 
-          class="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors cursor-pointer"
-          @click="viewReceipt(sub)"
+          v-for="fee in paginatedFees" 
+          :key="fee.id" 
+          class="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
-                <h3 class="text-sm font-medium text-gray-900">₱{{ parseFloat(sub.total_amount_paid).toLocaleString() }}</h3>
+                <h3 class="text-sm font-semibold text-gray-900">{{ fee.description }}</h3>
                 <span 
                   class="text-xs px-2 py-0.5 rounded-full shrink-0 capitalize"
-                  :class="getStatusClass(sub.status)"
+                  :class="getStatusClass(fee.status)"
                 >
-                  {{ sub.status }}
+                  {{ fee.status }}
                 </span>
               </div>
-              <p class="text-xs text-gray-500">Ref: {{ sub.reference_number }} • {{ formatDateTime(sub.created_at) }}</p>
+              <p class="text-xs text-gray-500">{{ fee.category }} • {{ fee.semester }}</p>
+              <div class="flex items-center gap-4 mt-2">
+                <div>
+                  <p class="text-lg font-semibold text-gray-900">₱{{ fee.totalAmount.toLocaleString() }}</p>
+                  <p v-if="fee.balance > 0 && fee.balance < fee.totalAmount" class="text-xs text-amber-600">Balance: ₱{{ fee.balance.toLocaleString() }}</p>
+                </div>
+                <p class="text-xs text-gray-500">{{ fee.dueDate }}</p>
+              </div>
             </div>
-            <span class="text-xs text-gray-400 shrink-0">View →</span>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div v-if="filteredFees.length === 0" class="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <p class="text-sm text-gray-500">No fees found</p>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="totalPages > 1" class="flex items-center justify-between pt-2">
+          <p class="text-xs text-gray-500">
+            Page {{ currentPage }} of {{ totalPages }} ({{ filteredFees.length }} total)
+          </p>
+          <div class="flex items-center gap-1">
+            <button 
+              @click="goToPage(currentPage - 1)" 
+              :disabled="currentPage <= 1"
+              class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <template v-for="page in paginationPages" :key="page">
+              <button 
+                v-if="page !== '...'"
+                @click="goToPage(page)" 
+                class="px-3 py-1.5 text-xs rounded-lg"
+                :class="page === currentPage ? 'bg-ic-primary text-white shadow-sm' : 'border border-gray-300 hover:bg-gray-50'"
+              >
+                {{ page }}
+              </button>
+              <span v-else class="px-2 text-xs text-gray-400">...</span>
+            </template>
+            <button 
+              @click="goToPage(currentPage + 1)" 
+              :disabled="currentPage >= totalPages"
+              class="px-3 py-1.5 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Payment Submissions History -->
+      <div v-if="submissions.length > 0" class="mt-6">
+        <h2 class="text-base font-semibold text-gray-900 mb-3">Payment Submissions</h2>
+        <div class="space-y-3">
+          <div 
+            v-for="sub in submissions" 
+            :key="sub.id" 
+            class="bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-300 transition-colors cursor-pointer"
+            @click="viewReceipt(sub)"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm font-semibold text-gray-900">₱{{ parseFloat(sub.total_amount_paid).toLocaleString() }}</h3>
+                  <span 
+                    class="text-xs px-2 py-0.5 rounded-full shrink-0 capitalize"
+                    :class="getStatusClass(sub.status)"
+                  >
+                    {{ sub.status }}
+                  </span>
+                </div>
+                <p class="text-xs text-gray-500">Ref: {{ sub.reference_number }} • {{ formatDateTime(sub.created_at) }}</p>
+              </div>
+              <span class="text-xs text-gray-400 shrink-0">View →</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
 
     <!-- Pay via CMS Modal -->
@@ -198,19 +199,20 @@
         <div class="p-6 text-center space-y-4">
           <div>
             <h3 class="text-lg font-semibold text-gray-900">Pay via Collection Management System</h3>
-            <p class="text-sm text-gray-500 mt-2">To submit your payment for <strong>{{ selectedFee?.description }}</strong> (₱{{ selectedFee?.balance.toLocaleString() }}), you will be redirected to the Collection Management System.</p>
+            <p v-if="selectedFee" class="text-sm text-gray-500 mt-2">To submit your payment for <strong>{{ selectedFee?.description }}</strong> (₱{{ selectedFee?.balance.toLocaleString() }}), you will be redirected to the Collection Management System.</p>
+            <p v-else class="text-sm text-gray-500 mt-2">To settle your outstanding fees, you will be redirected to the Collection Management System.</p>
             <p class="text-xs text-gray-400 mt-2">You will need to log in with your CMS credentials.</p>
           </div>
         </div>
         <div class="flex gap-3 p-6 border-t border-gray-200">
-          <button @click="closePaymentModal" class="flex-1 px-4 py-2 text-sm text-gray-700 hover:text-gray-900">
+          <button @click="closePaymentModal" class="flex-1 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg">
             Cancel
           </button>
           <a 
             :href="cmsUrl" 
             target="_blank"
             @click="closePaymentModal"
-            class="flex-1 px-4 py-2 bg-ic-primary text-white text-sm font-medium rounded-xl hover:bg-ic-primary/90 text-center"
+            class="flex-1 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors text-center"
           >
             Go to CMS
           </a>
@@ -220,7 +222,7 @@
 
     <!-- Receipt/Submission Detail Modal -->
     <div v-if="showReceiptModal && selectedSubmission" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] flex flex-col">
+      <div class="bg-white rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] flex flex-col overflow-hidden">
         <div class="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
           <h3 class="text-lg font-semibold text-gray-900">Payment Submission</h3>
           <button @click="closeReceiptModal" class="text-gray-400 hover:text-gray-600">
@@ -231,39 +233,41 @@
         </div>
         <div class="p-6 space-y-4 overflow-y-auto">
           <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Status</span>
+            <span class="text-sm text-gray-500 font-medium">Status</span>
             <span class="text-xs px-2 py-0.5 rounded-full capitalize" :class="getStatusClass(selectedSubmission.status)">{{ selectedSubmission.status }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Amount</span>
+            <span class="text-sm text-gray-500 font-medium">Amount</span>
             <span class="text-sm font-semibold text-gray-900">₱{{ parseFloat(selectedSubmission.total_amount_paid).toLocaleString() }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Reference</span>
-            <span class="text-sm text-gray-900">{{ selectedSubmission.reference_number }}</span>
+            <span class="text-sm text-gray-500 font-medium">Reference</span>
+            <span class="text-sm font-mono text-gray-900 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">{{ selectedSubmission.reference_number }}</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Submitted</span>
+            <span class="text-sm text-gray-500 font-medium">Submitted</span>
             <span class="text-sm text-gray-900">{{ formatDateTime(selectedSubmission.created_at) }}</span>
           </div>
           <div v-if="selectedSubmission.reviewed_by" class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Reviewed by</span>
+            <span class="text-sm text-gray-500 font-medium">Reviewed by</span>
             <span class="text-sm text-gray-900">{{ selectedSubmission.reviewed_by }}</span>
           </div>
           <!-- Screenshot -->
-          <div v-if="selectedSubmission.screenshot_urls?.length">
-            <p class="text-xs font-medium text-gray-500 mb-2">Receipt Screenshot</p>
-            <img 
-              v-for="(url, i) in selectedSubmission.screenshot_urls" 
-              :key="i" 
-              :src="url" 
-              alt="Receipt" 
-              class="w-full rounded-xl border border-gray-200" 
-            />
+          <div v-if="selectedSubmission.screenshot_urls?.length" class="pt-2">
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Receipt Screenshot</p>
+            <div class="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <img 
+                v-for="(url, i) in selectedSubmission.screenshot_urls" 
+                :key="i" 
+                :src="url" 
+                alt="Receipt" 
+                class="w-full h-auto object-cover max-h-[300px]" 
+              />
+            </div>
           </div>
         </div>
         <div class="p-6 border-t border-gray-200 shrink-0">
-          <button @click="closeReceiptModal" class="w-full px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-xl">
+          <button @click="closeReceiptModal" class="w-full px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-300 rounded-lg">
             Close
           </button>
         </div>
@@ -457,7 +461,7 @@ const resetFilters = () => {
   filterSemester.value = 'all'
 }
 
-const openPaymentModal = (fee) => {
+const openPaymentModal = (fee = null) => {
   selectedFee.value = fee
   showPaymentModal.value = true
 }
