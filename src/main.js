@@ -18,9 +18,12 @@ window.addEventListener('auth:session-expired', () => {
   }
 })
 
-// console.log('Testing Client ID:', import.meta.env.VITE_GOOGLE_CLIENT_ID);
-app.use(vue3GoogleLogin,
-    { 
-        clientId : import.meta.env.VITE_GOOGLE_CLIENT_ID,
-    })
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+if (!googleClientId) {
+  console.warn('⚠️ VITE_GOOGLE_CLIENT_ID is missing from environment variables. Google Sign-In will not function properly.')
+}
+
+app.use(vue3GoogleLogin, { 
+  clientId: googleClientId || 'dummy-client-id'
+})
 app.mount('#app')

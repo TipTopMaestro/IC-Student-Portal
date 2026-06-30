@@ -185,21 +185,30 @@ const handleGoogleCredential = async (response) => {
 onMounted(() => {
   // Render the official Google button into the overlay container (invisible)
   // This preserves Google's credential/JWT flow while giving us full-width control
-  googleSdkLoaded((google) => {
-    google.accounts.id.initialize({
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      callback: handleGoogleCredential,
-      use_fedcm_for_prompt: true,
-    })
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+  if (!clientId) {
+    console.error('❌ Google Client ID is missing! Please configure VITE_GOOGLE_CLIENT_ID in your environment variables (e.g. Vercel dashboard).')
+  }
 
-    if (googleBtnContainer.value) {
-      google.accounts.id.renderButton(googleBtnContainer.value, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        width: '400',
-        text: 'signin_with',
+  googleSdkLoaded((google) => {
+    try {
+      google.accounts.id.initialize({
+        client_id: clientId || 'dummy-id-to-prevent-sdk-crash',
+        callback: handleGoogleCredential,
+        use_fedcm_for_prompt: true,
       })
+
+      if (googleBtnContainer.value) {
+        google.accounts.id.renderButton(googleBtnContainer.value, {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          width: '400',
+          text: 'signin_with',
+        })
+      }
+    } catch (err) {
+      console.error('❌ Error initializing Google Sign-In SDK:', err)
     }
   })
 })
