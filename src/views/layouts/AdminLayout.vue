@@ -506,8 +506,9 @@ const toggleSystemsMenu = () => {
 }
 
 const handleSystemRedirect = (sys) => {
-  // Tie window.open directly to a synchronous user action to avoid popup blockers
-  window.open(`/sso-redirect?sys=${sys.id}`, '_blank', 'noopener,noreferrer')
+  // Resolve route dynamically to respect the router base path (e.g. subpath deployments)
+  const resolved = router.resolve({ name: 'sso-redirect', query: { sys: sys.id } })
+  window.open(resolved.href, '_blank', 'noopener,noreferrer')
   showSystemsMenu.value = false
 }
 

@@ -68,7 +68,11 @@ import { authService } from '@/services/authService'
 
 const route = useRoute()
 const router = useRouter()
-const sysId = computed(() => (route.query.sys || '').toLowerCase())
+const sysId = computed(() => {
+  const sysVal = route.query.sys
+  const rawSys = Array.isArray(sysVal) ? sysVal[0] : sysVal
+  return typeof rawSys === 'string' ? rawSys.toLowerCase() : ''
+})
 
 const state = ref('loading') // 'loading' | 'error'
 const errorTitle = ref('')
@@ -123,6 +127,11 @@ const performSSORedirect = async () => {
     return
   }
 
+  // Derive the API base dynamically from environment config
+  const apiBase = import.meta.env.VITE_API_BASE_URL
+  const cleanApiBase = apiBase.replace(/\/$/, '')
+  const redeemUrl = `${cleanApiBase}/api/v1/transfer_token/redeem/`
+
   // To make transitions smooth and avoid flickering, enforce a minimum 1.2s loader duration
   const startTime = Date.now()
   
@@ -136,13 +145,22 @@ const performSSORedirect = async () => {
       throw new Error('Malformed backend redirect payload received.')
     }
     
-    // Construct the secure destination URL
-    const destinationUrl = new URL(result.target_url)
-    
-    // Secure Token Transmission: Pass short-lived token using query parameters or hash fragments
-    // In our systems, target systems redeem this token within 60 seconds
-    destinationUrl.searchParams.set('sso_token', result.transfer_token)
-    destinationUrl.searchParams.set('redeem_url', 'https://dnsc-systems-api.onrender.com/api/v1/transfer_token/redeem/')
+    // 1. Construct the base destination URL
+    const destinationUrl = new URL(result.target_url);
+
+    // 2. Safely get the expected allowlisted URL
+    const expectedUrl = FALLBACK_SYSTEMS[sysId.value]?.url;
+
+    // 3. Verify origin (Defense-in-depth Open Redirect protection)
+    // If the sysId doesn't exist, or the origins don't match, block it.
+    if (!expectedUrl || new URL(expectedUrl).origin !== destinationUrl.origin) {
+      throw new Error('Unsafe SSO redirect target received or system not allowlisted.');
+    }
+
+    // 4. Secure Token Transmission
+    // Append the short-lived tokens to be redeemed by the target system
+    destinationUrl.searchParams.set('sso_token', result.transfer_token);
+    destinationUrl.searchParams.set('redeem_url', redeemUrl);
     
     const elapsedTime = Date.now() - startTime
     const remainingTime = Math.max(0, 1200 - elapsedTime)
@@ -175,7 +193,7 @@ const performSSORedirect = async () => {
         destinationUrl.searchParams.set('token_url', transferToken)
         destinationUrl.searchParams.set('transfer_token', transferToken)
         destinationUrl.searchParams.set('sso_token', transferToken)
-        destinationUrl.searchParams.set('redeem_url', 'https://dnsc-systems-api.onrender.com/api/v1/transfer_token/redeem/')
+        destinationUrl.searchParams.set('redeem_url', redeemUrl)
         
         const elapsedTime = Date.now() - startTime
         const remainingTime = Math.max(0, 1200 - elapsedTime)
