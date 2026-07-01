@@ -569,6 +569,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
+import { performSSORedirect } from '@/utils/sso'
 
 const route = useRoute()
 const router = useRouter()

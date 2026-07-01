@@ -457,6 +457,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
 
+import { performSSORedirect } from '@/utils/sso'
+
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -481,12 +483,12 @@ const externalSystems = [
   },
   {
     id: 'voting',
-    name: 'Voting System',
-    desc: 'Student elections & polls',
+    name: 'Voting',
+    desc: 'LSG Voting Management System',
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
-    bg: 'bg-emerald-50',
-    textColor: 'text-emerald-600',
-    iconType: 'voting',
+    bg: 'bg-red-50',
+    textColor: 'text-red-600',
+    imageUrl: '/voting-logo.jpg',
     intendedFor: 'voting-system'
   },
   {
