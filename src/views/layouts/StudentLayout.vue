@@ -594,8 +594,8 @@ const externalSystems = [
   },
   {
     id: 'voting',
-    name: 'Voting System',
-    desc: 'Student elections & polls',
+    name: 'IC Voting System',
+    desc: 'IC Elections Management system',
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
     bg: 'bg-emerald-50',
     textColor: 'text-emerald-600',
