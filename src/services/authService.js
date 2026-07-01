@@ -52,5 +52,12 @@ export const authService = {
       intended_for: intendedFor
     })
     return response.data
+  },
+
+  async getSSORedirectDetails(systemId) {
+    const response = await api.post('/api/v1/sso/redirect-details/', {
+      sys: systemId
+    })
+    return response.data
   }
 }
