@@ -457,6 +457,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
 
+import { performSSORedirect } from '@/utils/sso'
+
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
@@ -481,12 +483,12 @@ const externalSystems = [
   },
   {
     id: 'voting',
-    name: 'Voting System',
-    desc: 'Student elections & polls',
+    name: 'Voting',
+    desc: 'LSG Voting Management System',
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
-    bg: 'bg-emerald-50',
-    textColor: 'text-emerald-600',
-    iconType: 'voting',
+    bg: 'bg-red-50',
+    textColor: 'text-red-600',
+    imageUrl: '/voting-logo.jpg',
     intendedFor: 'voting-system'
   },
   {
@@ -505,33 +507,11 @@ const toggleSystemsMenu = () => {
   showSystemsMenu.value = !showSystemsMenu.value
 }
 
-const handleSystemRedirect = async (sys) => {
-  if (isRedirectingSystemId.value) return
-  isRedirectingSystemId.value = sys.id
-  try {
-    const result = await authService.issueTransferToken(sys.intendedFor)
-    const data = result.data || result
-    const transferToken = data.transfer_token
-    if (transferToken) {
-      const url = new URL(sys.url)
-      // Provide multiple query parameter formats to support all potential target system configurations
-      url.searchParams.set('token', transferToken)
-      url.searchParams.set('token_url', transferToken)
-      url.searchParams.set('transfer_token', transferToken)
-      url.searchParams.set('sso_token', transferToken)
-      url.searchParams.set('redeem_url', 'https://dnsc-systems-api.onrender.com/api/v1/transfer_token/redeem/')
-      window.open(url.toString(), '_blank', 'noopener,noreferrer')
-    } else {
-      console.error('Failed to retrieve transfer token: missing transfer_token', result)
-      window.open(sys.url, '_blank', 'noopener,noreferrer')
-    }
-  } catch (error) {
-    console.error('Error during SSO redirect:', error)
-    window.open(sys.url, '_blank', 'noopener,noreferrer')
-  } finally {
-    isRedirectingSystemId.value = null
-    showSystemsMenu.value = false
-  }
+const handleSystemRedirect = (sys) => {
+  // Resolve route dynamically to respect the router base path (e.g. subpath deployments)
+  const resolved = router.resolve({ name: 'sso-redirect', query: { sys: sys.id } })
+  window.open(resolved.href, '_blank', 'noopener,noreferrer')
+  showSystemsMenu.value = false
 }
 
 const floatingNavRef = ref(null)

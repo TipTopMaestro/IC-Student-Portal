@@ -104,6 +104,12 @@ const router = createRouter({
         }
       ]
     },
+    {
+      path: '/sso-redirect',
+      name: 'sso-redirect',
+      component: () => import('@/views/auth/SSORedirectView.vue'),
+      meta: { requiresAuth: true }
+    },
     // Catch-all: redirect unknown paths based on auth state
     {
       path: '/:pathMatch(.*)*',
@@ -177,7 +183,8 @@ router.afterEach((to) => {
     'student-posts': 'Posts Feed',
     'calendar': 'Academic Calendar',
     'settings': 'Settings',
-    'about': 'About Portal'
+    'about': 'About Portal',
+    'sso-redirect': 'SSO Verification'
   }
   
   const title = customTitles[to.name] || to.meta.title || ''
