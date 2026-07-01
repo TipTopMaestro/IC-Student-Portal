@@ -483,12 +483,12 @@ const externalSystems = [
   },
   {
     id: 'voting',
-    name: 'Voting',
-    desc: 'LSG Voting Management System',
+    name: 'IC Voting System',
+    desc: 'IC Elections Management system',
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
-    bg: 'bg-red-50',
-    textColor: 'text-red-600',
-    imageUrl: '/voting-logo.jpg',
+    bg: 'bg-emerald-50',
+    textColor: 'text-emerald-600',
+    iconType: 'voting',
     intendedFor: 'voting-system'
   },
   {
