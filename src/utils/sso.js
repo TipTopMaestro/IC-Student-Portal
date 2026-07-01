@@ -101,7 +101,7 @@ export const performSSORedirect = async (sysId, newTab, options = {}) => {
         
         const destinationUrl = new URL(config.url)
         destinationUrl.searchParams.set('token', transferToken)
-        destinationUrl.searchParams.set('token_url', transferToken)
+        destinationUrl.searchParams.set('token_url', redeemUrl)
         destinationUrl.searchParams.set('transfer_token', transferToken)
         destinationUrl.searchParams.set('sso_token', transferToken)
         destinationUrl.searchParams.set('redeem_url', redeemUrl)
