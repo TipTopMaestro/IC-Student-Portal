@@ -1,0 +1,58 @@
+# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
+# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: Node.js Package
+
+on:
+  push:
+    branches: 
+      - main
+    
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20 # Timeout after 20 minutes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        # Checks out the repository code so subsequent steps can access it.
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          
+        # Sets up Node.js environment and enables caching for yarn dependencies.
+
+      - name: Install dependencies
+        run: npm install
+        # Installs project dependencies using yarn.
+
+      - name: Build Vite app
+        run: npm run build
+        
+
+      - name: Add SSH private key to SSH agent
+        uses: webfactory/ssh-agent@v0.9.1
+        with:
+          ssh-private-key: ${{ secrets.CPANEL_SSH_KEY }}
+        # This action sets up the SSH agent and adds the private key stored in the repository secrets.
+        # The private key is stored as a secret in the GitHub repository settings. You can find it
+        # This step ensures that the SSH key is properly configured for secure access to cPanel
+
+      - name: Add to known_hosts
+        env:
+          CPANEL_SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+        run: |
+          ssh-keyscan -H $CPANEL_SSH_HOST >> ~/.ssh/known_hosts
+        # This step adds the cPanel server's SSH host key to the known_hosts file
+
+      - name: Upload build to cPanel via SSH
+        env:
+          SSH_USER: ${{ secrets.CPANEL_SSH_USER }}
+          SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
+          # These env variables are also stored as secrets in the GitHub repository settings.
+        run: |
+          rsync --compress --verbose --archive --delete --progress --checksum -e "ssh -o StrictHostKeyChecking=no" ./dist/ $SSH_USER@$SSH_HOST:/home/icorg/public_html/portal.instituteofcomputing.org/
