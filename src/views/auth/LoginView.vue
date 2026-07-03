@@ -5,7 +5,7 @@
       <div class="max-w-md w-full space-y-8 py-12">
         <!-- Header -->
         <div class="text-center">
-          <h2 class="text-3xl font-bold text-gray-900">HEllo</h2>
+          <h2 class="text-3xl font-bold text-gray-900">Welcome back</h2>
           <p class="mt-2 text-base text-[#666666]">Continue with your email and password</p>
         </div>
 
