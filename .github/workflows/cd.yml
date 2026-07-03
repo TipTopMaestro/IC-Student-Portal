@@ -55,4 +55,4 @@ jobs:
           SSH_HOST: ${{ secrets.CPANEL_SSH_HOST }}
           # These env variables are also stored as secrets in the GitHub repository settings.
         run: |
-          rsync --compress --verbose --archive --delete --progress --checksum -e "ssh -o StrictHostKeyChecking=no" ./dist/ $SSH_USER@$SSH_HOST:/home/icorg/public_html/portal.instituteofcomputing.org/
+          rsync --compress --verbose --archive --delete --progress --checksum --exclude='.htaccess' -e "ssh -o StrictHostKeyChecking=no" ./dist/ $SSH_USER@$SSH_HOST:/home/icorg/public_html/portal.instituteofcomputing.org/
