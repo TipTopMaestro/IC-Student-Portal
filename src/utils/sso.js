@@ -3,15 +3,15 @@ import { authService } from '@/services/authService'
 // Fallback configuration for client-side token retrieval (used ONLY if backend API returns 404)
 const FALLBACK_SYSTEMS = {
   cms: {
-    url: import.meta.env.VITE_CMS_URL || 'https://collection-management-system-one.vercel.app/auth/login',
+    url: import.meta.env.VITE_CMS_URL || 'https://collection.instituteofcomputing.org/auth/login',
     intendedFor: 'collection-management-system'
   },
   voting: {
-    url: import.meta.env.VITE_VOTING_URL || 'https://ic-lsg-voting-management-system.onrender.com/login',
+    url: import.meta.env.VITE_VOTING_URL || 'https://election.instituteofcomputing.org/login',
     intendedFor: 'voting-system'
   },
   locker: {
-    url: import.meta.env.VITE_LOCKER_URL || 'https://dnsclocker.vercel.app',
+    url: import.meta.env.VITE_LOCKER_URL || 'https://locker.instituteofcomputing.org',
     intendedFor: 'locker-system'
   }
 }
