@@ -14,7 +14,7 @@ Add screenshots here once available:
 
 ## Overview
 
-This portal provides students and administrators with tools to manage fees, attendance, events, and announcements. It connects to the [DNSC Systems API](https://dnsc-systems-api.onrender.com/api/docs/swagger/) for backend services.
+This portal provides students and administrators with tools to manage fees, attendance, events, and announcements. It connects to the [DNSC Systems API](https://api.instituteofcomputing.org/api/docs/swagger/) for backend services.
 
 **Key highlights:**
 - Role-based access (student vs admin views)
@@ -99,7 +99,7 @@ src/
 ## Environment Variables
 
 ```env
-VITE_API_BASE_URL=https://dnsc-systems-api.onrender.com
+VITE_API_BASE_URL=https://api.instituteofcomputing.org
 VITE_APP_NAME=Student Portal
 VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 VITE_CMS_URL=http://localhost:5174
@@ -131,7 +131,7 @@ The portal uses these main endpoints from the DNSC Systems API:
 | Events | `/api/v1/attendance-events/`, `/api/v1/attendance-records/` |
 | Announcements | `/api/v1/announcements/` |
 
-Full API documentation: [Swagger](https://dnsc-systems-api.onrender.com/api/docs/swagger/) | [ReDoc](https://dnsc-systems-api.onrender.com/api/docs/redoc/)
+Full API documentation: [Swagger](https://api.instituteofcomputing.org/api/docs/swagger/) | [ReDoc](https://api.instituteofcomputing.org/api/docs/redoc/)
 
 ## Color Palette
 

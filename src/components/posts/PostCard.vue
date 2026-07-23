@@ -143,7 +143,7 @@ const normalizeUrl = (url) => {
   }
   
   let normalized = url
-  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.instituteofcomputing.org'
   const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
   
   if (/^https?:\/\//i.test(url) || url.startsWith('data:')) {

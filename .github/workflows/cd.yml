@@ -30,6 +30,12 @@ jobs:
         run: npm install
         # Installs project dependencies using yarn.
 
+      - name: Generate Production .env File
+        env:
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+        run: |
+          printf '%s\n' "$PROD_ENV_FILE" > .env
+
       - name: Build Vite app
         run: npm run build
         

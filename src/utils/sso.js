@@ -40,7 +40,7 @@ export const performSSORedirect = async (sysId, newTab, options = {}) => {
   }
 
   // Derive the API base dynamically from environment config
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'https://api.instituteofcomputing.org'
   const cleanApiBase = apiBase.replace(/\/$/, '')
   const redeemUrl = `${cleanApiBase}/api/v1/transfer_token/redeem/`
 

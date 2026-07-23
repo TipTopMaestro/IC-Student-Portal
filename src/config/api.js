@@ -2,7 +2,7 @@
 
 export const API_CONFIG = {
   // Requests go directly to the backend URL (CORS must be enabled on the backend)
-  BASE_URL: (import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com').replace(/\/$/, ''),
+  BASE_URL: (import.meta.env.VITE_API_BASE_URL || 'https://api.instituteofcomputing.org').replace(/\/$/, ''),
   
   // API Endpoints
   ENDPOINTS: {
@@ -58,7 +58,7 @@ export const normalizeUrl = (url) => {
   }
   
   let normalized = url
-  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://dnsc-systems-api.onrender.com'
+  const activeBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.instituteofcomputing.org'
   const activeDomain = activeBaseUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')
   
   // If it's already an absolute URL, rewrite local domains to production
