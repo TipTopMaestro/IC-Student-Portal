@@ -208,14 +208,12 @@
           <button @click="closePaymentModal" class="flex-1 px-4 py-2 text-sm text-gray-700 hover:text-gray-900 border border-gray-200 rounded-lg">
             Cancel
           </button>
-          <a 
-            :href="cmsUrl" 
-            target="_blank"
-            @click="closePaymentModal"
+          <button 
+            @click="handleGoToCMS"
             class="flex-1 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors text-center"
           >
             Go to CMS
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -278,13 +276,19 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getStudentFees, getPaymentSubmissions } from '@/services/feeService'
 
+const router = useRouter()
 const authStore = useAuthStore()
 
-// CMS URL (configurable via env)
-const cmsUrl = import.meta.env.VITE_CMS_URL || '#'
+const handleGoToCMS = () => {
+  closePaymentModal()
+  // Resolve route dynamically to respect the router base path (e.g. subpath deployments)
+  const resolved = router.resolve({ name: 'sso-redirect', query: { sys: 'cms' } })
+  window.open(resolved.href, '_blank', 'noopener,noreferrer')
+}
 
 // Loading and error states
 const isLoading = ref(true)
