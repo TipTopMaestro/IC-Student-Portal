@@ -6,6 +6,14 @@
       <p class="text-sm text-gray-500 mt-0.5">Stay updated with the latest news and updates</p>
     </div>
 
+    <!-- Category Filter -->
+    <div v-if="posts.length > 0" class="max-w-xl mb-4 flex items-center justify-between gap-4">
+      <CategoryFilterDropdown v-model="selectedCategory" />
+      <span v-if="selectedCategory" class="text-xs text-gray-500 font-medium">
+        Showing {{ filteredPosts.length }} {{ filteredPosts.length === 1 ? 'post' : 'posts' }}
+      </span>
+    </div>
+
     <!-- Loading State -->
     <div v-if="isLoading && posts.length === 0" class="max-w-xl space-y-6">
       <div v-for="i in 3" :key="i" class="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -59,11 +67,26 @@
     <!-- Posts Feed -->
     <div v-else class="max-w-xl space-y-6">
       <PostFeedItem
-        v-for="post in posts"
+        v-for="post in filteredPosts"
         :key="post.id"
         :post="post"
         :show-actions="false"
+        @filter-category="selectedCategory = $event"
       />
+
+    <!-- No Results for Filter -->
+    <div v-if="filteredPosts.length === 0 && posts.length > 0 && selectedCategory" class="max-w-xl">
+      <div class="bg-white border border-gray-200 rounded-xl p-8 text-center">
+        <p class="text-gray-900 font-medium mb-1">No posts in this category</p>
+        <p class="text-sm text-gray-500 mb-4">Try selecting a different category.</p>
+        <button
+          @click="selectedCategory = ''"
+          class="text-sm font-medium text-ic-primary hover:text-ic-secondary transition-colors"
+        >
+          Show all posts
+        </button>
+      </div>
+    </div>
 
       <!-- Pagination -->
       <div v-if="pagination.totalPages > 1" class="flex justify-center py-4">
@@ -92,7 +115,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
+import CategoryFilterDropdown from '@/components/posts/CategoryFilterDropdown.vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 import { listPosts, extractPosts, extractPagination } from '@/services/postService'
 
@@ -106,6 +130,12 @@ const pagination = reactive({
   totalItems: 0
 })
 
+const selectedCategory = ref('')
+const filteredPosts = computed(() => {
+  if (!selectedCategory.value) return posts.value
+  return posts.value.filter(p => p.category === selectedCategory.value)
+})
+
 const loadPosts = async () => {
   isLoading.value = true
   error.value = ''
@@ -117,9 +147,7 @@ const loadPosts = async () => {
     })
 
     if (result.success) {
-      const allPosts = extractPosts(result)
-      // Client-side filter: students only see public posts
-      posts.value = allPosts.filter(post => post.visibility === 'public')
+      posts.value = allPosts
       const paginationData = extractPagination(result)
       Object.assign(pagination, paginationData)
     } else {

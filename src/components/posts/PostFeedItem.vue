@@ -10,10 +10,10 @@
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'Admin' }}</p>
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
           <p class="text-xs text-gray-500">{{ formattedDate || 'Recently' }}</p>
-          <span v-if="showVisibility" class="text-xs text-gray-400">·</span>
-          <span v-if="showVisibility" class="text-xs text-gray-400">{{ post.visibility === 'public' ? '🌐' : '🔒' }}</span>
+          <span class="text-xs text-gray-300">·</span>
+          <CategoryBadge :category="post.category" size="sm" @click-category="$emit('filter-category', $event)" />
         </div>
       </div>
       
@@ -212,6 +212,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { reactToPost, removeReaction, togglePostComments } from '@/services/postService'
 import PostModal from './PostModal.vue'
+import CategoryBadge from './CategoryBadge.vue'
 
 const props = defineProps({
   post: {
@@ -221,14 +222,10 @@ const props = defineProps({
   showActions: {
     type: Boolean,
     default: false
-  },
-  showVisibility: {
-    type: Boolean,
-    default: false
   }
 })
 
-const emit = defineEmits(['edit', 'delete', 'updated'])
+const emit = defineEmits(['edit', 'delete', 'updated', 'filter-category'])
 
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
@@ -366,6 +363,8 @@ const authorInitials = computed(() => {
   }
   return name.substring(0, 2).toUpperCase()
 })
+
+const categoryMeta = computed(() => getCategoryMeta(props.post.category))
 
 const formattedDate = computed(() => {
   const p = props.post

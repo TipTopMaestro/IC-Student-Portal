@@ -768,7 +768,7 @@ const loadRecentPosts = async () => {
     const result = await listPosts({ per_page: 5 })
     if (result.success) {
       const allPosts = extractPosts(result)
-      recentPosts.value = allPosts.filter(post => post.visibility === 'public').slice(0, 3)
+      recentPosts.value = allPosts.slice(0, 3)
     }
   } catch (e) {
     console.warn('Could not load recent posts:', e)

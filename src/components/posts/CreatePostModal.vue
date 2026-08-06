@@ -60,30 +60,26 @@
               />
             </div>
 
-            <!-- Visibility -->
+            <!-- Category -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
-              <div class="flex gap-4">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    v-model="form.visibility" 
-                    value="public"
-                    class="w-4 h-4 text-ic-primary focus:ring-ic-primary"
-                    :disabled="isSubmitting"
-                  />
-                  <span class="text-sm text-gray-700">Public</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    v-model="form.visibility" 
-                    value="private"
-                    class="w-4 h-4 text-ic-primary focus:ring-ic-primary"
-                    :disabled="isSubmitting"
-                  />
-                  <span class="text-sm text-gray-700">Private</span>
-                </label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <button
+                  v-for="cat in categoryList"
+                  :key="cat.key"
+                  type="button"
+                  @click="form.category = cat.key"
+                  class="flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium border transition-all text-left select-none cursor-pointer"
+                  :class="form.category === cat.key
+                    ? 'bg-gray-900 text-white border-gray-900 font-semibold shadow-2xs'
+                    : 'bg-gray-50/70 text-gray-600 border-gray-200/80 hover:bg-gray-100/80 hover:text-gray-900'"
+                  :disabled="isSubmitting"
+                >
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path :d="cat.icon" />
+                  </svg>
+                  <span class="truncate">{{ cat.label }}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -117,6 +113,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import ImageUploader from './ImageUploader.vue'
 import { createPost, updatePost } from '@/services/postService'
+import { CATEGORY_LIST } from '@/constants/postCategories'
 
 const props = defineProps({
   isOpen: {
@@ -136,6 +133,7 @@ const removeMediaIds = ref([])
 
 const form = reactive({
   content: '',
+  category: 'general',
   visibility: 'public',
   images: []
 })
@@ -155,6 +153,8 @@ const isValid = computed(() => {
   return form.content.trim().length > 0
 })
 
+const categoryList = CATEGORY_LIST
+
 // Reset form when modal opens/closes or post changes
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
@@ -171,9 +171,11 @@ watch(() => props.post, (post) => {
 const resetForm = () => {
   if (props.post) {
     form.content = props.post.content || ''
+    form.category = props.post.category || 'general'
     form.visibility = props.post.visibility || 'public'
   } else {
     form.content = ''
+    form.category = 'general'
     form.visibility = 'public'
   }
   form.images = []
@@ -206,6 +208,7 @@ const handleSubmit = async () => {
     
     const postData = {
       content: form.content.trim(),
+      category: form.category,
       visibility: form.visibility
     }
     

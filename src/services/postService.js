@@ -97,6 +97,7 @@ export const createPost = async (postData, images = []) => {
     
     // Append text fields
     formData.append('content', postData.content)
+    formData.append('category', postData.category || 'general')
     formData.append('visibility', postData.visibility || 'public')
     formData.append('disable_comments', postData.disable_comments || false)
     
@@ -148,6 +149,9 @@ export const updatePost = async (postId, postData, newImages = [], removeMediaId
     }
     if (postData.visibility !== undefined) {
       formData.append('visibility', postData.visibility)
+    }
+    if (postData.category !== undefined) {
+      formData.append('category', postData.category)
     }
     if (postData.disable_comments !== undefined) {
       formData.append('disable_comments', postData.disable_comments)

@@ -62,7 +62,10 @@
           </div>
           <div class="flex-1 min-w-0">
             <h3 class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'User' }}</h3>
-            <p class="text-xs text-gray-500">{{ formattedDate }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <p class="text-xs text-gray-500">{{ formattedDate }}</p>
+              <CategoryBadge :category="post.category" size="sm" />
+            </div>
           </div>
         </div>
 
@@ -173,6 +176,7 @@ import { ref, computed, watch, nextTick, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { listComments, createComment, extractComments } from '@/services/commentService'
 import CommentItem from './CommentItem.vue'
+import CategoryBadge from './CategoryBadge.vue'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },

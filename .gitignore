@@ -47,7 +47,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
-api_schema.yaml
+DNSC SYSTEMS API.yaml
 
 # AI & Developer Private Context
 GEMINI.md
