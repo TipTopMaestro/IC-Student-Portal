@@ -147,7 +147,7 @@ const loadPosts = async () => {
     })
 
     if (result.success) {
-      posts.value = allPosts
+      posts.value = extractPosts(result)
       const paginationData = extractPagination(result)
       Object.assign(pagination, paginationData)
     } else {
