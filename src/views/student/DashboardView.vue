@@ -16,13 +16,13 @@
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           <span class="text-[11px] sm:text-xs font-semibold text-gray-700">{{ attendanceRate }}% Attendance</span>
         </div>
-        <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+        <div v-if="unpaidFees > 0" class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
           <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">{{ unpaidFees }} Unpaid Items</span>
+          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">{{ unpaidFees }} Unpaid {{ unpaidFees === 1 ? 'Item' : 'Items' }}</span>
         </div>
-        <div v-if="totalFines > 0" class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+        <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">₱{{ totalFines.toLocaleString() }} Fines</span>
+          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">₱{{ totalUnpaidAmount.toLocaleString() }} Balance</span>
         </div>
       </div>
     </div>
@@ -172,7 +172,10 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </div>
-                  <span class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</span>
+                  <div class="min-w-0">
+                    <p class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5 leading-none">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
+                  </div>
                 </div>
                 <span class="text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
               </div>
@@ -326,7 +329,7 @@
                   </div>
                   <div class="min-w-0">
                     <p class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</p>
-                    <p class="text-[10px] text-gray-500 mt-0.5 leading-none">Unpaid Balance</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5 leading-none">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
                   </div>
                 </div>
                 <span class="text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
@@ -672,11 +675,21 @@ const loadFeeStats = async () => {
         return sum
       }, 0)
 
-      pendingFeesList.value = pending.slice(0, 3).map(f => ({
-        id: f.id,
-        name: f.category_name,
-        amount: parseFloat(f.balance) || 0
-      }))
+      pendingFeesList.value = pending.slice(0, 3).map(f => {
+        const categoryName = (f.category_name || '').toLowerCase()
+        const isAttendanceFine = f.institute_attendance_event || 
+                               f.institute_attendance_event_id ||
+                               categoryName.includes('fine') ||
+                               categoryName.includes('absent') ||
+                               categoryName.includes('tardy') ||
+                               categoryName.includes('attendance')
+        return {
+          id: f.id,
+          name: f.category_name,
+          amount: parseFloat(f.balance) || 0,
+          isFine: isAttendanceFine
+        }
+      })
     }
   } catch (e) {
     console.warn('Could not load fee stats:', e)
