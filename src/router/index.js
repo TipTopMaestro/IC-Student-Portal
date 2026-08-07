@@ -197,24 +197,28 @@ router.afterEach((to) => {
 })
 
 // Handle dynamic import failures caused by new deployments (stale chunk hash error)
-router.onError((error, to) => {
+router.onError((error) => {
   const isChunkLoadError =
     error.message?.includes('Failed to fetch dynamically imported module') ||
     error.message?.includes('Importing a module script failed') ||
     error.message?.includes('Expected a JavaScript-or-Wasm module script')
 
   if (isChunkLoadError) {
-    const targetPath = to?.fullPath || window.location.pathname
-    const reloadedPath = sessionStorage.getItem('chunk_reload_path')
+    const reloadKey = 'chunk_reload_timestamp'
+    const lastReload = parseInt(sessionStorage.getItem(reloadKey) || '0', 10)
+    const now = Date.now()
 
-    // Guard against infinite reload loops — reload at most once per path
-    if (reloadedPath !== targetPath) {
-      sessionStorage.setItem('chunk_reload_path', targetPath)
-      console.warn('🔄 Stale chunk detected, reloading for:', targetPath)
-      window.location.reload()
+    // Prevent loop: only reload once per 10 seconds
+    if (now - lastReload > 10000) {
+      sessionStorage.setItem(reloadKey, now.toString())
+      console.warn('🔄 Stale chunk detected, forcing cache-busting reload...')
+      
+      // Append cache buster to force browser & CDN to fetch fresh index.html
+      const url = new URL(window.location.href)
+      url.searchParams.set('_v', now.toString())
+      window.location.href = url.toString()
     } else {
-      console.error('❌ Chunk load failed even after reload:', error.message)
-      sessionStorage.removeItem('chunk_reload_path')
+      console.error('❌ Chunk load error persists after reload:', error.message)
     }
   }
 })
@@ -222,7 +226,16 @@ router.onError((error, to) => {
 // Vite-native preload error handler — catches non-route dynamic imports (e.g. async components)
 window.addEventListener('vite:preloadError', (event) => {
   event.preventDefault()
-  window.location.reload()
+  const reloadKey = 'chunk_reload_timestamp'
+  const lastReload = parseInt(sessionStorage.getItem(reloadKey) || '0', 10)
+  const now = Date.now()
+
+  if (now - lastReload > 10000) {
+    sessionStorage.setItem(reloadKey, now.toString())
+    const url = new URL(window.location.href)
+    url.searchParams.set('_v', now.toString())
+    window.location.href = url.toString()
+  }
 })
 
 export default router
