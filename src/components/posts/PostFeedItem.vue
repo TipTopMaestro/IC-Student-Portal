@@ -364,7 +364,6 @@ const authorInitials = computed(() => {
   return name.substring(0, 2).toUpperCase()
 })
 
-const categoryMeta = computed(() => getCategoryMeta(props.post.category))
 
 const formattedDate = computed(() => {
   const p = props.post

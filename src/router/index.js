@@ -197,15 +197,32 @@ router.afterEach((to) => {
 })
 
 // Handle dynamic import failures caused by new deployments (stale chunk hash error)
-router.onError((error) => {
-  if (
+router.onError((error, to) => {
+  const isChunkLoadError =
     error.message?.includes('Failed to fetch dynamically imported module') ||
     error.message?.includes('Importing a module script failed') ||
     error.message?.includes('Expected a JavaScript-or-Wasm module script')
-  ) {
-    console.warn('🔄 Stale application version detected after deployment. Reloading window...')
-    window.location.reload()
+
+  if (isChunkLoadError) {
+    const targetPath = to?.fullPath || window.location.pathname
+    const reloadedPath = sessionStorage.getItem('chunk_reload_path')
+
+    // Guard against infinite reload loops — reload at most once per path
+    if (reloadedPath !== targetPath) {
+      sessionStorage.setItem('chunk_reload_path', targetPath)
+      console.warn('🔄 Stale chunk detected, reloading for:', targetPath)
+      window.location.reload()
+    } else {
+      console.error('❌ Chunk load failed even after reload:', error.message)
+      sessionStorage.removeItem('chunk_reload_path')
+    }
   }
+})
+
+// Vite-native preload error handler — catches non-route dynamic imports (e.g. async components)
+window.addEventListener('vite:preloadError', (event) => {
+  event.preventDefault()
+  window.location.reload()
 })
 
 export default router
