@@ -134,7 +134,6 @@ const removeMediaIds = ref([])
 const form = reactive({
   content: '',
   category: 'general',
-  visibility: 'public',
   images: []
 })
 
@@ -172,11 +171,9 @@ const resetForm = () => {
   if (props.post) {
     form.content = props.post.content || ''
     form.category = props.post.category || 'general'
-    form.visibility = props.post.visibility || 'public'
   } else {
     form.content = ''
     form.category = 'general'
-    form.visibility = 'public'
   }
   form.images = []
   removeMediaIds.value = []
@@ -208,8 +205,7 @@ const handleSubmit = async () => {
     
     const postData = {
       content: form.content.trim(),
-      category: form.category,
-      visibility: form.visibility
+      category: form.category
     }
     
     if (isEditing.value) {

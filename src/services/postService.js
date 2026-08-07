@@ -247,10 +247,6 @@ const normalizeMediaUrl = (url) => {
 const normalizePostMedia = (post) => {
   if (!post) return post
   
-  // Log a small sample to see structure once (don't flood console)
-  if (Math.random() < 0.01) {
-    console.log('📬 Post structure sample:', JSON.stringify(post, null, 2))
-  }
 
   if (post.media && Array.isArray(post.media)) {
     post.media = post.media.map(m => ({

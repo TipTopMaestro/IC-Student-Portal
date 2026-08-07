@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import CategoryFilterDropdown from '@/components/posts/CategoryFilterDropdown.vue'
 import CreatePostModal from '@/components/posts/CreatePostModal.vue'
 import DeleteConfirmModal from '@/components/posts/DeleteConfirmModal.vue'
@@ -258,16 +258,7 @@ const handlePostUpdated = (updatedPost) => {
   }
 }
 
-const handleOpenCreatePost = () => {
-  openCreateModal()
-}
-
 onMounted(() => {
-  window.addEventListener('open-create-post', handleOpenCreatePost)
   loadPosts()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('open-create-post', handleOpenCreatePost)
 })
 </script>

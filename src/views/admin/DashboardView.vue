@@ -226,6 +226,19 @@
               :show-actions="false"
               class="border border-gray-200! shadow-xs!"
             />
+
+            <!-- More Link -->
+            <div class="pt-4 text-center">
+              <router-link
+                to="/admin/posts"
+                class="inline-flex items-center gap-1 text-[13px] font-semibold text-gray-500 hover:text-ic-primary transition-colors duration-200 select-none"
+              >
+                <span>more</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+              </router-link>
+            </div>
           </div>
 
           <div v-else class="bg-white border border-gray-200 rounded-xl py-12 px-5 text-center">
