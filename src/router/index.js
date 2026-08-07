@@ -196,4 +196,16 @@ router.afterEach((to) => {
   }
 })
 
+// Handle dynamic import failures caused by new deployments (stale chunk hash error)
+router.onError((error) => {
+  if (
+    error.message?.includes('Failed to fetch dynamically imported module') ||
+    error.message?.includes('Importing a module script failed') ||
+    error.message?.includes('Expected a JavaScript-or-Wasm module script')
+  ) {
+    console.warn('🔄 Stale application version detected after deployment. Reloading window...')
+    window.location.reload()
+  }
+})
+
 export default router
