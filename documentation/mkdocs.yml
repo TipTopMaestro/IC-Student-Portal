@@ -1,0 +1,131 @@
+site_name: IC Student Portal
+site_url: https://TipTopMaestro.github.io/IC-Student-Portal-Docs/
+site_description: Complete documentation for the IC Student Portal — a web-based management system for the Institute of Computing at Davao del Norte State College.
+
+repo_url: https://github.com/TipTopMaestro/IC-Student-Portal
+repo_name: TipTopMaestro/IC-Student-Portal
+
+theme:
+  name: material
+  logo: assets/icsa_logo.png
+  favicon: assets/icsa_logo.png
+  palette:
+    # Dark mode (default) - Switch to light mode shows sun icon
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+    # Light mode - Switch to dark mode shows moon icon
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+  font:
+    text: Noto Sans
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.path
+    - navigation.indexes
+    - navigation.prune
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+markdown_extensions:
+  # Emojis & Icons (Renders :material-...: and :octicons-...: shortcodes)
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+  # Admonitions
+  - admonition
+  - pymdownx.details
+
+  # Code blocks
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+  # Content tabs
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # Typography & formatting
+  - pymdownx.mark
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - toc:
+      permalink: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  generator: false
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/TipTopMaestro/IC-Student-Portal
+
+copyright: Copyright &copy; 2026 Institute of Computing — Davao del Norte State College
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Configuration: getting-started/configuration.md
+  - Architecture:
+    - architecture/index.md
+    - Project Structure: architecture/project-structure.md
+    - Authentication: architecture/authentication.md
+    - State Management: architecture/state-management.md
+  - User Guide:
+    - user-guide/index.md
+    - Student Portal:
+      - user-guide/student/dashboard.md
+      - user-guide/student/attendance.md
+      - user-guide/student/fees.md
+      - user-guide/student/posts.md
+      - user-guide/student/calendar.md
+    - Admin Portal:
+      - user-guide/admin/dashboard.md
+      - user-guide/admin/students.md
+      - user-guide/admin/events.md
+      - user-guide/admin/posts.md
+  - Developer Guide:
+    - developer-guide/index.md
+    - Services & API Layer: developer-guide/services.md
+    - Components: developer-guide/components.md
+    - Routing & Guards: developer-guide/routing.md
+    - Styling Guide: developer-guide/styling.md
+    - Adding Features: developer-guide/adding-features.md
+  - API Reference:
+    - api-reference/index.md
+    - Authentication: api-reference/authentication.md
+    - Students: api-reference/students.md
+    - Attendance: api-reference/attendance.md
+    - Fees: api-reference/fees.md
+    - Posts: api-reference/posts.md
+  - Deployment:
+    - deployment/index.md
+    - Building: deployment/building.md
+    - Production: deployment/production.md
+  - Team & Credits: credits.md
