@@ -110,21 +110,23 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('❌ Auth Store: Login error:', err)
       
       // Handle different error types
+      // Industry-standard, secure user-facing error messages (OWASP ASVS compliant)
       if (!err.response) {
-        // Network error or request blocked
-        if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
-          error.value = 'Cannot connect to server'
-        } else if (err.message.includes('timeout')) {
-          error.value = 'Connection timeout'
+        if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
+          error.value = 'Unable to reach the server. Please check your internet connection.'
+        } else if (err.message?.includes('timeout')) {
+          error.value = 'Sign-in request timed out. Please try again.'
         } else {
-          error.value = 'Connection failed'
+          error.value = 'Unable to connect to the server. Please try again.'
         }
+      } else if (err.response.status === 400 || err.response.status === 401) {
+        error.value = 'Incorrect email or password.'
+      } else if (err.response.status === 403) {
+        error.value = "Your account doesn't have access to this portal. Please contact support."
+      } else if (err.response.status === 429) {
+        error.value = 'Too many sign-in attempts. Please try again in a few minutes.'
       } else {
-        // Server error response
-        error.value = err.response?.data?.errors?.detail || 
-                     err.response?.data?.message || 
-                     err.response?.data?.detail || 
-                     'Invalid credentials'
+        error.value = 'Something went wrong on our end. Please try again later.'
       }
       
       return { success: false, error: error.value }
@@ -150,7 +152,23 @@ export const useAuthStore = defineStore('auth', () => {
       
       return { success: true }
     } catch (err) {
-      error.value = err.response?.data?.error || 'Google login failed'
+      if (import.meta.env.DEV) {
+        console.error('❌ Google login error (dev only):', err.response?.data || err.message)
+      }
+
+      // Industry-standard, secure Google authentication error messages
+      if (!err.response) {
+        error.value = 'Unable to reach the server. Please check your internet connection.'
+      } else if (err.response.status === 400 || err.response.status === 401) {
+        error.value = "Couldn't sign you in with Google. Please use your registered email or sign in with your password."
+      } else if (err.response.status === 403) {
+        error.value = "Your account doesn't have access to this portal. Please contact support."
+      } else if (err.response.status === 429) {
+        error.value = 'Too many sign-in attempts. Please try again in a few minutes.'
+      } else {
+        error.value = 'Google sign-in is temporarily unavailable. Please try again later.'
+      }
+
       return { success: false, error: error.value }
     } finally {
       loading.value = false
