@@ -110,23 +110,21 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('❌ Auth Store: Login error:', err)
       
       // Handle different error types
-      // Industry-standard, secure user-facing error messages (OWASP ASVS compliant)
+      // Clean, minimalist error messages (Linear / GitHub / Vercel style)
       if (!err.response) {
-        if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
-          error.value = 'Unable to reach the server. Please check your internet connection.'
-        } else if (err.message?.includes('timeout')) {
-          error.value = 'Sign-in request timed out. Please try again.'
+        if (err.message?.includes('timeout')) {
+          error.value = 'Request timed out. Try again.'
         } else {
-          error.value = 'Unable to connect to the server. Please try again.'
+          error.value = 'Network error. Check your connection.'
         }
       } else if (err.response.status === 400 || err.response.status === 401) {
-        error.value = 'Incorrect email or password.'
+        error.value = 'Invalid email or password.'
       } else if (err.response.status === 403) {
-        error.value = "Your account doesn't have access to this portal. Please contact support."
+        error.value = 'Account not authorized.'
       } else if (err.response.status === 429) {
-        error.value = 'Too many sign-in attempts. Please try again in a few minutes.'
+        error.value = 'Too many attempts. Try again later.'
       } else {
-        error.value = 'Something went wrong on our end. Please try again later.'
+        error.value = 'Server error. Please try again.'
       }
       
       return { success: false, error: error.value }
@@ -156,17 +154,16 @@ export const useAuthStore = defineStore('auth', () => {
         console.error('❌ Google login error (dev only):', err.response?.data || err.message)
       }
 
-      // Industry-standard, secure Google authentication error messages
       if (!err.response) {
-        error.value = 'Unable to reach the server. Please check your internet connection.'
+        error.value = 'Network error. Check your connection.'
       } else if (err.response.status === 400 || err.response.status === 401) {
-        error.value = "Couldn't sign you in with Google. Please use your registered email or sign in with your password."
+        error.value = 'Google sign-in failed. Use your email and password.'
       } else if (err.response.status === 403) {
-        error.value = "Your account doesn't have access to this portal. Please contact support."
+        error.value = 'Account not authorized.'
       } else if (err.response.status === 429) {
-        error.value = 'Too many sign-in attempts. Please try again in a few minutes.'
+        error.value = 'Too many attempts. Try again later.'
       } else {
-        error.value = 'Google sign-in is temporarily unavailable. Please try again later.'
+        error.value = 'Server error. Please try again.'
       }
 
       return { success: false, error: error.value }
