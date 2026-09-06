@@ -5,6 +5,30 @@ import { invalidateCachePattern } from '@/composables/useSWR'
  * Event Service - Handles attendance events API calls
  */
 
+const getEventErrorMessage = (error, fallback = 'Unable to complete request.') => {
+  const status = error.response?.status
+  if (status === 401 || status === 403) {
+    return 'You do not have permission to view this information.'
+  }
+  if (status === 404) {
+    return fallback
+  }
+  if (status === 429) {
+    return 'Too many requests. Try again later.'
+  }
+  if (status >= 500) {
+    return 'Server error. Try again later.'
+  }
+  if (!error.response && error.request) {
+    return 'Network error. Check your connection.'
+  }
+  const msg = error.response?.data?.message
+  if (typeof msg === 'string' && msg.trim() && !msg.includes('{') && !msg.includes('<') && msg.length < 120) {
+    return msg.trim()
+  }
+  return fallback
+}
+
 /**
  * List attendance events
  * @param {Object} params - Query parameters (page, per_page, search, etc.)
@@ -25,7 +49,7 @@ export const listEvents = async (params = {}) => {
     console.error('Error fetching events:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load events'
+      error: getEventErrorMessage(error, 'Failed to load events.')
     }
   }
 }
@@ -49,7 +73,7 @@ export const getEventById = async (eventId) => {
     console.error('Error fetching event:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load event'
+      error: getEventErrorMessage(error, 'Failed to load event.')
     }
   }
 }
@@ -74,7 +98,7 @@ export const listAttendanceRecords = async (params = {}) => {
     console.error('Error fetching attendance records:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load attendance records'
+      error: getEventErrorMessage(error, 'Failed to load attendance records.')
     }
   }
 }
@@ -99,7 +123,7 @@ export const listInstituteEvents = async (params = {}) => {
     console.error('Error fetching institute events:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load institute events'
+      error: getEventErrorMessage(error, 'Failed to load institute events.')
     }
   }
 }

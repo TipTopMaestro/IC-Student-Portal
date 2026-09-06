@@ -5,6 +5,44 @@ import { invalidateCachePattern } from '@/composables/useSWR'
  * Student Service - Handles all student-related API calls
  */
 
+const getStudentErrorMessage = (error, fallback = 'Unable to complete request.') => {
+  const status = error.response?.status
+  if (status === 401 || status === 403) {
+    return 'You do not have permission to perform this action.'
+  }
+  if (status === 404) {
+    return fallback
+  }
+  if (status === 413) {
+    return 'Uploaded file is too large.'
+  }
+  if (status === 429) {
+    return 'Too many requests. Try again later.'
+  }
+  if (status >= 500) {
+    return 'Server error. Try again later.'
+  }
+  if (!error.response && error.request) {
+    return 'Network error. Check your connection.'
+  }
+  const errors = error.response?.data?.errors
+  if (errors && typeof errors === 'object') {
+    const firstKey = Object.keys(errors)[0]
+    const val = errors[firstKey]
+    if (Array.isArray(val) && typeof val[0] === 'string' && val[0].length < 120) {
+      return val[0]
+    }
+    if (typeof val === 'string' && val.length < 120) {
+      return val
+    }
+  }
+  const msg = error.response?.data?.message
+  if (typeof msg === 'string' && msg.trim() && !msg.includes('{') && !msg.includes('<') && msg.length < 120) {
+    return msg.trim()
+  }
+  return fallback
+}
+
 /**
  * Get current user's profile
  * @returns {Promise} Student profile data
@@ -23,30 +61,28 @@ export const getCurrentProfile = async () => {
       try {
         // Extract last name from username (format: "lastname.firstname")
         const nameParts = userData.username.split('.')
-        if (nameParts.length >= 1) {
-          const searchTerm = nameParts[0]
-          const studentsResp = await api.get('/api/v1/students/', {
-            params: { search: searchTerm },
-            cache: true,
-            cacheTTL: 60000 // 1 minute TTL
-          })
-          const studentsData = studentsResp.data.data?.data || studentsResp.data.data || []
-          // Find exact match by comparing name parts from username
-          const match = studentsData.find(s => {
-            const fname = (s.s_fname || '').toLowerCase()
-            const lname = (s.s_lname || '').toLowerCase()
-            return (
-              (lname === nameParts[0]?.toLowerCase() && fname === nameParts[1]?.toLowerCase()) ||
-              (fname === nameParts[0]?.toLowerCase() && lname === nameParts[1]?.toLowerCase())
-            )
-          })
-          if (match) {
-            console.log('📋 Found student record via search fallback:', match)
-            userData.student = match
-          }
+        const searchName = nameParts[0]
+        
+        const studentsResponse = await api.get('/api/v1/students/', {
+          params: { search: searchName }
+        })
+        const students = studentsResponse.data.data || studentsResponse.data || []
+        
+        // Find matching student by first name or username pattern
+        const matchedStudent = Array.isArray(students) ? students.find(s => {
+          const sName = (s.s_fname || '').toLowerCase()
+          const sLname = (s.s_lname || '').toLowerCase()
+          const uFirst = (userData.first_name || '').toLowerCase()
+          const uLast = (userData.last_name || '').toLowerCase()
+          return (sName === uFirst && sLname === uLast) || 
+                 (sLname === nameParts[0]?.toLowerCase())
+        }) : null
+
+        if (matchedStudent) {
+          userData.student = matchedStudent
         }
-      } catch (err) {
-        console.warn('Could not fetch student data as fallback:', err)
+      } catch (e) {
+        console.warn('Could not auto-link student record:', e)
       }
     }
 
@@ -58,7 +94,7 @@ export const getCurrentProfile = async () => {
     console.error('Error fetching profile:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load profile'
+      error: getStudentErrorMessage(error, 'Failed to load profile.')
     }
   }
 }
@@ -126,7 +162,7 @@ export const updateProfile = async (userId, profileData) => {
     console.error('Error updating profile:', error)
     return {
       success: false,
-      error: error.response?.data?.errors || error.response?.data?.message || 'Failed to update profile'
+      error: getStudentErrorMessage(error, 'Failed to update profile.')
     }
   }
 }
@@ -150,7 +186,7 @@ export const getStudentById = async (studentId) => {
     console.error('Error fetching student:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load student data'
+      error: getStudentErrorMessage(error, 'Failed to load student data.')
     }
   }
 }
@@ -175,7 +211,7 @@ export const listStudents = async (params = {}) => {
     console.error('Error fetching students:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load students'
+      error: getStudentErrorMessage(error, 'Failed to load students.')
     }
   }
 }
@@ -210,7 +246,7 @@ export const updateStudentProfile = async (studentId, studentData) => {
     console.error('Error updating student profile:', error)
     return {
       success: false,
-      error: error.response?.data?.errors || error.response?.data?.message || 'Failed to update student profile'
+      error: getStudentErrorMessage(error, 'Failed to update student profile.')
     }
   }
 }

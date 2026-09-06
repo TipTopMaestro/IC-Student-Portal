@@ -68,9 +68,22 @@ export const uploadImage = async (file, folder = 'profiles') => {
     }
   } catch (error) {
     console.error('Error uploading image:', error)
+    const status = error.response?.status
+    let safeMsg = 'Failed to upload image.'
+    if (status === 413) {
+      safeMsg = 'Image file is too large.'
+    } else if (status === 415) {
+      safeMsg = 'Unsupported image format.'
+    } else if (status === 401 || status === 403) {
+      safeMsg = 'You do not have permission to upload files.'
+    } else if (status >= 500) {
+      safeMsg = 'Server error. Try again later.'
+    } else if (!error.response && error.request) {
+      safeMsg = 'Network error. Check your connection.'
+    }
     return {
       success: false,
-      error: error.response?.data?.message || error.response?.data?.error || error.message || 'Failed to upload image'
+      error: safeMsg
     }
   }
 }

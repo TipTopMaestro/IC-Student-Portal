@@ -49,9 +49,9 @@
       <svg class="mx-auto h-10 w-10 text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p class="text-sm text-gray-900 font-medium mb-1">Failed to load students</p>
+      <p class="text-sm text-gray-900 font-medium mb-1">Students Unavailable</p>
       <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
-      <button @click="loadStudents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+      <button @click="loadStudents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors cursor-pointer">
         Try Again
       </button>
     </div>
@@ -366,11 +366,11 @@ const loadStudents = async () => {
       totalItems.value = responseData.total_items || pageData.total_items || students.value.length
       totalPages.value = responseData.total_pages || pageData.total_pages || 1
     } else {
-      error.value = result.error
+      error.value = result.error || 'Unable to display student records.'
     }
   } catch (err) {
     console.error('Failed to load students:', err)
-    error.value = 'An unexpected error occurred'
+    error.value = 'Unable to display student records.'
   }
 
   isLoading.value = false

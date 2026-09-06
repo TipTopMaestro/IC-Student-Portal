@@ -93,11 +93,11 @@ const handleConfirm = async () => {
       emit('success', props.post.id)
       handleClose()
     } else {
-      error.value = result.error || 'Failed to delete post'
+      error.value = result.error || 'Failed to delete post.'
     }
   } catch (err) {
     console.error('Error deleting post:', err)
-    error.value = 'An unexpected error occurred'
+    error.value = 'Unable to delete post at this time.'
   } finally {
     isDeleting.value = false
   }

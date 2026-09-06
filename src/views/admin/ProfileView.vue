@@ -6,6 +6,27 @@
       <p class="text-gray-500 text-sm mt-0.5">Your account information</p>
     </div>
 
+    <!-- Feedback Banner -->
+    <div 
+      v-if="feedbackMessage.text" 
+      class="flex items-center justify-between p-3.5 rounded-xl text-xs font-medium transition-all"
+      :class="feedbackMessage.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'"
+      role="alert"
+    >
+      <div class="flex items-center gap-2">
+        <svg v-if="feedbackMessage.type === 'error'" class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <svg v-else class="w-4 h-4 text-green-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span>{{ feedbackMessage.text }}</span>
+      </div>
+      <button @click="feedbackMessage.text = ''" class="text-gray-400 hover:text-gray-600 ml-2 cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
     <!-- Loading State (Skeleton Screen) -->
     <div v-if="isLoading" class="space-y-6">
       <!-- Profile Card Skeleton -->
@@ -75,9 +96,9 @@
         <svg class="mx-auto h-12 w-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-900">Failed to load profile</h3>
+        <h3 class="mt-4 text-lg font-medium text-gray-900">Profile Unavailable</h3>
         <p class="mt-2 text-sm text-gray-500">{{ error }}</p>
-        <button @click="loadProfile" class="mt-4 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+        <button @click="loadProfile" class="mt-4 px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors cursor-pointer">
           Try Again
         </button>
       </div>
@@ -239,6 +260,16 @@ const isLoading = ref(true)
 const error = ref(null)
 const isUploadingProfilePic = ref(false)
 
+const feedbackMessage = ref({ type: '', text: '' })
+let feedbackTimer = null
+const showFeedback = (text, type = 'error') => {
+  feedbackMessage.value = { text, type }
+  if (feedbackTimer) clearTimeout(feedbackTimer)
+  feedbackTimer = setTimeout(() => {
+    feedbackMessage.value.text = ''
+  }, 4000)
+}
+
 const normalizeUrl = (url) => {
   if (!url || typeof url !== 'string') return ''
   
@@ -308,7 +339,16 @@ const loadProfile = async () => {
     }
   } catch (err) {
     console.error('Failed to load admin profile:', err)
-    error.value = err.response?.data?.message || 'Failed to load profile'
+    const status = err.response?.status
+    if (status === 401 || status === 403) {
+      error.value = 'You do not have permission to view this profile.'
+    } else if (status >= 500) {
+      error.value = 'Server error. Try again later.'
+    } else if (!err.response && err.request) {
+      error.value = 'Network error. Check your connection.'
+    } else {
+      error.value = 'Unable to load profile at this time.'
+    }
   }
 
   isLoading.value = false
@@ -319,7 +359,8 @@ const onProfilePicSelected = async (event) => {
   if (!file) return
 
   if (file.size > 5 * 1024 * 1024) {
-    alert('Image size should be less than 5MB')
+    showFeedback('Image size must be less than 5MB.', 'error')
+    event.target.value = ''
     return
   }
 
@@ -335,11 +376,8 @@ const onProfilePicSelected = async (event) => {
 
     if (!updateResult.success) {
       console.error('Profile update failed:', updateResult.error)
-      throw new Error(
-        typeof updateResult.error === 'object' 
-          ? JSON.stringify(updateResult.error) 
-          : updateResult.error || 'Failed to save profile picture'
-      )
+      showFeedback(typeof updateResult.error === 'string' ? updateResult.error : 'Failed to update profile picture.', 'error')
+      return
     }
 
     // Extract the resolved URL from the backend response
@@ -348,7 +386,8 @@ const onProfilePicSelected = async (event) => {
     const imageUrl = normalizeUrl(rawImageUrl)
     if (!imageUrl) {
       console.error('Backend update response missing profile URL. Response data:', updateResult.data)
-      throw new Error('Profile updated, but backend did not return a profile URL.')
+      showFeedback('Failed to update profile picture.', 'error')
+      return
     }
 
     console.log('✅ Backend profile updated successfully:', imageUrl)
@@ -363,6 +402,8 @@ const onProfilePicSelected = async (event) => {
       localStorage.setItem('user_data', JSON.stringify(authStore.user))
     }
 
+    showFeedback('Profile picture updated.', 'success')
+
     // 3. Delayed refetch to sync with backend once it has processed
     setTimeout(async () => {
       try {
@@ -374,11 +415,9 @@ const onProfilePicSelected = async (event) => {
         console.warn('Delayed user refetch failed:', e)
       }
     }, 3000)
-
-    alert('Profile picture updated successfully!')
   } catch (err) {
     console.error('Profile pic upload error:', err)
-    alert(err.message || 'An error occurred while updating profile picture')
+    showFeedback('Failed to update profile picture.', 'error')
   } finally {
     isUploadingProfilePic.value = false
     // Reset input

@@ -11,6 +11,33 @@ import { invalidateCachePattern } from '@/composables/useSWR'
  * - POST /api/v1/payment-submissions/ - Submit payment proof
  */
 
+const getFeeErrorMessage = (error, fallback = 'Unable to complete request.') => {
+  const status = error.response?.status
+  if (status === 401 || status === 403) {
+    return 'You do not have permission to perform this action.'
+  }
+  if (status === 404) {
+    return fallback
+  }
+  if (status === 413) {
+    return 'Uploaded file is too large.'
+  }
+  if (status === 429) {
+    return 'Too many requests. Try again later.'
+  }
+  if (status >= 500) {
+    return 'Server error. Try again later.'
+  }
+  if (!error.response && error.request) {
+    return 'Network error. Check your connection.'
+  }
+  const msg = error.response?.data?.message
+  if (typeof msg === 'string' && msg.trim() && !msg.includes('{') && !msg.includes('<') && msg.length < 120) {
+    return msg.trim()
+  }
+  return fallback
+}
+
 /**
  * Get all fees for a specific student
  * @param {number} studentId - Student ID to filter by
@@ -51,7 +78,7 @@ export const getStudentFees = async (studentId, { page = 1, perPage = 10 } = {})
     console.error('❌ Error response:', error.response?.data)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load fees'
+      error: getFeeErrorMessage(error, 'Failed to load fees.')
     }
   }
 }
@@ -130,7 +157,7 @@ export const getPaymentSubmissions = async (studentId) => {
     console.error('Error fetching payment submissions:', error)
     return {
       success: false,
-      error: error.response?.data?.message || 'Failed to load payment submissions'
+      error: getFeeErrorMessage(error, 'Failed to load payment submissions.')
     }
   }
 }
@@ -181,9 +208,7 @@ export const submitPayment = async (submissionData) => {
     console.error('Error submitting payment:', error)
     return {
       success: false,
-      error: error.response?.status === 403 
-        ? 'Permission denied. The backend does not yet allow students to submit payments. Please contact the Collections Management team.'
-        : (error.response?.data?.message || error.response?.data?.detail || 'Failed to submit payment.')
+      error: getFeeErrorMessage(error, 'Failed to submit payment.')
     }
   }
 }

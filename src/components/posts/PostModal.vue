@@ -349,7 +349,7 @@ const fetchComments = async () => {
   if (result.success) {
     comments.value = extractComments(result)
   } else {
-    commentsError.value = result.error
+    commentsError.value = result.error || 'Unable to load comments.'
   }
   commentsLoading.value = false
 }

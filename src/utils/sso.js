@@ -28,8 +28,8 @@ export const performSSORedirect = async (sysId, newTab, options = {}) => {
   // 1. Client-Side Input Validation
   const validSystems = ['cms', 'voting', 'locker']
   if (!validSystems.includes(sysId)) {
-    const title = 'Invalid System Target'
-    const msg = `The requested target system "${sysId}" is not registered on our security allowlist.`
+    const title = 'Redirect Failed'
+    const msg = 'Unknown destination system.'
     if (options.onError) {
       options.onError(title, msg)
     } else {
@@ -125,16 +125,14 @@ export const performSSORedirect = async (sysId, newTab, options = {}) => {
     
     // Parse error messages for display
     const status = error.response?.status
-    let title = 'Verification Error'
-    let msg = ''
+    let title = 'Redirect Unavailable'
+    let msg = 'This system is temporarily unavailable.'
     if (status === 401 || status === 403) {
-      title = 'Authentication Expired'
-      msg = 'Your active session has expired or is invalid. Please sign back into the Student Portal and try again.'
+      title = 'Session Expired'
+      msg = 'Sign in again to continue.'
     } else if (status === 503 || status === 504 || error.message?.includes('Network Error')) {
-      title = 'Service Connection Timeout'
-      msg = 'We could not reach the security verification servers. Please check your network connection and try again.'
-    } else {
-      msg = `SSO redirect failed: ${error.response?.data?.detail || error.message || 'Unknown backend error.'}`
+      title = 'Connection Error'
+      msg = 'Network error. Try again later.'
     }
 
     if (options.onError) {

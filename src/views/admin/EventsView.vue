@@ -34,9 +34,9 @@
       <svg class="mx-auto h-10 w-10 text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
-      <p class="text-sm text-gray-900 font-medium mb-1">Failed to load events</p>
+      <p class="text-sm text-gray-900 font-medium mb-1">Events Unavailable</p>
       <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
-      <button @click="loadEvents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors">
+      <button @click="loadEvents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors cursor-pointer">
         Try Again
       </button>
     </div>
@@ -259,7 +259,16 @@ const loadEvents = async () => {
     totalPages.value = responseData.total_pages || 1
   } catch (err) {
     console.error('Failed to load events:', err)
-    error.value = err.response?.data?.message || 'Failed to load events'
+    const status = err.response?.status
+    if (status === 401 || status === 403) {
+      error.value = 'You do not have permission to view events.'
+    } else if (status >= 500) {
+      error.value = 'Server error. Try again later.'
+    } else if (!err.response && err.request) {
+      error.value = 'Network error. Check your connection.'
+    } else {
+      error.value = 'Unable to display events at this time.'
+    }
   }
 
   isLoading.value = false

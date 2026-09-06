@@ -223,11 +223,11 @@ const handleSubmit = async () => {
       emit('success', result.data)
       emit('close')
     } else {
-      errors.content = result.error || 'Failed to save post'
+      errors.content = result.error || 'Failed to save post.'
     }
   } catch (error) {
     console.error('Error saving post:', error)
-    errors.content = 'An unexpected error occurred'
+    errors.content = 'Unable to save post at this time.'
   } finally {
     isSubmitting.value = false
   }
