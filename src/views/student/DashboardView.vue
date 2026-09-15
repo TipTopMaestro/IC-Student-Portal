@@ -431,160 +431,164 @@
     </div>
 
     <!-- Terms / Privacy Modal -->
-    <Transition name="modal-fade">
-      <div 
-        v-if="activeModalType" 
-        class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-[200]"
-        @click="closeLegalModal"
-      >
+    <Teleport to="body">
+      <Transition name="modal-fade">
         <div 
-          @click.stop
-          class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl border border-gray-100 relative animate-modal-pop max-h-[80vh] flex flex-col"
+          v-if="activeModalType" 
+          class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-[200]"
+          @click="closeLegalModal"
         >
-          <!-- Header -->
-          <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="font-mono text-xs font-semibold text-gray-900 uppercase tracking-wider">
-              {{ activeModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy' }}
-            </h3>
-            <button @click="closeLegalModal" class="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          <!-- Content -->
-          <div class="p-6 overflow-y-auto text-xs text-gray-600 space-y-4 leading-relaxed flex-1">
-            <template v-if="activeModalType === 'terms'">
-              <p class="font-semibold text-gray-900">Welcome to the IC Student Portal (ICSP).</p>
-              <p>By accessing or using this system, you agree to comply with and be bound by the DNSC Student Handbook rules and the following terms:</p>
-              
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">1. Account Responsibility</p>
-                <p>Students and administrators are responsible for maintaining the confidentiality of their session tokens and login credentials. Any activity logged under your account is deemed your responsibility.</p>
-              </div>
+          <div 
+            @click.stop
+            class="bg-white w-full max-w-lg rounded-2xl overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] border border-gray-200/80 relative animate-modal-pop max-h-[80vh] flex flex-col"
+          >
+            <!-- Header -->
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 class="font-mono text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                {{ activeModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy' }}
+              </h3>
+              <button @click="closeLegalModal" class="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 overflow-y-auto text-xs text-gray-600 space-y-4 leading-relaxed flex-1">
+              <template v-if="activeModalType === 'terms'">
+                <p class="font-semibold text-gray-900">Welcome to the IC Student Portal (ICSP).</p>
+                <p>By accessing or using this system, you agree to comply with and be bound by the DNSC Student Handbook rules and the following terms:</p>
+                
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">1. Account Responsibility</p>
+                  <p>Students and administrators are responsible for maintaining the confidentiality of their session tokens and login credentials. Any activity logged under your account is deemed your responsibility.</p>
+                </div>
 
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">2. Portal Usage & Conduct</p>
-                <p>The portal is dedicated to academic management, RFID attendance check-ins, fee clearance logs, and institutional announcements. Unauthorized attempts to bypass API auth, scrape student records, or inject malicious payloads will result in immediate suspension and disciplinary action by the Institute of Computing.</p>
-              </div>
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">2. Portal Usage & Conduct</p>
+                  <p>The portal is dedicated to academic management, RFID attendance check-ins, fee clearance logs, and institutional announcements. Unauthorized attempts to bypass API auth, scrape student records, or inject malicious payloads will result in immediate suspension and disciplinary action by the Institute of Computing.</p>
+                </div>
 
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">3. System Integration (SSO)</p>
-                <p>This portal connects with other official DNSC Campus Systems. Session transfer tokens are issued temporarily and expire automatically. Bypassing token exchanges or attempting to access unauthorized destination domains is strictly prohibited.</p>
-              </div>
-            </template>
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">3. System Integration (SSO)</p>
+                  <p>This portal connects with other official DNSC Campus Systems. Session transfer tokens are issued temporarily and expire automatically. Bypassing token exchanges or attempting to access unauthorized destination domains is strictly prohibited.</p>
+                </div>
+              </template>
 
-            <template v-if="activeModalType === 'privacy'">
-              <p class="font-semibold text-gray-900">Data Privacy Compliance (RA 10173)</p>
-              <p>In compliance with the <strong>Republic Act No. 10173</strong> (Data Privacy Act of 2012 of the Philippines), the Institute of Computing at DNSC is committed to protecting your personal information.</p>
-              
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">1. Information We Collect</p>
-                <p>We process standard institutional credentials including student name, ID number, DNSC Google Workspace email, RFID scanner logs (attendance times), and academic fee status.</p>
-              </div>
+              <template v-if="activeModalType === 'privacy'">
+                <p class="font-semibold text-gray-900">Data Privacy Compliance (RA 10173)</p>
+                <p>In compliance with the <strong>Republic Act No. 10173</strong> (Data Privacy Act of 2012 of the Philippines), the Institute of Computing at DNSC is committed to protecting your personal information.</p>
+                
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">1. Information We Collect</p>
+                  <p>We process standard institutional credentials including student name, ID number, DNSC Google Workspace email, RFID scanner logs (attendance times), and academic fee status.</p>
+                </div>
 
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">2. Purpose of Processing</p>
-                <p>Your data is processed solely for academic identification, class check-ins, tracking local organization obligations, publishing posts, and facilitating authentication across integrated campus services.</p>
-              </div>
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">2. Purpose of Processing</p>
+                  <p>Your data is processed solely for academic identification, class check-ins, tracking local organization obligations, publishing posts, and facilitating authentication across integrated campus services.</p>
+                </div>
 
-              <div class="space-y-2">
-                <p class="font-bold text-gray-800">3. Security Measures</p>
-                <p>All token requests and API responses are encrypted using HTTPS and verified via JSON Web Tokens (JWT). Access is strictly restricted based on role permissions (Student or Administrator).</p>
-              </div>
-            </template>
-          </div>
-          
-          <!-- Footer -->
-          <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-            <button 
-              @click="closeLegalModal" 
-              class="px-4 py-2 bg-ic-primary hover:bg-ic-secondary text-white font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer"
-            >
-              Close
-            </button>
+                <div class="space-y-2">
+                  <p class="font-bold text-gray-800">3. Security Measures</p>
+                  <p>All token requests and API responses are encrypted using HTTPS and verified via JSON Web Tokens (JWT). Access is strictly restricted based on role permissions (Student or Administrator).</p>
+                </div>
+              </template>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button 
+                @click="closeLegalModal" 
+                class="px-4 py-2 bg-ic-primary hover:bg-ic-secondary text-white font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
 
     <!-- Event Detail Dialog Modal (Solid header) -->
-    <Transition name="modal-fade">
-      <div 
-        v-if="eventModalOpen" 
-        class="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50"
-        @click.self="closeEventModal"
-      >
-        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-gray-100 relative animate-modal-pop">
-          <!-- Modal Header Banner (Solid Brand Color, no gradient) -->
-          <div class="bg-ic-primary p-5 text-white relative">
-            <button 
-              @click="closeEventModal" 
-              class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition-colors focus:outline-none"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div class="flex items-center gap-3.5 pr-8">
-              <div class="w-12 h-12 rounded-full bg-white/20 flex flex-col items-center justify-center border border-white/30 shrink-0 font-semibold">
-                <span class="font-mono text-[9px] text-white/90 leading-none uppercase tracking-wider">{{ selectedEvent.month }}</span>
-                <span class="font-pixel text-xl leading-tight mt-0.5">{{ selectedEvent.day }}</span>
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="eventModalOpen" 
+          class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-[100]"
+          @click.self="closeEventModal"
+        >
+          <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.2)] border border-gray-200/80 relative animate-modal-pop">
+            <!-- Modal Header Banner (Solid Brand Color, no gradient) -->
+            <div class="bg-ic-primary p-5 text-white relative">
+              <button 
+                @click="closeEventModal" 
+                class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition-colors focus:outline-none cursor-pointer"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div class="flex items-center gap-3.5 pr-8">
+                <div class="w-12 h-12 rounded-full bg-white/20 flex flex-col items-center justify-center border border-white/30 shrink-0 font-semibold">
+                  <span class="font-mono text-[9px] text-white/90 leading-none uppercase tracking-wider">{{ selectedEvent.month }}</span>
+                  <span class="font-pixel text-xl leading-tight mt-0.5">{{ selectedEvent.day }}</span>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-base leading-tight">{{ selectedEvent.name }}</h4>
+                  <p class="font-mono text-[11px] text-white/80 mt-0.5 uppercase tracking-wider">{{ selectedEvent.semester }} {{ selectedEvent.academicYear }}</p>
+                </div>
               </div>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="p-6 space-y-4.5">
               <div>
-                <h4 class="font-semibold text-base leading-tight">{{ selectedEvent.name }}</h4>
-                <p class="font-mono text-[11px] text-white/80 mt-0.5 uppercase tracking-wider">{{ selectedEvent.semester }} {{ selectedEvent.academicYear }}</p>
+                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</h5>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ selectedEvent.description }}</p>
               </div>
-            </div>
-          </div>
 
-          <!-- Modal Body Content -->
-          <div class="p-6 space-y-4.5">
-            <div>
-              <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</h5>
-              <p class="text-sm text-gray-700 leading-relaxed">{{ selectedEvent.description }}</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
-              <div>
-                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Info</h5>
-                <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-ic-secondary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                  <span>{{ selectedEvent.semester }}</span>
-                </p>
+              <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                <div>
+                  <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Info</h5>
+                  <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-ic-secondary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <span>{{ selectedEvent.semester }}</span>
+                  </p>
+                </div>
+                <div>
+                  <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Year</h5>
+                  <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-ic-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>{{ selectedEvent.academicYear }}</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Year</h5>
-                <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
-                  <svg class="w-3.5 h-3.5 text-ic-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>{{ selectedEvent.academicYear }}</span>
-                </p>
+
+              <div v-if="selectedEvent.dateRange" class="border-t border-gray-100 pt-4">
+                <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">Event Schedule</span>
+                <span class="text-xs text-gray-700 font-semibold font-mono">{{ selectedEvent.dateRange }}</span>
               </div>
             </div>
 
-            <div v-if="selectedEvent.dateRange" class="border-t border-gray-100 pt-4">
-              <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">Event Schedule</span>
-              <span class="text-xs text-gray-700 font-semibold font-mono">{{ selectedEvent.dateRange }}</span>
+            <!-- Modal Action Button -->
+            <div class="px-6 pb-6 pt-2">
+              <button 
+                @click="closeEventModal" 
+                class="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-colors focus:outline-none cursor-pointer"
+              >
+                Close Details
+              </button>
             </div>
-          </div>
-
-          <!-- Modal Action Button -->
-          <div class="px-6 pb-6 pt-2">
-            <button 
-              @click="closeEventModal" 
-              class="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-colors focus:outline-none cursor-pointer"
-            >
-              Close Details
-            </button>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
