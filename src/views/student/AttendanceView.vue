@@ -1,132 +1,167 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-fade-in-up">
     <!-- Header -->
     <div>
-      <h1 class="text-2xl font-semibold text-gray-900">Attendance</h1>
-      <p class="text-gray-500 text-sm mt-0.5">View your event attendance records</p>
+      <h1 class="font-pixel text-2xl sm:text-3xl text-gray-900 lowercase tracking-tight">attendance</h1>
+      <p class="text-sm text-gray-500 mt-0.5">View your event attendance records</p>
     </div>
 
     <!-- Loading State -->
     <template v-if="isLoading && records.length === 0">
-      <div class="grid grid-cols-3 gap-3">
-        <div v-for="i in 3" :key="i" class="bg-white border border-gray-200 rounded-xl p-4 animate-pulse">
-          <div class="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+      <!-- Summary Skeleton -->
+      <div class="space-y-3">
+        <div class="h-4 bg-gray-200 rounded w-40 animate-pulse"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div v-for="i in 3" :key="i" class="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-1/2 mb-3"></div>
+            <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+          </div>
         </div>
       </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-5 animate-pulse">
-        <div class="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div v-for="i in 5" :key="i" class="h-10 bg-gray-200 rounded w-full mb-2"></div>
+      <!-- Table Skeleton -->
+      <div class="space-y-3">
+        <div class="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+        <div class="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse">
+          <div v-for="i in 5" :key="i" class="h-10 bg-gray-100 rounded w-full mb-2"></div>
+        </div>
       </div>
     </template>
 
     <template v-else>
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-3 gap-3">
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Total Sessions</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ totalSlots }}</p>
-      </div>
+      <!-- 01 — session summary -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <span class="font-pixel text-sm text-gray-400 lowercase">01 — session summary</span>
+          <router-link 
+            to="/calendar" 
+            class="group font-mono text-[11px] font-medium text-gray-400 hover:text-ic-primary uppercase tracking-wider transition-colors inline-flex items-center gap-1"
+          >
+            <span>view calendar</span>
+            <span class="text-[10px] transition-transform group-hover:translate-x-0.5">→</span>
+          </router-link>
+        </div>
 
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Attended Sessions</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendedCount }}</p>
-      </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <p class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Total Sessions</p>
+            <p class="font-pixel text-3xl text-gray-900 mt-1.5 leading-none">{{ totalSlots }}</p>
+          </div>
 
-      <div class="bg-white border border-gray-200 rounded-xl p-4">
-        <p class="text-xs text-gray-500 min-h-[2rem] flex items-center">Rate</p>
-        <p class="text-2xl font-semibold text-gray-900 mt-1">{{ attendanceRate }}%</p>
-      </div>
-    </div>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <p class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Attended</p>
+            <p class="font-pixel text-3xl text-gray-900 mt-1.5 leading-none">{{ attendedCount }}</p>
+          </div>
 
-    <!-- Attendance Records Table -->
-    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-      <div class="p-5 border-b border-gray-200">
-        <h2 class="text-base font-semibold text-gray-900">Attendance Records</h2>
-      </div>
-      
-      <div class="overflow-x-auto">
-        <table class="min-w-[760px] w-full divide-y divide-gray-200">
-          <thead>
-            <tr class="bg-gray-50">
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Morning In</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Morning Out</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Afternoon In</th>
-              <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Afternoon Out</th>
-              <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Fines</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <!-- Skeleton rows while loading next page -->
-            <template v-if="isLoading && records.length > 0">
-              <tr v-for="i in 10" :key="'skel-'+i">
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
-                <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-10 ml-auto"></div></td>
-              </tr>
-            </template>
-            <template v-else>
-              <tr v-for="record in records" :key="record.id" class="hover:bg-gray-50 transition-colors">
-                <td class="px-4 py-3 text-sm text-gray-900 max-w-[200px] truncate">
-                  {{ record.institute_attendance_event?.attendance_event?.event_name || '-' }}
-                </td>
-                <td class="px-4 py-3 text-sm text-gray-600 whitespace-nowrap">{{ formatDate(record.date) }}</td>
-                <td class="px-4 py-3 text-sm text-center" :class="record.morning_check_in ? 'text-green-600' : 'text-gray-300'">
-                  {{ formatTime(record.morning_check_in) }}
-                </td>
-                <td class="px-4 py-3 text-sm text-center" :class="record.morning_check_out ? 'text-green-600' : 'text-gray-300'">
-                  {{ formatTime(record.morning_check_out) }}
-                </td>
-                <td class="px-4 py-3 text-sm text-center" :class="record.afternoon_check_in ? 'text-green-600' : 'text-gray-300'">
-                  {{ formatTime(record.afternoon_check_in) }}
-                </td>
-                <td class="px-4 py-3 text-sm text-center" :class="record.afternoon_check_out ? 'text-green-600' : 'text-gray-300'">
-                  {{ formatTime(record.afternoon_check_out) }}
-                </td>
-                <td class="px-4 py-3 text-sm text-right" :class="parseFloat(record.total_fines) > 0 ? 'text-red-600 font-medium' : 'text-gray-400'">
-                  {{ parseFloat(record.total_fines) > 0 ? '₱' + parseFloat(record.total_fines).toFixed(0) : '-' }}
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-
-        <!-- Empty State -->
-        <div v-if="records.length === 0 && !isLoading" class="py-12 text-center">
-          <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
-          <p class="text-sm text-gray-500">No attendance records found</p>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <div class="flex items-center justify-between">
+              <p class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Rate</p>
+              <span 
+                class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider"
+                :class="attendanceRate >= 80 
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-600' 
+                  : 'border-amber-200 bg-amber-50 text-amber-600'"
+              >
+                <span class="w-1 h-1 rounded-full" :class="attendanceRate >= 80 ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+                {{ attendanceRate >= 80 ? 'Good' : 'Low' }}
+              </span>
+            </div>
+            <p class="font-pixel text-3xl text-gray-900 mt-1.5 leading-none">{{ attendanceRate }}<span class="text-xl text-gray-400">%</span></p>
+          </div>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div v-if="totalPages > 15" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
-        <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
-        <div class="flex items-center gap-2">
-          <button 
-            @click="goToPage(currentPage - 1)"
-            :disabled="currentPage <= 1 || isLoading"
-            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <button 
-            @click="goToPage(currentPage + 1)"
-            :disabled="currentPage >= totalPages || isLoading"
-            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
+      <!-- 02 — attendance records -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <span class="font-pixel text-sm text-gray-400 lowercase">02 — attendance records</span>
+          <span v-if="totalRecords > 0" class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">{{ totalRecords }} records</span>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+          <div class="overflow-x-auto">
+            <table class="min-w-[760px] w-full divide-y divide-gray-200">
+              <thead>
+                <tr class="bg-gray-50/80">
+                  <th class="px-4 py-3 text-left font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Event</th>
+                  <th class="px-4 py-3 text-left font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                  <th class="px-4 py-3 text-center font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">AM In</th>
+                  <th class="px-4 py-3 text-center font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">AM Out</th>
+                  <th class="px-4 py-3 text-center font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">PM In</th>
+                  <th class="px-4 py-3 text-center font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">PM Out</th>
+                  <th class="px-4 py-3 text-right font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">Fines</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-100">
+                <!-- Skeleton rows while loading next page -->
+                <template v-if="isLoading && records.length > 0">
+                  <tr v-for="i in 10" :key="'skel-'+i">
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-full"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-16 mx-auto"></div></td>
+                    <td class="px-4 py-3"><div class="h-4 bg-gray-200 rounded animate-pulse w-10 ml-auto"></div></td>
+                  </tr>
+                </template>
+                <template v-else>
+                  <tr v-for="record in records" :key="record.id" class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3 text-sm text-gray-900 max-w-[200px] truncate font-medium">
+                      {{ record.institute_attendance_event?.attendance_event?.event_name || '-' }}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">{{ formatDate(record.date) }}</td>
+                    <td class="px-4 py-3 font-mono text-xs text-center" :class="record.morning_check_in ? 'text-emerald-600' : 'text-gray-300'">
+                      {{ formatTime(record.morning_check_in) }}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-center" :class="record.morning_check_out ? 'text-emerald-600' : 'text-gray-300'">
+                      {{ formatTime(record.morning_check_out) }}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-center" :class="record.afternoon_check_in ? 'text-emerald-600' : 'text-gray-300'">
+                      {{ formatTime(record.afternoon_check_in) }}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-center" :class="record.afternoon_check_out ? 'text-emerald-600' : 'text-gray-300'">
+                      {{ formatTime(record.afternoon_check_out) }}
+                    </td>
+                    <td class="px-4 py-3 font-mono text-xs text-right" :class="parseFloat(record.total_fines) > 0 ? 'text-red-600 font-semibold' : 'text-gray-300'">
+                      {{ parseFloat(record.total_fines) > 0 ? '₱' + parseFloat(record.total_fines).toFixed(0) : '-' }}
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+
+            <!-- Empty State -->
+            <div v-if="records.length === 0 && !isLoading" class="py-16 text-center">
+              <svg class="w-10 h-10 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+              <p class="font-pixel text-sm text-gray-400 lowercase">no attendance records yet</p>
+              <p class="font-mono text-[11px] text-gray-400 mt-1 uppercase tracking-wider">records will appear after your first event</p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="flex items-center justify-between px-5 py-3 border-t border-gray-100">
+            <p class="font-mono text-[11px] text-gray-400 uppercase tracking-wider">Page {{ currentPage }} of {{ totalPages }}</p>
+            <div class="flex items-center gap-2">
+              <button 
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage <= 1 || isLoading"
+                class="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                ← Prev
+              </button>
+              <button 
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage >= totalPages || isLoading"
+                class="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
     </template>
   </div>
 </template>
