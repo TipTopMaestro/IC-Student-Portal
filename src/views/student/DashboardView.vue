@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-6 max-w-5xl mx-auto px-1">
+  <div class="space-y-6 max-w-5xl mx-auto px-1 animate-fade-in-up">
     <!-- Header Greeting & Low-profile Stats Summary -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
       <div class="min-w-0">
@@ -315,7 +315,13 @@
           <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
             <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
               <div class="w-11 h-11 rounded-full overflow-hidden border border-gray-200 ring-2 ring-gray-50 bg-gray-50 shrink-0">
-                <img v-if="userAvatar" :src="userAvatar" alt="Avatar" class="w-full h-full object-cover" />
+                <img 
+                  v-if="userAvatar && !imageLoadFailed" 
+                  :src="userAvatar" 
+                  alt="Profile" 
+                  @error="handleAvatarError"
+                  class="w-full h-full object-cover" 
+                />
                 <div v-else class="w-full h-full bg-ic-primary flex items-center justify-center text-white font-semibold text-sm">
                   {{ userInitials }}
                 </div>
@@ -613,15 +619,36 @@ const studentFullName = computed(() => {
 
 const studentIdNumber = computed(() => authStore.user?.student?.s_id_number || '')
 
+const imageLoadFailed = ref(false)
+
 const userAvatar = computed(() => {
-  const avatar = authStore.user?.user_avatar || authStore.user?.profile_url || authStore.user?.profile || authStore.user?.student?.s_image
-  if (avatar) {
-    return avatar.startsWith('http') ? avatar : `https://${avatar.replace(/^\/+/,'')}`
+  const avatar = authStore.user?.user_avatar || 
+                 authStore.user?.profile_url || 
+                 authStore.user?.profile || 
+                 authStore.user?.student?.s_image || 
+                 '/default_profile.png'
+
+  if (!avatar) return '/default_profile.png'
+  if (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('/')) {
+    return avatar
   }
-  return ''
+  return `/${avatar}`
 })
 
+const handleAvatarError = (e) => {
+  if (e.target && !e.target.src.endsWith('/default_profile.png')) {
+    e.target.src = '/default_profile.png'
+  } else {
+    imageLoadFailed.value = true
+  }
+}
+
 const userInitials = computed(() => {
+  const user = authStore.user
+  if (!user) return 'U'
+  if (user.student?.s_fname && user.student?.s_lname) {
+    return `${user.student.s_fname.charAt(0)}${user.student.s_lname.charAt(0)}`.toUpperCase()
+  }
   const name = studentFullName.value || 'Student'
   return name.split(' ').filter(p => p.length > 0).slice(0, 2).map(p => p.charAt(0)).join('').toUpperCase()
 })
