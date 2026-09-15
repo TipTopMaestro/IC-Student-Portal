@@ -5,7 +5,7 @@
       <div class="flex items-center justify-between h-14 px-4">
         <div class="flex items-center gap-1.5 cursor-pointer relative systems-trigger select-none" @click.stop="toggleSystemsMenu">
           <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
-          <span class="text-base font-semibold text-gray-900">ICSP</span>
+          <span class="font-pixel text-lg text-ic-primary tracking-tight">ICSP</span>
           <svg 
             class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
@@ -27,11 +27,11 @@
           >
             <div
               v-if="showSystemsMenu"
-              class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[100] systems-dropdown"
+              class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-[0_16px_36px_-12px_rgba(0,0,0,0.12)] border border-gray-200 overflow-hidden z-[100] systems-dropdown"
               @click.stop
             >
-              <div class="p-3 border-b border-gray-50">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+              <div class="p-3 border-b border-gray-100">
+                <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
               </div>
               <div class="py-1">
                 <button 
@@ -238,7 +238,7 @@
           <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
         </div>
         <div class="flex items-center justify-between flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap ml-4">
-          <span class="text-xl font-semibold text-gray-900">ICSP</span>
+          <span class="font-pixel text-xl text-ic-primary tracking-tight">ICSP</span>
           <svg 
             class="w-4 h-4 text-gray-500 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
@@ -261,11 +261,11 @@
         >
           <div
             v-if="showSystemsMenu"
-            class="absolute top-full left-6 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 systems-dropdown"
+            class="absolute top-full left-6 mt-1 w-64 bg-white rounded-2xl shadow-[0_16px_36px_-12px_rgba(0,0,0,0.12)] border border-gray-200 overflow-hidden z-50 systems-dropdown"
             @click.stop
           >
-            <div class="p-3 border-b border-gray-50">
-              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+            <div class="p-3 border-b border-gray-100">
+              <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
             </div>
             <div class="py-1">
               <button 
@@ -557,7 +557,7 @@
 
     <!-- Main Content -->
     <main class="md:ml-18 pt-14 pb-20 md:pt-0 md:pb-0">
-      <div class="max-w-233.75 mx-auto px-4 py-6">
+      <div class="max-w-233.75 mx-auto px-4 py-6 animate-fade-in-up">
         <router-view />
       </div>
     </main>

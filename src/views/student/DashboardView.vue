@@ -2,43 +2,44 @@
   <div class="space-y-6 max-w-5xl mx-auto px-1">
     <!-- Header Greeting & Low-profile Stats Summary -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-900">{{ greeting }}, {{ firstName }}</h1>
-        <p class="text-gray-500 text-sm mt-0.5">{{ currentDate }}</p>
+      <div class="min-w-0">
+        <span class="font-pixel text-xs sm:text-sm text-ic-primary lowercase tracking-wide block mb-1">dashboard</span>
+        <h1 class="text-2xl md:text-3xl font-semibold text-gray-900 tracking-tight break-words">{{ greeting }}, {{ firstName }}</h1>
+        <p class="font-mono text-[11px] uppercase tracking-wider text-gray-400 mt-0.5">{{ currentDate }}</p>
       </div>
 
-      <!-- Quick Metrics Header (Pills style - Forced to 1 row on mobile) -->
-      <div v-if="isLoading" class="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-hide py-1 w-full md:w-auto">
-        <div v-for="i in 3" :key="i" class="h-7 w-28 bg-gray-200 rounded-full animate-pulse shrink-0"></div>
+      <!-- Quick Metrics Header (Pills style - Responsive wrap on mobile, row on tablet/desktop) -->
+      <div v-if="isLoading" class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 py-1 w-full md:w-auto">
+        <div v-for="i in 3" :key="i" class="h-6.5 sm:h-7 w-24 sm:w-28 bg-gray-200 rounded-full animate-pulse shrink-0"></div>
       </div>
-      <div v-else class="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-hide py-1 w-full md:w-auto">
-        <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">{{ attendanceRate }}% Attendance</span>
+      <div v-else class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 py-1 w-full md:w-auto">
+        <div class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">{{ attendanceRate }}% Attendance</span>
         </div>
-        <div v-if="unpaidFees > 0" class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
-          <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">{{ unpaidFees }} Unpaid {{ unpaidFees === 1 ? 'Item' : 'Items' }}</span>
+        <div v-if="unpaidFees > 0" class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">{{ unpaidFees }} Unpaid {{ unpaidFees === 1 ? 'Item' : 'Items' }}</span>
         </div>
-        <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-          <span class="text-[11px] sm:text-xs font-semibold text-gray-700">₱{{ totalUnpaidAmount.toLocaleString() }} Balance</span>
+        <div class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">₱{{ totalUnpaidAmount.toLocaleString() }} Balance</span>
         </div>
       </div>
     </div>
 
     <!-- Loading Skeleton (Matches the actual structure) -->
     <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 space-y-5">
-        <!-- Upcoming Events Card Skeleton -->
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-200 flex justify-between items-center">
-            <div class="h-4 bg-gray-200 rounded w-28 animate-pulse"></div>
-            <div class="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Upcoming Events Skeleton -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center px-1">
+            <div class="h-4 bg-gray-200 rounded w-36 animate-pulse"></div>
+            <div class="h-3 bg-gray-200 rounded w-20 animate-pulse"></div>
           </div>
-          <div class="divide-y divide-gray-100">
+          <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-100">
             <div v-for="i in 3" :key="i" class="px-5 py-3.5 flex items-center gap-3">
-              <div class="w-11 h-11 rounded-lg bg-gray-100 animate-pulse shrink-0"></div>
+              <div class="w-11 h-11 rounded-xl bg-gray-100 animate-pulse shrink-0"></div>
               <div class="flex-1 space-y-2 min-w-0">
                 <div class="h-3.5 bg-gray-200 rounded w-1/3 animate-pulse"></div>
                 <div class="h-2.5 bg-gray-200 rounded w-1/2 animate-pulse"></div>
@@ -48,12 +49,14 @@
           </div>
         </div>
 
-        <!-- Mobile-only Stats Skeleton -->
-        <div class="block lg:hidden space-y-4">
-          <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
-            <div class="h-3.5 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-            <div class="h-6 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-            <div class="h-2.5 bg-gray-200 rounded w-full animate-pulse"></div>
+        <!-- Mobile & Tablet Stats Skeleton -->
+        <div class="block lg:hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-2xl p-5 space-y-3">
+              <div class="h-3.5 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+              <div class="h-6 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+              <div class="h-2.5 bg-gray-200 rounded w-full animate-pulse"></div>
+            </div>
           </div>
         </div>
 
@@ -106,130 +109,141 @@
       <!-- Left Column: Feed + Events Card (2 cols) -->
       <div class="lg:col-span-2 space-y-5">
         
-        <!-- Clean Card List View: Upcoming Events -->
-        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 class="text-sm font-semibold text-gray-900">Upcoming Events</h2>
-            <router-link to="/calendar" class="text-xs text-ic-primary hover:underline">View calendar</router-link>
-          </div>
-          
-          <div v-if="upcomingEventsList.length === 0" class="py-12 text-center">
-            <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p class="text-xs text-gray-400 font-medium">No upcoming events scheduled</p>
-          </div>
-          
-          <div v-else class="divide-y divide-gray-100">
-            <!-- Event Item -->
-            <div 
-              v-for="event in upcomingEventsList" 
-              :key="event.id"
-              class="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/50 transition-colors"
+        <!-- Upcoming Events Section -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between px-1">
+            <span class="font-pixel text-sm text-gray-400 lowercase">01 — upcoming events</span>
+            <router-link 
+              to="/calendar" 
+              class="font-mono text-[11px] font-medium text-gray-400 hover:text-ic-primary uppercase tracking-wider transition-colors inline-flex items-center gap-1"
             >
-              <div class="flex items-center gap-3 min-w-0">
-                <!-- Date Badge Block (Clean solid gray border, no gradient) -->
-                <div class="w-11 h-11 rounded-lg bg-gray-50 flex flex-col items-center justify-center shrink-0 border border-gray-200 select-none">
-                  <span class="text-[9px] font-semibold text-ic-secondary tracking-wider leading-none uppercase">{{ event.month }}</span>
-                  <span class="text-base font-semibold text-gray-900 leading-tight mt-0.5">{{ event.day }}</span>
-                </div>
-                <div class="min-w-0">
-                  <h4 class="text-sm font-semibold text-gray-900 truncate leading-tight">{{ event.name }}</h4>
-                  <p class="text-xs text-gray-500 mt-1 truncate">
-                    <span v-if="event.academicYear">{{ event.academicYear }}</span>
-                    <span v-if="event.academicYear && event.semester"> · </span>
-                    <span v-if="event.semester">{{ event.semester }}</span>
-                  </p>
-                </div>
-              </div>
-              <button 
-                @click="openEventModal(event)"
-                class="text-xs font-semibold text-ic-primary hover:text-ic-secondary transition-colors shrink-0 focus:outline-none"
+              <span>view calendar</span>
+              <span class="text-xs">→</span>
+            </router-link>
+          </div>
+          
+          <!-- Events Card -->
+          <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <div v-if="upcomingEventsList.length === 0" class="py-12 text-center">
+              <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p class="font-mono text-[11px] text-gray-400 uppercase tracking-wider">No upcoming events scheduled</p>
+            </div>
+            
+            <div v-else class="divide-y divide-gray-100">
+              <!-- Event Item -->
+              <div 
+                v-for="event in upcomingEventsList" 
+                :key="event.id"
+                class="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/50 transition-colors"
               >
-                View Details
-              </button>
+                <div class="flex items-center gap-3 min-w-0">
+                  <!-- Date Badge Block -->
+                  <div class="w-11 h-11 rounded-xl bg-gray-50 flex flex-col items-center justify-center shrink-0 border border-gray-200 select-none">
+                    <span class="font-mono text-[9px] font-semibold text-ic-secondary tracking-wider leading-none uppercase">{{ event.month }}</span>
+                    <span class="font-pixel text-base text-gray-900 leading-tight mt-0.5">{{ event.day }}</span>
+                  </div>
+                  <div class="min-w-0">
+                    <h4 class="text-sm font-semibold text-gray-900 truncate leading-tight">{{ event.name }}</h4>
+                    <p class="font-mono text-[11px] text-gray-400 mt-1 truncate">
+                      <span v-if="event.academicYear">{{ event.academicYear }}</span>
+                      <span v-if="event.academicYear && event.semester"> · </span>
+                      <span v-if="event.semester">{{ event.semester }}</span>
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  @click="openEventModal(event)"
+                  class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary transition-colors shrink-0 focus:outline-none cursor-pointer"
+                >
+                  Details
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Mobile-Only Components: Outstanding Balance & Attendance Widgets -->
-        <div class="block lg:hidden space-y-4">
-          <!-- Outstanding Balance Mobile Card -->
-          <div class="bg-white border border-gray-200 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-3">
+        <!-- Mobile & Tablet Only Components: Outstanding Balance & Attendance Widgets -->
+        <div class="block lg:hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Outstanding Balance Mobile Card -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col justify-between">
               <div>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Outstanding Balance</h3>
-                <p class="text-xl font-semibold text-gray-900 mt-1">₱{{ totalUnpaidAmount.toLocaleString() }}</p>
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider">Outstanding Balance</h3>
+                  <router-link to="/fees" class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:underline">View all ↗</router-link>
+                </div>
+                <p class="font-pixel text-2xl text-gray-900 mt-0.5">₱{{ totalUnpaidAmount.toLocaleString() }}</p>
               </div>
-              <router-link to="/fees" class="text-xs text-ic-primary hover:underline">View all</router-link>
-            </div>
-            
-            <div v-if="pendingFeesList.length > 0" class="space-y-3 pt-3 border-t border-gray-100">
-              <div v-for="fee in pendingFeesList" :key="fee.id" class="flex items-center justify-between gap-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <div class="w-7 h-7 rounded-full bg-pink-50 flex items-center justify-center text-ic-primary border border-pink-100 shrink-0">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
+              
+              <div v-if="pendingFeesList.length > 0" class="space-y-3 pt-3.5 mt-3 border-t border-gray-100">
+                <div v-for="fee in pendingFeesList" :key="fee.id" class="flex items-center justify-between gap-3">
+                  <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="w-7.5 h-7.5 rounded-full bg-pink-50 flex items-center justify-center text-ic-primary border border-pink-100 shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</p>
+                      <p class="font-mono text-[10px] text-gray-400 mt-0.5 leading-none uppercase">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
+                    </div>
                   </div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</p>
-                    <p class="text-[10px] text-gray-500 mt-0.5 leading-none">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
+                  <span class="font-mono text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
+                </div>
+              </div>
+              <p v-else class="font-mono text-[11px] text-gray-400 italic pt-2">No pending items found</p>
+            </div>
+
+            <!-- Attendance Stats Mobile Card -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider">Attendance Status</h3>
+                <router-link to="/attendance" class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:underline">View details ↗</router-link>
+              </div>
+              
+              <div class="flex items-center gap-4.5">
+                <!-- Ring Gauge -->
+                <div class="relative w-16 h-16 shrink-0">
+                  <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                    <path 
+                      class="text-gray-100" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      fill="none" 
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path 
+                      class="text-ic-primary transition-all duration-1000" 
+                      stroke="currentColor" 
+                      stroke-width="3" 
+                      stroke-linecap="round" 
+                      fill="none" 
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      :stroke-dasharray="`${attendanceRate}, 100`"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="font-pixel text-xs font-semibold text-gray-900">{{ attendanceRate }}%</span>
                   </div>
                 </div>
-                <span class="text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
-              </div>
-            </div>
-            <p v-else class="text-xs text-gray-400 italic py-1">No pending items found</p>
-          </div>
 
-          <!-- Attendance Stats Mobile Card (Modern Circular Ring Layout) -->
-          <div class="bg-white border border-gray-200 rounded-xl p-5">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attendance Status</h3>
-              <router-link to="/attendance" class="text-xs text-ic-primary hover:underline">View details</router-link>
-            </div>
-            
-            <div class="flex items-center gap-5">
-              <!-- Ring Gauge -->
-              <div class="relative w-16 h-16 shrink-0">
-                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                  <path 
-                    class="text-gray-100" 
-                    stroke="currentColor" 
-                    stroke-width="3" 
-                    fill="none" 
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                  <path 
-                    class="text-ic-primary transition-all duration-1000" 
-                    stroke="currentColor" 
-                    stroke-width="3" 
-                    stroke-linecap="round" 
-                    fill="none" 
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    :stroke-dasharray="`${attendanceRate}, 100`"
-                  />
-                </svg>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-xs font-semibold text-gray-900">{{ attendanceRate }}%</span>
-                </div>
-              </div>
-
-              <!-- Metrics -->
-              <div class="flex-1 space-y-1.5 min-w-0">
-                <div class="flex items-center justify-between text-xs">
-                  <span class="text-gray-500">Attended Sessions</span>
-                  <span class="font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
-                </div>
-                <div class="pt-1.5 border-t border-gray-100 flex items-center gap-1.5">
-                  <span 
-                    class="w-1.5 h-1.5 rounded-full" 
-                    :class="attendanceRate >= 80 ? 'bg-emerald-500' : 'bg-amber-500'"
-                  ></span>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-                    {{ attendanceRate >= 80 ? 'Good Standing' : 'Needs Review' }}
-                  </span>
+                <!-- Metrics -->
+                <div class="flex-1 space-y-1.5 min-w-0">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-500">Attended Sessions</span>
+                    <span class="font-mono font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
+                  </div>
+                  <div class="pt-1.5 border-t border-gray-100 flex items-center gap-1.5">
+                    <span 
+                      class="w-1.5 h-1.5 rounded-full" 
+                      :class="attendanceRate >= 80 ? 'bg-emerald-500' : 'bg-amber-500'"
+                    ></span>
+                    <span class="font-mono text-[10px] font-medium uppercase tracking-wider text-gray-400 truncate">
+                      {{ attendanceRate >= 80 ? 'Good Standing' : 'Needs Review' }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -237,13 +251,20 @@
         </div>
 
         <!-- Recent Posts Feed -->
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div class="flex items-center justify-between px-1">
-            <h2 class="text-sm font-semibold text-gray-900">Recent Posts</h2>
+            <span class="font-pixel text-sm text-gray-400 lowercase">02 — recent posts</span>
+            <router-link
+              to="/posts"
+              class="font-mono text-[11px] font-medium uppercase tracking-wider text-gray-400 hover:text-ic-primary transition-colors inline-flex items-center gap-1"
+            >
+              <span>all posts</span>
+              <span class="text-xs">→</span>
+            </router-link>
           </div>
 
           <div class="space-y-4" v-if="postsLoading">
-            <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-xl p-5 space-y-4 animate-pulse">
+            <div v-for="i in 2" :key="i" class="bg-white border border-gray-200 rounded-2xl p-5 space-y-4 animate-pulse shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-gray-200"></div>
                 <div class="flex-1 space-y-2">
@@ -251,7 +272,7 @@
                   <div class="h-2.5 bg-gray-200 rounded w-16"></div>
                 </div>
               </div>
-              <div class="h-20 bg-gray-50 rounded-lg"></div>
+              <div class="h-20 bg-gray-50 rounded-xl"></div>
             </div>
           </div>
 
@@ -261,28 +282,26 @@
               :key="post.id"
               :post="post"
               :show-actions="false"
-              class="border border-gray-200! shadow-xs!"
+              class="border border-gray-200! shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]! rounded-2xl!"
             />
 
             <!-- More Link -->
-            <div class="pt-4 text-center">
+            <div class="pt-2 text-center">
               <router-link
                 to="/posts"
-                class="inline-flex items-center gap-1 text-[13px] font-semibold text-gray-500 hover:text-ic-primary transition-colors duration-200 select-none"
+                class="inline-flex items-center gap-1.5 font-mono text-[11px] font-medium uppercase tracking-wider text-gray-400 hover:text-ic-primary transition-colors duration-200 select-none"
               >
-                <span>more</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                </svg>
+                <span>view more posts</span>
+                <span class="text-sm">↗</span>
               </router-link>
             </div>
           </div>
 
-          <div v-else class="bg-white border border-gray-200 rounded-xl py-12 px-5 text-center">
+          <div v-else class="bg-white border border-gray-200 rounded-2xl py-12 px-5 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
             <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4a2 2 0 00-2-2m-2 3h.01M5.071 8.243a2 2 0 00-2.828 2.828m0 0l6.364 6.364m-6.364-6.364L12 7.636l1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <p class="text-sm text-gray-400 font-medium">No posts published yet</p>
+            <p class="font-pixel text-sm text-gray-400 lowercase">no posts published yet</p>
           </div>
         </div>
 
@@ -292,30 +311,30 @@
       <div class="hidden lg:block">
         <div class="sticky top-20 space-y-5">
           <!-- Profile Card -->
-          <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-full overflow-hidden border border-gray-200 ring-2 ring-gray-50 bg-gray-50 shrink-0">
+          <div class="bg-white border border-gray-200 rounded-2xl p-4 flex items-center justify-between shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
+              <div class="w-11 h-11 rounded-full overflow-hidden border border-gray-200 ring-2 ring-gray-50 bg-gray-50 shrink-0">
                 <img v-if="userAvatar" :src="userAvatar" alt="Avatar" class="w-full h-full object-cover" />
                 <div v-else class="w-full h-full bg-ic-primary flex items-center justify-center text-white font-semibold text-sm">
                   {{ userInitials }}
                 </div>
               </div>
-              <div class="min-w-0">
-                <p class="text-sm font-semibold text-gray-900 truncate">{{ studentFullName }}</p>
-                <p class="text-xs text-gray-500 truncate">{{ studentIdNumber || authStore.user?.username }}</p>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-900 truncate" :title="studentFullName">{{ studentFullName }}</p>
+                <p class="font-mono text-[11px] text-gray-400 truncate mt-0.5">{{ studentIdNumber || authStore.user?.username }}</p>
               </div>
             </div>
-            <router-link to="/profile" class="text-xs font-semibold text-ic-primary hover:underline transition-colors shrink-0 ml-2">Profile</router-link>
+            <router-link to="/profile" class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary transition-colors shrink-0 whitespace-nowrap">Profile ↗</router-link>
           </div>
 
           <!-- Suggested Block: Outstanding Balance -->
-          <div class="bg-white border border-gray-200 rounded-xl p-5">
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
             <div class="flex items-center justify-between mb-3.5">
               <div>
-                <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Outstanding Balance</h3>
-                <p class="text-xl font-semibold text-gray-900 mt-1">₱{{ totalUnpaidAmount.toLocaleString() }}</p>
+                <h3 class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider">Outstanding Balance</h3>
+                <p class="font-pixel text-2xl text-gray-900 mt-1">₱{{ totalUnpaidAmount.toLocaleString() }}</p>
               </div>
-              <router-link to="/fees" class="text-xs text-ic-primary hover:underline">View all</router-link>
+              <router-link to="/fees" class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:underline">View all ↗</router-link>
             </div>
 
             <!-- Pending Fees List (Mimics Suggestions items) -->
@@ -329,18 +348,18 @@
                   </div>
                   <div class="min-w-0">
                     <p class="text-xs font-semibold text-gray-900 truncate leading-tight">{{ fee.name }}</p>
-                    <p class="text-[10px] text-gray-500 mt-0.5 leading-none">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
+                    <p class="font-mono text-[10px] text-gray-400 mt-0.5 leading-none uppercase">{{ fee.isFine ? 'Attendance Fine' : 'Unpaid Fee' }}</p>
                   </div>
                 </div>
-                <span class="text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
+                <span class="font-mono text-xs font-semibold text-gray-900 shrink-0">₱{{ fee.amount.toLocaleString() }}</span>
               </div>
             </div>
-            <p v-else class="text-xs text-gray-400 italic py-2">No pending items found</p>
+            <p v-else class="font-mono text-[11px] text-gray-400 italic py-2">No pending items found</p>
           </div>
 
           <!-- Suggested Block: Attendance Stats (Modern Circular Ring Layout) -->
-          <div class="bg-white border border-gray-200 rounded-xl p-5">
-            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Attendance Status</h3>
+          <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+            <h3 class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-4">Attendance Status</h3>
             
             <div class="flex items-center gap-4.5">
               <!-- Ring Gauge -->
@@ -354,7 +373,7 @@
                     fill="none" 
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
-                  <!-- Foreground Circle (Solid Primary Color, no gradient) -->
+                  <!-- Foreground Circle -->
                   <path 
                     class="text-ic-primary transition-all duration-1000" 
                     stroke="currentColor" 
@@ -367,7 +386,7 @@
                 </svg>
                 <!-- Centered Percentage -->
                 <div class="absolute inset-0 flex items-center justify-center">
-                  <span class="text-xs font-semibold text-gray-900">{{ attendanceRate }}%</span>
+                  <span class="font-pixel text-xs font-semibold text-gray-900">{{ attendanceRate }}%</span>
                 </div>
               </div>
 
@@ -375,14 +394,14 @@
               <div class="flex-1 space-y-1.5 min-w-0">
                 <div class="flex items-center justify-between text-xs">
                   <span class="text-gray-500">Attended Sessions</span>
-                  <span class="font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
+                  <span class="font-mono font-semibold text-gray-900">{{ attendedEvents }} / {{ totalEvents }}</span>
                 </div>
                 <div class="pt-1.5 border-t border-gray-100 flex items-center gap-1.5">
                   <span 
                     class="w-1.5 h-1.5 rounded-full" 
                     :class="attendanceRate >= 80 ? 'bg-emerald-500' : 'bg-amber-500'"
                   ></span>
-                  <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                  <span class="font-mono text-[10px] font-medium uppercase tracking-wider text-gray-400">
                     {{ attendanceRate >= 80 ? 'Good Standing' : 'Needs Review' }}
                   </span>
                 </div>

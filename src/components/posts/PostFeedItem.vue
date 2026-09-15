@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
     <!-- Post Header -->
     <div class="flex items-center gap-3 p-4">
       <div v-if="authorAvatar" class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100">
@@ -11,7 +11,7 @@
       <div class="flex-1 min-w-0">
         <p class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'Admin' }}</p>
         <div class="flex items-center gap-1.5 flex-wrap">
-          <p class="text-xs text-gray-500">{{ formattedDate || 'Recently' }}</p>
+          <p class="font-mono text-[11px] uppercase tracking-wider text-gray-400">{{ formattedDate || 'Recently' }}</p>
           <span class="text-xs text-gray-300">·</span>
           <CategoryBadge :category="post.category" size="sm" @click-category="$emit('filter-category', $event)" />
         </div>
@@ -70,7 +70,7 @@
       <button 
         v-if="isLongContent"
         @click="expanded = !expanded"
-        class="text-sm text-gray-500 hover:text-gray-700 mt-1"
+        class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary mt-1.5 cursor-pointer"
       >
         {{ expanded ? 'Show less' : 'Show more' }}
       </button>
@@ -178,7 +178,7 @@
           >
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
-          <span class="text-sm font-medium" v-if="localReactionCount > 0">{{ localReactionCount }}</span>
+          <span class="font-mono text-xs font-semibold text-gray-700" v-if="localReactionCount > 0">{{ localReactionCount }}</span>
         </button>
 
         <!-- Comment Button -->
@@ -189,7 +189,7 @@
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <span class="text-sm font-medium" v-if="localCommentCount > 0">{{ localCommentCount }}</span>
+          <span class="font-mono text-xs font-semibold text-gray-700" v-if="localCommentCount > 0">{{ localCommentCount }}</span>
         </button>
       </div>
     </div>
