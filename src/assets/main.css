@@ -18,6 +18,14 @@
 }
 
 @font-face {
+  font-family: 'Geist Pixel';
+  src: url('/fonts/GeistPixel-Square.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Geist Pixel Square';
   src: url('/fonts/GeistPixel-Square.woff2') format('woff2');
   font-weight: 400;
@@ -31,7 +39,7 @@
   --color-primary-700: #6B1361;
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
-  --font-pixel: 'Geist Pixel Square', 'Geist Mono', monospace;
+  --font-pixel: 'Geist Pixel', 'Geist Pixel Square', 'Geist Mono', monospace;
 }
 
 * {

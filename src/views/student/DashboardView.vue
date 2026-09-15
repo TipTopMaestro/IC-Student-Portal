@@ -13,17 +13,17 @@
         <div v-for="i in 3" :key="i" class="h-6.5 sm:h-7 w-24 sm:w-28 bg-gray-200 rounded-full animate-pulse shrink-0"></div>
       </div>
       <div v-else class="flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2 py-1 w-full md:w-auto">
-        <div class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+        <div class="bg-white/80 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">{{ attendanceRate }}% Attendance</span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">{{ attendanceRate }}% Attendance</span>
         </div>
-        <div v-if="unpaidFees > 0" class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+        <div v-if="unpaidFees > 0" class="bg-white/80 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all">
           <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">{{ unpaidFees }} Unpaid {{ unpaidFees === 1 ? 'Item' : 'Items' }}</span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">{{ unpaidFees }} Unpaid {{ unpaidFees === 1 ? 'Item' : 'Items' }}</span>
         </div>
-        <div class="bg-gray-50/90 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors">
+        <div class="bg-white/80 border border-gray-200 hover:border-gray-300 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 shrink-0 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all">
           <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-700 uppercase tracking-wide whitespace-nowrap">₱{{ totalUnpaidAmount.toLocaleString() }} Balance</span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">₱{{ totalUnpaidAmount.toLocaleString() }} Balance</span>
         </div>
       </div>
     </div>
@@ -128,7 +128,7 @@
               <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p class="font-mono text-[11px] text-gray-400 uppercase tracking-wider">No upcoming events scheduled</p>
+              <p class="font-pixel text-sm text-gray-400 lowercase">no upcoming events scheduled</p>
             </div>
             
             <div v-else class="divide-y divide-gray-100">
@@ -155,9 +155,10 @@
                 </div>
                 <button 
                   @click="openEventModal(event)"
-                  class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary transition-colors shrink-0 focus:outline-none cursor-pointer"
+                  class="group font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary transition-colors shrink-0 focus:outline-none cursor-pointer inline-flex items-center gap-1"
                 >
-                  Details
+                  <span>details</span>
+                  <span class="text-[10px] transition-transform group-hover:translate-x-0.5">→</span>
                 </button>
               </div>
             </div>
@@ -409,20 +410,20 @@
             </div>
           </div>
 
-          <!-- Footer Copyright links mimicking instagram -->
-          <div class="px-1 text-[10px] text-gray-400 leading-relaxed font-medium">
-            <div class="flex flex-wrap gap-x-1.5 gap-y-0.5 select-none">
-              <router-link to="/about" class="hover:underline">About</router-link>
+          <!-- Footer Copyright links mimicking bryl minimal -->
+          <div class="px-1 text-[10px] text-gray-400 leading-relaxed font-mono">
+            <div class="flex flex-wrap gap-x-1.5 gap-y-0.5 select-none uppercase tracking-wider">
+              <router-link to="/about" class="hover:text-gray-600 transition-colors">About</router-link>
               <span>·</span>
-              <router-link to="/about#support" class="hover:underline">Help</router-link>
+              <router-link to="/about#support" class="hover:text-gray-600 transition-colors">Help</router-link>
               <span>·</span>
-              <a href="https://dnsc.edu.ph" target="_blank" rel="noopener noreferrer" class="hover:underline">DNSC IC</a>
+              <a href="https://dnsc.edu.ph" target="_blank" rel="noopener noreferrer" class="hover:text-gray-600 transition-colors">DNSC IC</a>
               <span>·</span>
-              <button @click="openLegalModal('terms')" class="hover:underline cursor-pointer text-left">Terms</button>
+              <button @click="openLegalModal('terms')" class="hover:text-gray-600 transition-colors cursor-pointer text-left uppercase">Terms</button>
               <span>·</span>
-              <button @click="openLegalModal('privacy')" class="hover:underline cursor-pointer text-left">Privacy</button>
+              <button @click="openLegalModal('privacy')" class="hover:text-gray-600 transition-colors cursor-pointer text-left uppercase">Privacy</button>
             </div>
-            <p class="mt-2 text-gray-400 uppercase tracking-wider">© 2026 IC STUDENT PORTAL</p>
+            <p class="mt-2 text-gray-400 uppercase tracking-wider text-[10px]">© 2026 IC STUDENT PORTAL</p>
           </div>
 
         </div>
@@ -442,7 +443,7 @@
         >
           <!-- Header -->
           <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-sm font-semibold text-gray-900 capitalize">
+            <h3 class="font-mono text-xs font-semibold text-gray-900 uppercase tracking-wider">
               {{ activeModalType === 'terms' ? 'Terms of Service' : 'Privacy Policy' }}
             </h3>
             <button @click="closeLegalModal" class="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
@@ -499,7 +500,7 @@
           <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
             <button 
               @click="closeLegalModal" 
-              class="px-4 py-2 bg-ic-primary hover:bg-ic-secondary text-white text-xs font-semibold rounded-xl transition-all duration-200"
+              class="px-4 py-2 bg-ic-primary hover:bg-ic-secondary text-white font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer"
             >
               Close
             </button>
@@ -528,12 +529,12 @@
             </button>
             <div class="flex items-center gap-3.5 pr-8">
               <div class="w-12 h-12 rounded-full bg-white/20 flex flex-col items-center justify-center border border-white/30 shrink-0 font-semibold">
-                <span class="text-[9px] text-white/90 leading-none uppercase">{{ selectedEvent.month }}</span>
-                <span class="text-lg leading-tight">{{ selectedEvent.day }}</span>
+                <span class="font-mono text-[9px] text-white/90 leading-none uppercase tracking-wider">{{ selectedEvent.month }}</span>
+                <span class="font-pixel text-xl leading-tight mt-0.5">{{ selectedEvent.day }}</span>
               </div>
               <div>
                 <h4 class="font-semibold text-base leading-tight">{{ selectedEvent.name }}</h4>
-                <p class="text-xs text-white/80 mt-0.5 font-medium">{{ selectedEvent.semester }} {{ selectedEvent.academicYear }}</p>
+                <p class="font-mono text-[11px] text-white/80 mt-0.5 uppercase tracking-wider">{{ selectedEvent.semester }} {{ selectedEvent.academicYear }}</p>
               </div>
             </div>
           </div>
@@ -541,41 +542,42 @@
           <!-- Modal Body Content -->
           <div class="p-6 space-y-4.5">
             <div>
-              <h5 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Description</h5>
+              <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</h5>
               <p class="text-sm text-gray-700 leading-relaxed">{{ selectedEvent.description }}</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
               <div>
-                <h5 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Academic Info</h5>
+                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Info</h5>
                 <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
                   <svg class="w-3.5 h-3.5 text-ic-secondary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
-                  {{ selectedEvent.semester }}
+                  <span>{{ selectedEvent.semester }}</span>
                 </p>
               </div>
               <div>
-                <h5 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Academic Year</h5>
+                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Year</h5>
                 <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
                   <svg class="w-3.5 h-3.5 text-ic-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  {{ selectedEvent.academicYear }}
+                  <span>{{ selectedEvent.academicYear }}</span>
                 </p>
               </div>
             </div>
 
-            <div v-if="selectedEvent.dateRange" class="border-t border-gray-100 pt-4 text-xs text-gray-500 font-medium">
-              Event Schedule: <span class="text-gray-700 font-semibold">{{ selectedEvent.dateRange }}</span>
+            <div v-if="selectedEvent.dateRange" class="border-t border-gray-100 pt-4">
+              <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">Event Schedule</span>
+              <span class="text-xs text-gray-700 font-semibold font-mono">{{ selectedEvent.dateRange }}</span>
             </div>
           </div>
 
           <!-- Modal Action Button -->
           <div class="px-6 pb-6 pt-2">
             <button 
-              @click="closeEventModal"
-              class="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold text-xs rounded-xl transition-colors focus:outline-none"
+              @click="closeEventModal" 
+              class="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-colors focus:outline-none cursor-pointer"
             >
               Close Details
             </button>

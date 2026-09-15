@@ -30,7 +30,7 @@ export default {
       fontFamily: {
         sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['"Geist Mono"', 'ui-monospace', 'monospace'],
-        pixel: ['"Geist Pixel Square"', '"Geist Mono"', 'monospace'],
+        pixel: ['"Geist Pixel"', '"Geist Pixel Square"', '"Geist Mono"', 'monospace'],
       },
     },
   },
