@@ -6,15 +6,11 @@
         <div class="flex items-center gap-1.5 cursor-pointer relative systems-trigger select-none" @click.stop="toggleSystemsMenu">
           <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
           <span class="font-pixel text-lg text-ic-primary tracking-tight">ICSP</span>
-          <svg 
+          <ChevronDown 
             class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            :stroke-width="2"
+          />
 
           <!-- Mobile Systems Dropdown Popover -->
           <Transition
@@ -45,15 +41,9 @@
                     <template v-else>
                       <img v-if="sys.imageUrl" :src="sys.imageUrl" :alt="sys.name" class="h-6 w-6 object-contain" />
                       <template v-else>
-                        <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <CreditCard v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                        <Vote v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                        <KeyRound v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
                       </template>
                     </template>
                   </div>
@@ -66,10 +56,8 @@
             </div>
           </Transition>
         </div>
-        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg ml-auto">
-          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg ml-auto text-gray-700 transition-colors">
+          <Menu class="w-5 h-5" :stroke-width="2" />
         </button>
       </div>
     </header>
@@ -86,11 +74,9 @@
       >
         <!-- Menu Header -->
         <div class="flex items-center justify-between h-14 px-4 border-b border-gray-200">
-          <span class="text-base font-semibold text-gray-900">Menu</span>
-          <button @click="showMobileMenu = false" class="p-2 hover:bg-gray-100 rounded-lg">
-            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <span class="font-pixel text-base text-gray-900 tracking-tight lowercase">menu</span>
+          <button @click="showMobileMenu = false" class="p-2 hover:bg-gray-100 rounded-lg text-gray-700 transition-colors">
+            <X class="w-5 h-5" :stroke-width="2" />
           </button>
         </div>
 
@@ -100,12 +86,9 @@
             to="/"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
+            <LayoutDashboard class="w-5 h-5" :stroke-width="isActive('/') ? 2.4 : 1.9" :class="isActive('/') ? 'fill-current text-ic-primary' : 'fill-none text-gray-500'" />
             <span class="text-sm">Dashboard</span>
           </router-link>
 
@@ -113,13 +96,9 @@
             to="/attendance"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/attendance') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/attendance') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-              <path d="m9 14 2 2 4-4"/>
-            </svg>
+            <CalendarCheck class="w-5 h-5" :stroke-width="isActive('/attendance') ? 2.4 : 1.9" :class="isActive('/attendance') ? 'nav-icon-active-calendar text-ic-primary' : 'fill-none text-gray-500'" />
             <span class="text-sm">Attendance</span>
           </router-link>
 
@@ -127,12 +106,9 @@
             to="/fees"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/fees') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/fees') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="14" x="2" y="5" rx="2"/>
-              <line x1="2" x2="22" y1="10" y2="10"/>
-            </svg>
+            <CreditCard class="w-5 h-5" :stroke-width="isActive('/fees') ? 2.4 : 1.9" :class="isActive('/fees') ? 'nav-icon-active-card text-ic-primary' : 'fill-none text-gray-500'" />
             <span class="text-sm">Fees</span>
           </router-link>
 
@@ -140,25 +116,19 @@
             to="/calendar"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/calendar') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/calendar') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>
-            </svg>
+            <Calendar class="w-5 h-5" :stroke-width="isActive('/calendar') ? 2.4 : 1.9" :class="isActive('/calendar') ? 'nav-icon-active-cal text-ic-primary' : 'fill-none text-gray-500'" />
             <span class="text-sm">Calendar</span>
           </router-link>
-
-
 
           <router-link
             to="/posts"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/posts') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/posts') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-            </svg>
+            <Newspaper class="w-5 h-5" :stroke-width="isActive('/posts') ? 2.4 : 1.9" :class="isActive('/posts') ? 'nav-icon-active-news text-ic-primary' : 'fill-none text-gray-500'" />
             <span class="text-sm">Posts</span>
           </router-link>
 
@@ -166,12 +136,12 @@
             to="/profile"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActive('/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActive('/profile') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <div v-if="userProfilePic" class="h-5 w-5 rounded-full overflow-hidden shrink-0">
+            <div v-if="userProfilePic" class="h-5 w-5 rounded-full overflow-hidden shrink-0" :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
               <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
             </div>
-            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0">
+            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-[10px] font-semibold shrink-0" :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
               {{ userInitials }}
             </div>
             <span class="text-sm">Profile</span>
@@ -182,33 +152,27 @@
           <router-link
             to="/settings"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
+            <Settings class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Settings</span>
           </router-link>
 
           <button
             @click="openReportProblem(); showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <LifeBuoy class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Report a Problem</span>
           </button>
 
           <router-link
             to="/about"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
-            :class="{ 'bg-gray-50 font-medium text-ic-primary': isActive('/about') }"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
+            :class="{ 'font-semibold text-ic-primary': isActive('/about') }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">About ICSP</span>
           </router-link>
 
@@ -217,24 +181,20 @@
             target="_blank"
             rel="noopener noreferrer"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+            <BookOpen class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Documentation</span>
-            <span class="text-xs text-gray-400 ml-auto font-mono">↗</span>
+            <ExternalLink class="w-4 h-4 text-gray-400 ml-auto" :stroke-width="2" />
           </a>
 
           <div class="my-4 border-t border-gray-200"></div>
 
           <button 
             @click="handleLogout" 
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-red-500 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50/70 transition-colors text-red-500 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut class="w-5 h-5" :stroke-width="1.9" />
             <span class="text-sm">Log out</span>
           </button>
         </nav>
@@ -253,15 +213,11 @@
         </div>
         <div class="flex items-center justify-between flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap ml-4">
           <span class="font-pixel text-xl text-ic-primary tracking-tight">ICSP</span>
-          <svg 
-            class="w-4 h-4 text-gray-500 transition-transform duration-200" 
+          <ChevronDown 
+            class="w-4 h-4 text-gray-400 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            :stroke-width="2"
+          />
         </div>
 
         <!-- Desktop Systems Dropdown Popover -->
@@ -293,15 +249,9 @@
                   <template v-else>
                     <img v-if="sys.imageUrl" :src="sys.imageUrl" :alt="sys.name" class="h-6 w-6 object-contain" />
                     <template v-else>
-                      <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                      <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
+                      <CreditCard v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                      <Vote v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                      <KeyRound v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
                     </template>
                   </template>
                 </div>
@@ -316,86 +266,104 @@
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 py-2 flex flex-col justify-center space-y-1">
+      <nav class="flex-1 px-3 py-2 flex flex-col justify-center space-y-1.5">
         <router-link
           to="/"   
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
+            <LayoutDashboard 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActive('/') ? 2.4 : 1.9"
+              :class="isActive('/') ? 'fill-current text-gray-900' : 'fill-none text-gray-500 group-hover/link:text-gray-900'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Dashboard</span>
+          <span class="sidebar-label">Dashboard</span>
         </router-link>
 
         <router-link
           to="/attendance"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/attendance') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/attendance') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
+            <CalendarCheck 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActive('/attendance') ? 2.4 : 1.9"
+              :class="isActive('/attendance') ? 'nav-icon-active-calendar text-gray-900' : 'fill-none text-gray-500 group-hover/link:text-gray-900'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Attendance</span>
+          <span class="sidebar-label">Attendance</span>
         </router-link>
 
         <router-link
           to="/fees"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/fees') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/fees') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
+            <CreditCard 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActive('/fees') ? 2.4 : 1.9"
+              :class="isActive('/fees') ? 'nav-icon-active-card text-gray-900' : 'fill-none text-gray-500 group-hover/link:text-gray-900'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Fees</span>
+          <span class="sidebar-label">Fees</span>
         </router-link>
 
         <router-link
           to="/calendar"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/calendar') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/calendar') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+            <Calendar 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActive('/calendar') ? 2.4 : 1.9"
+              :class="isActive('/calendar') ? 'nav-icon-active-cal text-gray-900' : 'fill-none text-gray-500 group-hover/link:text-gray-900'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Calendar</span>
+          <span class="sidebar-label">Calendar</span>
         </router-link>
 
         <router-link
           to="/posts"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/posts') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" :stroke-width="isActive('/posts') ? 2.5 : 2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-            </svg>
+            <Newspaper 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActive('/posts') ? 2.4 : 1.9"
+              :class="isActive('/posts') ? 'nav-icon-active-news text-gray-900' : 'fill-none text-gray-500 group-hover/link:text-gray-900'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Posts</span>
+          <span class="sidebar-label">Posts</span>
         </router-link>
 
         <router-link
           to="/profile"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActive('/profile') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <div v-if="userProfilePic" class="h-7 w-7 rounded-full overflow-hidden shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+            <div 
+              v-if="userProfilePic" 
+              class="h-7 w-7 rounded-full overflow-hidden shrink-0 transition-all duration-200" 
+              :class="isActive('/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : 'ring-1 ring-gray-200'"
+            >
               <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
             </div>
-            <div v-else class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium shrink-0" :class="{ 'ring-2 ring-black ring-offset-2': isActive('/profile') }">
+            <div 
+              v-else 
+              class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-semibold shrink-0 transition-all duration-200" 
+              :class="isActive('/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : ''"
+            >
               {{ userInitials }}
             </div>
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
+          <span class="sidebar-label">Profile</span>
         </router-link>
       </nav>
 
@@ -412,29 +380,22 @@
         >
           <div
             v-if="showMoreMenu"
-            class="absolute bottom-full left-3 mb-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+            class="absolute bottom-full left-3 mb-2 w-58 bg-white rounded-2xl shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12)] border border-gray-200/90 overflow-hidden z-50 p-1.5 space-y-0.5"
           >
-            <div class="py-2">
-              <router-link to="/settings" @click="showMoreMenu = false" class="more-menu-item w-full text-left">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Settings</span>
+            <div class="space-y-0.5">
+              <router-link to="/settings" @click="showMoreMenu = false" class="more-menu-item">
+                <Settings class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Settings</span>
               </router-link>
 
-              <a :href="reportProblemUrl" @click="showMoreMenu = false" class="more-menu-item w-full">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Report a Problem</span>
+              <a :href="reportProblemUrl" @click="showMoreMenu = false" class="more-menu-item">
+                <LifeBuoy class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Report a Problem</span>
               </a>
 
-              <router-link to="/about" @click="showMoreMenu = false" class="more-menu-item w-full text-left">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>About ICSP</span>
+              <router-link to="/about" @click="showMoreMenu = false" class="more-menu-item">
+                <Info class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">About ICSP</span>
               </router-link>
 
               <a
@@ -442,35 +403,37 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 @click="showMoreMenu = false"
-                class="more-menu-item w-full text-left"
+                class="more-menu-item"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>Documentation</span>
-                <span class="text-xs text-gray-400 ml-auto font-mono">↗</span>
+                <BookOpen class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Documentation</span>
+                <ExternalLink class="w-3.5 h-3.5 text-gray-400 ml-auto shrink-0" :stroke-width="2" />
               </a>
             </div>
 
-            <div class="border-t border-gray-100">
-              <button @click="handleLogout" class="more-menu-item w-full text-red-500 hover:!bg-red-50">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Log out</span>
+            <div class="border-t border-gray-100 pt-1 mt-1">
+              <button @click="handleLogout" class="more-menu-item text-rose-600 hover:bg-rose-50/80 hover:text-rose-700 w-full">
+                <LogOut class="w-4.5 h-4.5 shrink-0 text-rose-500" :stroke-width="1.9" />
+                <span class="text-xs font-medium">Log out</span>
               </button>
             </div>
           </div>
         </Transition>
 
         <!-- More Button -->
-        <button @click.stop="showMoreMenu = !showMoreMenu" class="sidebar-link w-full text-left" :class="{ 'bg-gray-50': showMoreMenu }">
+        <button 
+          @click.stop="showMoreMenu = !showMoreMenu" 
+          class="sidebar-link w-full text-left group/link" 
+          :class="{ 'sidebar-link-active': showMoreMenu }"
+        >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Ellipsis 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="showMoreMenu ? 2.4 : 2" 
+              :class="showMoreMenu ? 'fill-current text-gray-900' : 'text-gray-500 group-hover/link:text-gray-900 fill-current'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">More</span>
+          <span class="sidebar-label">More</span>
         </button>
       </div>
     </aside>
@@ -497,17 +460,11 @@
           to="/" 
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
         >
-          <svg 
+          <LayoutDashboard 
             class="w-5.5 h-5.5 transition-all duration-300 transform" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            :stroke-width="isActive('/') ? 2.2 : 1.8"
-            :class="isActive('/') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
-          >
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
+            :stroke-width="isActive('/') ? 2.4 : 1.8"
+            :class="isActive('/') ? 'scale-110 text-ic-primary fill-current' : 'text-gray-400 group-hover:text-gray-600 fill-none group-active:scale-90'"
+          />
         </router-link>
 
         <!-- Attendance Link -->
@@ -515,16 +472,11 @@
           to="/attendance" 
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
         >
-          <svg 
+          <CalendarCheck 
             class="w-5.5 h-5.5 transition-all duration-300 transform" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            :stroke-width="isActive('/attendance') ? 2.2 : 1.8"
-            :class="isActive('/attendance') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-          </svg>
+            :stroke-width="isActive('/attendance') ? 2.4 : 1.8"
+            :class="isActive('/attendance') ? 'scale-110 text-ic-primary nav-icon-active-calendar' : 'text-gray-400 group-hover:text-gray-600 fill-none group-active:scale-90'"
+          />
         </router-link>
 
         <!-- Fees Link -->
@@ -532,17 +484,11 @@
           to="/fees" 
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
         >
-          <svg 
+          <CreditCard 
             class="w-5.5 h-5.5 transition-all duration-300 transform" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            :stroke-width="isActive('/fees') ? 2.2 : 1.8"
-            :class="isActive('/fees') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
-          >
-            <rect width="20" height="14" x="2" y="5" rx="2"/>
-            <line x1="2" x2="22" y1="10" y2="10"/>
-          </svg>
+            :stroke-width="isActive('/fees') ? 2.4 : 1.8"
+            :class="isActive('/fees') ? 'scale-110 text-ic-primary nav-icon-active-card' : 'text-gray-400 group-hover:text-gray-600 fill-none group-active:scale-90'"
+          />
         </router-link>
 
         <!-- Posts Link -->
@@ -550,16 +496,11 @@
           to="/posts" 
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group"
         >
-          <svg 
+          <Newspaper 
             class="w-5.5 h-5.5 transition-all duration-300 transform" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24" 
-            :stroke-width="isActive('/posts') ? 2.2 : 1.8"
-            :class="isActive('/posts') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
-          >
-            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
-          </svg>
+            :stroke-width="isActive('/posts') ? 2.4 : 1.8"
+            :class="isActive('/posts') ? 'scale-110 text-ic-primary nav-icon-active-news' : 'text-gray-400 group-hover:text-gray-600 fill-none group-active:scale-90'"
+          />
         </router-link>
 
         <!-- Profile Link -->
@@ -574,7 +515,7 @@
             <img :src="userProfilePic" alt="Profile" class="h-full w-full object-cover" />
           </div>
           <div v-else
-            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-[10px] font-medium shrink-0 transition-all duration-300 transform"
+            class="h-6 w-6 rounded-full bg-ic-primary flex items-center justify-center text-white text-[10px] font-semibold shrink-0 transition-all duration-300 transform"
             :class="isActive('/profile') ? 'ring-2 ring-ic-primary ring-offset-2 scale-110' : 'scale-100 group-active:scale-90'"
           >
             {{ userInitials }}
@@ -598,6 +539,25 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
 import { performSSORedirect } from '@/utils/sso'
+import { 
+  LayoutDashboard, 
+  CalendarCheck, 
+  CreditCard, 
+  Calendar, 
+  Newspaper, 
+  Ellipsis, 
+  Settings, 
+  LifeBuoy, 
+  Info, 
+  BookOpen, 
+  LogOut, 
+  ChevronDown, 
+  Menu, 
+  X, 
+  ExternalLink, 
+  Vote, 
+  KeyRound 
+} from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -770,15 +730,21 @@ const handleLogout = async () => {
 .sidebar-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  color: #000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.875rem;
+  color: #4b5563;
+  font-family: var(--font-sans, "Geist", system-ui, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  user-select: none;
 }
 
 .sidebar-link:hover {
-  background-color: #fafafa;
+  background-color: #f9fafb;
+  color: #111827;
 }
 
 .sidebar-link:focus {
@@ -786,23 +752,86 @@ const handleLogout = async () => {
 }
 
 .sidebar-link-active {
+  color: #111827;
   font-weight: 600;
+}
+
+.sidebar-label {
+  margin-left: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: inherit;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .sidebar-label {
+  opacity: 1;
+}
+
+/* Lucide Icon Active Solid States */
+.nav-icon-active-calendar {
+  fill: currentColor;
+}
+.nav-icon-active-calendar :deep(path:nth-of-type(3)),
+.nav-icon-active-calendar :deep(path:nth-of-type(4)),
+.nav-icon-active-calendar path:nth-of-type(3),
+.nav-icon-active-calendar path:nth-of-type(4) {
+  stroke: #ffffff;
+}
+
+.nav-icon-active-card {
+  fill: currentColor;
+}
+.nav-icon-active-card :deep(line),
+.nav-icon-active-card :deep(path),
+.nav-icon-active-card line,
+.nav-icon-active-card path {
+  stroke: #ffffff;
+}
+
+.nav-icon-active-cal {
+  fill: currentColor;
+}
+.nav-icon-active-cal :deep(path:nth-of-type(3)),
+.nav-icon-active-cal path:nth-of-type(3) {
+  stroke: #ffffff;
+}
+
+.nav-icon-active-news {
+  fill: currentColor;
+}
+.nav-icon-active-news :deep(path:nth-of-type(1)),
+.nav-icon-active-news :deep(path:nth-of-type(2)),
+.nav-icon-active-news path:nth-of-type(1),
+.nav-icon-active-news path:nth-of-type(2) {
+  stroke: #ffffff;
+}
+.nav-icon-active-news :deep(rect),
+.nav-icon-active-news rect {
+  fill: #ffffff;
+  stroke: #ffffff;
 }
 
 .more-menu-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-sans, "Geist", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: #374151;
-  transition: background-color 0.15s ease;
+  border-radius: 0.625rem;
+  transition: all 0.15s ease;
   cursor: pointer;
   text-decoration: none;
 }
 
 .more-menu-item:hover {
   background-color: #f9fafb;
+  color: #111827;
 }
 
 .safe-area-top {
