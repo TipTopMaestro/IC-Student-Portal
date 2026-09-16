@@ -57,7 +57,7 @@
           
           <div class="flex items-center gap-2.5 mt-5 pt-3.5 border-t border-gray-100">
             <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6 object-contain" />
-            <span class="font-mono text-[10px] font-bold text-ic-primary uppercase tracking-wider">ICSA Student Portal</span>
+            <span class="font-mono text-[10px] font-bold text-ic-primary uppercase tracking-wider">IC Student Portal</span>
           </div>
         </div>
       </div>
@@ -133,18 +133,20 @@
         <!-- Support Card (1 col) -->
         <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col justify-between space-y-4">
           <div class="space-y-3">
-            <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block pb-2 border-b border-gray-100">Helpdesk Channels</span>
+            <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block pb-2 border-b border-gray-100">Get Help</span>
             <div class="space-y-3 text-xs">
               <div>
-                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">ICSA Council Desk</p>
+                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">IC-LSG</p>
                 <a href="mailto:icsa.helpdesk@dnsc.edu.ph" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium break-all">
-                  icsa.helpdesk@dnsc.edu.ph
+                  wapakokabalo@dnsc.edu.ph
                 </a>
               </div>
               <div class="pt-2 border-t border-gray-100">
-                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">Student Affairs (OSA)</p>
+                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">Devs</p>
                 <a href="mailto:osa@dnsc.edu.ph" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium">
-                  osa@dnsc.edu.ph
+                  froydcarbajosa14@gmail.com
+                  quinesmonch@gmail.com
+
                 </a>
               </div>
             </div>
