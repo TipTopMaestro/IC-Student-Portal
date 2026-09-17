@@ -98,47 +98,76 @@
           class="border border-gray-200! shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]! hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)]! rounded-2xl! transition-all duration-300"
         />
 
-        <!-- Pagination -->
-        <div v-if="pagination.totalPages > 1" class="flex items-center justify-between pt-4 border-t border-gray-100 px-1">
-          <span class="font-mono text-[11px] text-gray-400 uppercase tracking-wider">
-            Page {{ pagination.currentPage }} of {{ pagination.totalPages }} · {{ pagination.totalItems }} total
-          </span>
-          <div class="flex items-center gap-1.5">
-            <button
-              @click="goToPage(pagination.currentPage - 1)"
-              :disabled="pagination.currentPage <= 1 || isLoading"
-              class="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              ← Prev
-            </button>
-            <button
-              @click="goToPage(pagination.currentPage + 1)"
-              :disabled="pagination.currentPage >= pagination.totalPages || isLoading"
-              class="px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              Next →
-            </button>
+        <!-- Infinite Scroll Sentinel & Feed Indicators -->
+        <div ref="sentinelRef" class="py-6 flex flex-col items-center justify-center min-h-12">
+          <!-- Loading More Spinner -->
+          <div v-if="isLoadingMore" class="flex items-center gap-2 text-ic-primary font-mono text-[11px] font-medium uppercase tracking-wider py-2">
+            <span class="w-4 h-4 border-2 border-ic-primary/20 border-t-ic-primary rounded-full animate-spin"></span>
+            <span>Loading more posts...</span>
+          </div>
+
+          <!-- All Posts Caught Up / End of Feed -->
+          <div
+            v-else-if="posts.length > 0 && !hasMorePosts"
+            class="flex items-center justify-center gap-2 py-4 text-gray-400 font-mono text-[11px] uppercase tracking-wider"
+          >
+            <span class="w-12 h-px bg-gray-200"></span>
+            <span>All caught up</span>
+            <span class="w-12 h-px bg-gray-200"></span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Minimalist Scroll-to-Top Floating Button (Teleported to body to escape parent transforms) -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="opacity-0 translate-y-3"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-3"
+      >
+        <button
+          v-if="showBackToTop"
+          @click="scrollToTop"
+          class="fixed bottom-22 right-5 md:bottom-8 md:right-8 z-50 bg-white/95 backdrop-blur-md border border-gray-300/80 text-gray-700 hover:text-ic-primary hover:border-ic-primary/60 px-4 py-2.5 rounded-full shadow-[0_8px_24px_-4px_rgba(0,0,0,0.16)] hover:shadow-[0_12px_28px_-4px_rgba(100,13,95,0.25)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer group"
+          title="Scroll to top"
+          aria-label="Back to top"
+        >
+          <ArrowUp class="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5 text-ic-primary" />
+          <span>Top</span>
+        </button>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import CategoryFilterDropdown from '@/components/posts/CategoryFilterDropdown.vue'
 import PostFeedItem from '@/components/posts/PostFeedItem.vue'
 import { listPosts, extractPosts, extractPagination } from '@/services/postService'
+import { ArrowUp } from 'lucide-vue-next'
 
 const posts = ref([])
 const isLoading = ref(true)
+const isLoadingMore = ref(false)
 const error = ref('')
+const showBackToTop = ref(false)
+const sentinelRef = ref(null)
+let observer = null
+
 const pagination = reactive({
   currentPage: 1,
   perPage: 10,
   totalPages: 1,
   totalItems: 0
+})
+
+const hasMorePosts = computed(() => {
+  return pagination.currentPage < pagination.totalPages
 })
 
 const selectedCategory = ref('')
@@ -147,13 +176,26 @@ const filteredPosts = computed(() => {
   return posts.value.filter(p => p.category === selectedCategory.value)
 })
 
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
+const handleScroll = () => {
+  showBackToTop.value = window.scrollY > 80
+}
+
+// Initial load (resets feed)
 const loadPosts = async () => {
   isLoading.value = true
   error.value = ''
+  pagination.currentPage = 1
 
   try {
     const result = await listPosts({
-      current_page: pagination.currentPage,
+      current_page: 1,
       per_page: pagination.perPage
     })
 
@@ -172,14 +214,70 @@ const loadPosts = async () => {
   }
 }
 
-const goToPage = (page) => {
-  if (page < 1 || page > pagination.totalPages) return
-  pagination.currentPage = page
-  loadPosts()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+// Infinite scroll loader (appends next batch of 20)
+const loadMorePosts = async () => {
+  if (isLoading.value || isLoadingMore.value || !hasMorePosts.value) return
+
+  isLoadingMore.value = true
+  const nextPage = pagination.currentPage + 1
+
+  try {
+    const result = await listPosts({
+      current_page: nextPage,
+      per_page: pagination.perPage
+    })
+
+    if (result.success) {
+      const newPosts = extractPosts(result)
+      const existingIds = new Set(posts.value.map(p => p.id))
+      const uniqueNewPosts = newPosts.filter(p => !existingIds.has(p.id))
+      posts.value.push(...uniqueNewPosts)
+
+      const paginationData = extractPagination(result)
+      Object.assign(pagination, paginationData)
+      pagination.currentPage = nextPage
+    }
+  } catch (err) {
+    console.error('Error loading more posts:', err)
+  } finally {
+    isLoadingMore.value = false
+  }
 }
 
-onMounted(() => {
-  loadPosts()
+// Setup IntersectionObserver for bottom sentinel
+const setupObserver = () => {
+  if (observer) {
+    observer.disconnect()
+  }
+
+  observer = new IntersectionObserver((entries) => {
+    const entry = entries[0]
+    if (entry && entry.isIntersecting && hasMorePosts.value && !isLoading.value && !isLoadingMore.value) {
+      loadMorePosts()
+    }
+  }, {
+    rootMargin: '200px'
+  })
+
+  if (sentinelRef.value) {
+    observer.observe(sentinelRef.value)
+  }
+}
+
+watch(sentinelRef, () => {
+  setupObserver()
+})
+
+onMounted(async () => {
+  await loadPosts()
+  setupObserver()
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+  }
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>

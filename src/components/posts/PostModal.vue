@@ -1,174 +1,219 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-6 bg-black/60 backdrop-blur-sm" @click.self="close">
-    <div class="bg-white rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden w-full max-w-4xl h-[90vh] md:h-[85vh] flex flex-col md:flex-row relative animate-in fade-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-200">
-      
-      <!-- Close button (absolute) -->
-      <button @click="close" class="absolute top-3 right-3 z-[110] w-8 h-8 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 text-gray-800 md:text-white transition-colors md:top-4 md:right-4 mix-blend-difference">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      <!-- Left Side: Media (Only shows if post has media, hidden on mobile) -->
-      <div v-if="hasMedia" class="hidden md:flex w-full md:w-[55%] bg-black items-center justify-center shrink-0 min-h-[300px] md:min-h-[500px]">
-        <!-- Carousel for Media -->
-        <div class="relative w-full h-full flex items-center justify-center group">
-          <img 
-            :src="normalizeUrl(post.media[currentMediaIndex].media_url)" 
-            class="max-w-full max-h-full object-contain" 
-            alt="Post media" 
-          />
-          
-          <!-- Prev Button -->
-          <button 
-            v-if="post.media.length > 1 && currentMediaIndex > 0"
-            @click="currentMediaIndex--"
-            class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+  <Teleport to="body">
+    <div
+      v-if="isOpen"
+      class="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-xs"
+      @click.self="close"
+    >
+      <!-- Facebook-Style Centered Dialog Card -->
+      <div
+        class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-xl max-h-[92vh] flex flex-col relative border border-gray-200 animate-in fade-in zoom-in-95 duration-150"
+      >
+        <!-- Modal Top Title Bar with Centered Post Author & Close Button -->
+        <div class="relative px-4 py-3 border-b border-gray-100 flex items-center justify-center shrink-0 bg-white">
+          <h2 class="font-sans text-sm sm:text-base font-bold text-gray-900 text-center truncate max-w-[80%]">
+            {{ post.user_name || 'Author' }}'s Post
+          </h2>
+          <button
+            type="button"
+            @click="close"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors cursor-pointer"
+            title="Close"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            <X class="w-4 h-4" />
           </button>
-          
-          <!-- Next Button -->
-          <button 
-            v-if="post.media.length > 1 && currentMediaIndex < post.media.length - 1"
-            @click="currentMediaIndex++"
-            class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          </button>
-          
-          <!-- Indicators -->
-          <div v-if="post.media.length > 1" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-            <div 
-              v-for="(_, index) in post.media" 
-              :key="index"
-              class="w-1.5 h-1.5 rounded-full transition-all"
-              :class="index === currentMediaIndex ? 'bg-white scale-110' : 'bg-white/50'"
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Side: Details & Comments -->
-      <div class="w-full flex-1 md:h-full flex flex-col bg-white overflow-hidden md:max-h-none" :class="hasMedia ? 'md:w-[45%]' : 'max-w-2xl mx-auto md:border-x border-gray-100'">
-        
-        <!-- Header -->
-        <div class="flex items-center gap-3 p-4 border-b border-gray-100 shrink-0">
-          <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
-            <img v-if="authorAvatar" :src="authorAvatar" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium">
-              {{ authorInitials }}
-            </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'User' }}</h3>
-            <div class="flex items-center gap-2 mt-0.5">
-              <p class="text-xs text-gray-500">{{ formattedDate }}</p>
-              <CategoryBadge :category="post.category" size="sm" />
-            </div>
-          </div>
         </div>
 
-        <!-- Scrollable Content & Comments -->
-        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-white min-h-0">
-          <!-- Post Text -->
-          <div v-if="post.content" class="text-sm text-gray-800 whitespace-pre-wrap break-words mb-6">
+        <!-- Scrollable Feed Body (Post Header, Body Text, Gallery, Stats, and Comments Stream) -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar min-h-0 bg-white">
+          <!-- Post Author Header -->
+          <div class="p-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div v-if="authorAvatar" class="w-10 h-10 rounded-full overflow-hidden ring-1 ring-gray-100 shrink-0">
+                <img :src="authorAvatar" class="w-full h-full object-cover" />
+              </div>
+              <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-semibold shrink-0">
+                {{ authorInitials }}
+              </div>
+              <div class="min-w-0">
+                <h3 class="text-sm font-semibold text-gray-900 truncate leading-snug">
+                  {{ post.user_name || 'Author' }}
+                </h3>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="font-mono text-[11px] text-gray-400">{{ formattedDate }}</span>
+                  <span class="text-xs text-gray-300">·</span>
+                  <CategoryBadge :category="post.category" size="sm" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Post Content Text -->
+          <div v-if="post.content" class="px-4 pb-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed break-words">
             {{ post.content }}
           </div>
-          
-          <!-- Divider if there are comments -->
-          <div v-if="post.content" class="h-px bg-gray-100 w-full mb-4"></div>
 
-          <!-- Comments List (Reuse CommentSection logic but adapted for this view) -->
-          <div v-if="commentsLoading" class="flex justify-center py-8">
-            <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-200 border-t-ic-primary"></div>
-          </div>
-          <div v-else-if="commentsError" class="text-center py-8 text-sm text-red-500">
-            {{ commentsError }}
-          </div>
-          <div v-else-if="comments.length === 0" class="text-center py-12 flex flex-col items-center">
-            <svg class="w-10 h-10 text-gray-200 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <p class="text-sm font-medium text-gray-900">No comments yet.</p>
-            <p class="text-xs text-gray-500 mt-1">Start the conversation.</p>
-          </div>
-          <div v-else class="space-y-4">
-            <CommentItem
-              v-for="comment in comments"
-              :key="comment.id"
-              :comment="comment"
-              :post-id="post.id"
-              :current-user-id="currentUser?.id"
-              :is-admin="isAdmin"
-              @reply="handleReply"
-              @deleted="handleCommentDeleted"
-              @updated="handleCommentUpdated"
+          <!-- Post Media Gallery (Full Width in Modal) -->
+          <div v-if="hasMedia" class="px-4 pb-3">
+            <MediaGallery
+              :media="post.media"
+              :author-name="post.user_name || 'Author'"
+              :author-avatar="authorAvatar"
+              :post-date="formattedDate"
             />
           </div>
-        </div>
 
-        <!-- Footer Actions (Reactions) -->
-        <div class="p-3 border-t border-gray-100 shrink-0 bg-white z-10">
-          <div class="flex items-center gap-4 mb-2">
-            <button @click="$emit('toggle-reaction', post.id)" class="group flex items-center gap-1.5 transition-colors" :class="isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-500'">
-              <svg class="w-6 h-6 transition-transform" :class="isLiked ? 'fill-current scale-110' : 'group-hover:scale-110'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+          <!-- Reaction Counts & Interaction Summary Bar (Facebook-Style) -->
+          <div class="px-4 py-2 border-y border-gray-100 flex items-center justify-between text-xs text-gray-500">
+            <!-- Left: Like count badge -->
+            <div class="flex items-center gap-1.5" v-if="localReactionCount > 0">
+              <span class="w-5 h-5 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-xs">
+                <Heart class="w-2.5 h-2.5 fill-white text-white" />
+              </span>
+              <span class="font-mono font-medium text-gray-700">{{ localReactionCount }}</span>
+            </div>
+            <div v-else class="text-xs text-gray-400 font-mono">
+              Be the first to react
+            </div>
+
+            <!-- Right: Comments count -->
+            <div class="font-mono text-gray-500">
+              {{ comments.length }} comment{{ comments.length === 1 ? '' : 's' }}
+            </div>
+          </div>
+
+          <!-- Like & Comment Action Buttons -->
+          <div class="px-4 py-1.5 border-b border-gray-100 grid grid-cols-2 gap-2 text-center text-xs font-semibold">
+            <button
+              type="button"
+              @click="$emit('toggle-reaction', post.id)"
+              class="flex items-center justify-center gap-2 py-2 rounded-xl transition-colors cursor-pointer group"
+              :class="isLiked ? 'text-rose-600 bg-rose-50/50 hover:bg-rose-50' : 'text-gray-600 hover:bg-gray-100/80'"
+            >
+              <Heart class="w-4 h-4 transition-transform active:scale-90" :class="isLiked ? 'fill-rose-500 text-rose-500' : 'text-gray-500 group-hover:text-rose-500'" />
+              <span :class="isLiked ? 'font-bold text-rose-600' : ''">Like</span>
             </button>
-            <button @click="focusCommentInput" class="group flex items-center gap-1.5 text-gray-500 hover:text-gray-900 transition-colors">
-              <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+            <button
+              v-if="post.disable_comments"
+              type="button"
+              class="flex items-center justify-center gap-2 py-2 rounded-xl text-gray-400 bg-gray-50/80 cursor-not-allowed select-none"
+              title="Comments are turned off"
+              disabled
+            >
+              <MessageCircleOff class="w-4 h-4 text-gray-400" />
+              <span>Comments Off</span>
+            </button>
+            <button
+              v-else
+              type="button"
+              @click="focusCommentInput"
+              class="flex items-center justify-center gap-2 py-2 rounded-xl text-gray-600 hover:bg-gray-100/80 transition-colors cursor-pointer group"
+            >
+              <MessageCircle class="w-4 h-4 text-gray-500 group-hover:text-ic-primary" />
+              <span>Comment</span>
             </button>
           </div>
-          <div class="text-sm font-semibold text-gray-900">
-            {{ localReactionCount }} {{ localReactionCount === 1 ? 'like' : 'likes' }}
+
+          <!-- Comments Section -->
+          <div class="p-4">
+            <!-- Loading Indicator -->
+            <div v-if="commentsLoading" class="flex items-center justify-center gap-2 py-8">
+              <div class="w-5 h-5 border-2 border-ic-primary/20 border-t-ic-primary rounded-full animate-spin"></div>
+              <span class="font-mono text-xs text-gray-400">Loading comments...</span>
+            </div>
+
+            <!-- Error State -->
+            <div v-else-if="commentsError" class="text-center py-6 text-xs text-rose-500">
+              {{ commentsError }}
+            </div>
+
+            <!-- Empty Comments State -->
+            <div v-else-if="comments.length === 0" class="text-center py-8 text-gray-400 font-mono text-xs">
+              <span v-if="post.disable_comments">Comments are disabled for this post</span>
+              <span v-else>No comments yet · Be the first to comment!</span>
+            </div>
+
+            <!-- Comments Stream -->
+            <div v-else class="space-y-3.5">
+              <CommentItem
+                v-for="comment in comments"
+                :key="comment.id"
+                :comment="comment"
+                :post-id="post.id"
+                :current-user-id="currentUser?.id"
+                :is-admin="isAdmin"
+                @reply="handleReply"
+                @deleted="handleCommentDeleted"
+                @updated="handleCommentUpdated"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- Comment Input area -->
-        <div class="p-3 border-t border-gray-100 shrink-0 bg-gray-50/50 z-10 relative">
-          <!-- Reply indicator -->
-          <div v-if="replyingTo" class="flex items-center gap-1.5 px-2 absolute -top-8 left-3">
-            <span class="text-[11px] text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
-              Replying to <span class="font-medium text-gray-700">{{ replyingTo.user || 'User' }}</span>
-              <button @click="cancelReply" class="text-gray-400 hover:text-gray-600 ml-1">✕</button>
+        <!-- Sticky Comment Input at Bottom (or Disabled State Notice) -->
+        <div v-if="post.disable_comments" class="px-4 py-3.5 border-t border-gray-100 bg-gray-50/90 shrink-0 flex items-center justify-center gap-2 text-gray-500 select-none">
+          <MessageCircleOff class="w-4 h-4 text-gray-400" />
+          <span class="font-mono text-xs text-gray-500 font-medium">Comments are turned off for this post</span>
+        </div>
+        <div v-else class="px-4 py-3 border-t border-gray-100 bg-white shrink-0">
+          <!-- Replying Pill -->
+          <div v-if="replyingTo" class="flex items-center justify-between mb-1.5 px-2.5 py-1 bg-purple-50 border border-purple-100 rounded-lg text-xs">
+            <span class="font-mono text-[10px] text-ic-primary truncate">
+              Replying to <span class="font-bold">@{{ replyingTo.user || 'User' }}</span>
             </span>
+            <button
+              type="button"
+              @click="cancelReply"
+              class="text-gray-400 hover:text-gray-600 font-bold ml-2 cursor-pointer"
+            >
+              ✕
+            </button>
           </div>
-          
-          <div class="flex items-center gap-2.5">
-            <div v-if="userProfilePic" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
-              <img :src="userProfilePic" class="w-full h-full object-cover" />
+
+          <div class="flex items-start gap-2.5">
+            <!-- Current User Avatar -->
+            <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100 bg-gray-100">
+              <img
+                v-if="userProfilePic"
+                :src="userProfilePic"
+                :alt="currentUserInitials"
+                class="w-full h-full object-cover"
+              />
+              <div v-else class="w-full h-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-semibold">
+                {{ currentUserInitials }}
+              </div>
             </div>
-            <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
-              {{ currentUserInitials }}
-            </div>
-            
-            <div class="flex-1 relative">
-              <div class="flex items-center bg-white rounded-full border border-gray-200 focus-within:border-gray-300 focus-within:ring-1 focus-within:ring-gray-200 transition-all px-1">
+
+            <!-- Input Container -->
+            <div class="flex-1 min-w-0">
+              <div class="relative flex items-center bg-gray-100/80 hover:bg-gray-100 rounded-2xl border border-transparent focus-within:border-ic-primary/40 focus-within:bg-white focus-within:ring-2 focus-within:ring-ic-primary/10 transition-all">
                 <input
                   ref="commentInput"
                   v-model="newComment"
-                  :placeholder="replyingTo ? `Reply...` : 'Add a comment...'"
-                  class="flex-1 text-[13px] bg-transparent px-3 py-2.5 focus:outline-none placeholder-gray-400"
+                  :placeholder="replyingTo ? `Write a reply to @${replyingTo.user}...` : `Comment as ${currentUserName}...`"
+                  class="flex-1 text-xs sm:text-sm bg-transparent px-3.5 py-2.5 focus:outline-none placeholder:text-gray-400 text-gray-800"
+                  :disabled="posting"
                   @keydown.enter.exact.prevent="postComment"
                   @keydown.escape="cancelReply"
                 />
+
                 <button
                   v-if="newComment.trim()"
+                  type="button"
                   @click="postComment"
                   :disabled="posting"
-                  class="text-[13px] font-semibold text-ic-primary hover:text-ic-secondary px-3 py-2 disabled:opacity-40 shrink-0"
+                  class="px-3 py-1 mr-1 text-xs font-mono font-bold uppercase tracking-wider text-ic-primary hover:text-ic-secondary disabled:opacity-40 transition-colors cursor-pointer shrink-0"
                 >
-                  {{ posting ? '...' : 'Post' }}
+                  <span v-if="posting" class="inline-block w-3.5 h-3.5 border-2 border-ic-primary/30 border-t-ic-primary rounded-full animate-spin"></span>
+                  <span v-else>Post</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -177,6 +222,8 @@ import { useAuthStore } from '@/stores/auth'
 import { listComments, createComment, extractComments } from '@/services/commentService'
 import CommentItem from './CommentItem.vue'
 import CategoryBadge from './CategoryBadge.vue'
+import MediaGallery from './MediaGallery.vue'
+import { X, Heart, MessageCircle, MessageCircleOff } from 'lucide-vue-next'
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -313,6 +360,19 @@ const currentUserInitials = computed(() => {
   return user.username ? user.username.substring(0, 2).toUpperCase() : 'U'
 })
 
+const currentUserName = computed(() => {
+  const user = currentUser.value
+  if (!user) return 'User'
+  if (user.student?.s_fname && user.student?.s_lname) {
+    return `${user.student.s_fname} ${user.student.s_lname}`.trim()
+  }
+  const firstName = user.first_name || user.firstName || ''
+  const lastName = user.last_name || user.lastName || ''
+  if (firstName || lastName) return `${firstName} ${lastName}`.trim()
+  if (user.full_name) return user.full_name
+  return user.username || 'User'
+})
+
 const userProfilePic = computed(() => {
   const user = currentUser.value
   if (!user) return null
@@ -374,6 +434,21 @@ const postComment = async () => {
   if (result.success) {
     newComment.value = ''
     replyingTo.value = null
+
+    // Ensure newly created comment never inherits a stale reaction from localStorage
+    const createdId = result.data?.id || result.data?.data?.id
+    if (createdId) {
+      const userId = currentUser.value?.id || 'anon'
+      try {
+        const key = `comment_reactions_${userId}`
+        const stored = JSON.parse(localStorage.getItem(key) || '{}')
+        if (stored[String(createdId)]) {
+          delete stored[String(createdId)]
+          localStorage.setItem(key, JSON.stringify(stored))
+        }
+      } catch {}
+    }
+
     await fetchComments()
     
     // Tell parent to increase local comment count

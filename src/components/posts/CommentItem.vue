@@ -1,21 +1,24 @@
 <template>
-  <div class="flex gap-2.5" :class="depth > 0 ? 'ml-10 mt-3' : ''">
+  <div 
+    class="flex gap-2.5 transition-opacity duration-200" 
+    :class="[depth > 0 ? 'ml-9 mt-2.5' : '', isDeleting ? 'opacity-40 pointer-events-none' : '']"
+  >
     <!-- Avatar -->
-    <div v-if="authorAvatar" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-100">
+    <div v-if="authorAvatar" class="w-8 h-8 rounded-full overflow-hidden shrink-0 ring-1 ring-gray-200/80 bg-gray-100">
       <img :src="authorAvatar" alt="Profile" class="h-full w-full object-cover" />
     </div>
-    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-medium shrink-0">
+    <div v-else class="w-8 h-8 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-xs font-semibold shrink-0 ring-1 ring-gray-200/80">
       {{ getInitials(comment.user) }}
     </div>
 
     <div class="flex-1 min-w-0">
-      <!-- Comment Bubble -->
+      <!-- Comment Bubble (Facebook-Style rounded speech bubble) -->
       <div class="relative group/bubble inline-block max-w-full">
-        <div class="bg-gray-50 rounded-2xl px-3.5 py-2.5">
-          <span class="text-[13px] font-semibold text-gray-900">{{ comment.user || 'User' }}</span>
+        <div class="bg-gray-100/90 hover:bg-gray-100 rounded-2xl px-3.5 py-2 transition-colors">
+          <span class="text-xs sm:text-[13px] font-bold text-gray-900 leading-tight block">{{ comment.user || 'User' }}</span>
 
           <!-- Display mode -->
-          <p v-if="!isEditing" class="text-[13px] text-gray-800 mt-0.5 whitespace-pre-wrap break-words">{{ comment.content }}</p>
+          <p v-if="!isEditing" class="text-xs sm:text-[13px] text-gray-800 mt-0.5 whitespace-pre-wrap break-words leading-relaxed">{{ comment.content }}</p>
 
           <!-- Edit mode -->
           <div v-else class="mt-1">
@@ -28,25 +31,25 @@
               @keydown.escape="cancelEdit"
             />
             <div class="flex items-center gap-2 mt-1.5">
-              <button @click="saveEdit" :disabled="!editContent.trim() || editSaving" class="text-xs font-medium text-ic-primary hover:text-ic-secondary disabled:opacity-40">
+              <button @click="saveEdit" :disabled="!editContent.trim() || editSaving" class="text-xs font-medium text-ic-primary hover:text-ic-secondary disabled:opacity-40 cursor-pointer">
                 {{ editSaving ? 'Saving...' : 'Save' }}
               </button>
-              <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700">Cancel</button>
+              <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700 cursor-pointer">Cancel</button>
             </div>
           </div>
         </div>
 
-        <!-- Reaction Summary Overlay (Bottom Right of bubble) -->
+        <!-- Reaction Summary Overlay (Bottom Right of bubble, Facebook-Style) -->
         <div 
           v-if="hasReactions"
-          class="absolute -bottom-2 -right-2 flex items-center bg-white rounded-full px-1.5 py-0.5 shadow-sm border border-gray-100 gap-0.5"
+          class="absolute -bottom-2 -right-2 flex items-center bg-white rounded-full px-1.5 py-0.5 shadow-xs border border-gray-200/60 gap-0.5 select-none"
         >
           <div class="flex -space-x-1">
             <span v-for="type in topReactionTypes" :key="type" class="text-[11px] leading-none">
               {{ reactionEmojis[type] }}
             </span>
           </div>
-          <span class="text-[10px] font-medium text-gray-500 ml-0.5">{{ totalReactionCount }}</span>
+          <span class="text-[10px] font-medium text-gray-600 ml-0.5">{{ totalReactionCount }}</span>
         </div>
       </div>
 
@@ -63,10 +66,10 @@
             @touchstart="handleTouchStart"
             @touchend="handleTouchEnd"
             @touchcancel="handleTouchCancel"
-            class="text-[11px] font-semibold transition-colors"
-            :class="localUserReaction ? 'text-ic-primary' : 'text-gray-500 hover:text-gray-700'"
+            class="text-[11px] font-semibold transition-colors cursor-pointer select-none"
+            :class="localUserReaction ? (reactionColors[localUserReaction] || 'text-rose-500') : 'text-gray-500 hover:text-gray-700'"
           >
-            <span v-if="localUserReaction" class="capitalize">{{ localUserReaction }}</span>
+            <span v-if="localUserReaction">{{ reactionLabels[localUserReaction] || localUserReaction }}</span>
             <span v-else>Like</span>
           </button>
 
@@ -84,24 +87,53 @@
         <button
           v-if="depth < 1"
           @click="$emit('reply', comment)"
-          class="text-[11px] font-semibold text-gray-500 hover:text-gray-700"
+          class="text-[11px] font-semibold text-gray-500 hover:text-gray-700 cursor-pointer"
         >
           Reply
         </button>
         <button
           v-if="isOwner || isAdmin"
           @click="startEdit"
-          class="text-[11px] font-semibold text-gray-500 hover:text-gray-700"
+          class="text-[11px] font-semibold text-gray-500 hover:text-gray-700 cursor-pointer"
         >
           Edit
         </button>
-        <button
-          v-if="isOwner || isAdmin"
-          @click="confirmDelete"
-          class="text-[11px] font-semibold text-gray-500 hover:text-red-600"
-        >
-          Delete
-        </button>
+
+        <!-- Minimal Delete Action (Inline Confirmation & Animated Deletion) -->
+        <template v-if="isOwner || isAdmin">
+          <!-- Deleting spinner indicator -->
+          <div v-if="isDeleting" class="flex items-center gap-1 text-rose-500">
+            <span class="inline-block w-3 h-3 border-2 border-rose-400 border-t-transparent rounded-full animate-spin"></span>
+            <span class="text-[10px] font-mono">Deleting...</span>
+          </div>
+
+          <!-- Inline confirmation state -->
+          <div v-else-if="confirmingDelete" class="flex items-center gap-1.5 animate-in fade-in duration-150">
+            <span class="text-[11px] text-gray-400">Delete?</span>
+            <button
+              @click="executeDelete"
+              class="text-[11px] font-bold text-rose-600 hover:text-rose-700 cursor-pointer"
+            >
+              Yes
+            </button>
+            <span class="text-gray-300 text-[10px]">·</span>
+            <button
+              @click="confirmingDelete = false"
+              class="text-[11px] font-medium text-gray-500 hover:text-gray-700 cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <!-- Normal Delete Button -->
+          <button
+            v-else
+            @click="confirmingDelete = true"
+            class="text-[11px] font-semibold text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+          >
+            Delete
+          </button>
+        </template>
       </div>
 
       <!-- Replies -->
@@ -180,7 +212,7 @@ const repliesLoading = ref(false)
 
 const currentUser = computed(() => useAuthStore().user)
 
-// LocalStorage helpers to persist comment reactions (since backend doesn't return user_reaction in list query)
+// LocalStorage helpers to persist comment reactions
 const getReactionsKey = () => {
   const userId = currentUser.value?.id || 'anon'
   return `comment_reactions_${userId}`
@@ -188,13 +220,23 @@ const getReactionsKey = () => {
 
 const getStoredReactions = () => {
   try {
-    return JSON.parse(localStorage.getItem(getReactionsKey()) || '{}')
+    const raw = localStorage.getItem(getReactionsKey())
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    if (typeof parsed !== 'object' || parsed === null) return {}
+    // Clean up any corrupt/stale keys
+    delete parsed['undefined']
+    delete parsed['null']
+    delete parsed['NaN']
+    delete parsed['[object Object]']
+    return parsed
   } catch {
     return {}
   }
 }
 
 const saveStoredReaction = (commentId, reactionType) => {
+  if (!commentId || commentId === 'undefined' || commentId === 'null') return
   const reactions = getStoredReactions()
   const key = String(commentId)
   if (reactionType) {
@@ -202,20 +244,45 @@ const saveStoredReaction = (commentId, reactionType) => {
   } else {
     delete reactions[key]
   }
+  delete reactions['undefined']
+  delete reactions['null']
+  delete reactions['NaN']
+  delete reactions['[object Object]']
   localStorage.setItem(getReactionsKey(), JSON.stringify(reactions))
 }
+
+// --- Deletion State ---
+const confirmingDelete = ref(false)
+const isDeleting = ref(false)
 
 // --- Reactions State ---
 const showPicker = ref(false)
 const isReacting = ref(false)
 const localUserReaction = ref(null)
 const localReactionCounts = ref({})
+
 const reactionEmojis = {
   like: '👍',
   heart: '❤️',
   haha: '😆',
   sad: '😢',
   angry: '😡'
+}
+
+const reactionLabels = {
+  like: 'Like',
+  heart: 'Love',
+  haha: 'Haha',
+  sad: 'Sad',
+  angry: 'Angry'
+}
+
+const reactionColors = {
+  like: 'text-blue-600 font-bold',
+  heart: 'text-rose-500 font-bold',
+  haha: 'text-amber-500 font-bold',
+  sad: 'text-amber-500 font-bold',
+  angry: 'text-orange-600 font-bold'
 }
 
 // Timers for hover/long-press
@@ -228,27 +295,55 @@ const actionsContainer = ref(null)
 
 // Initialize and sync reaction state
 const initializeReactions = (comment) => {
-  console.log('💬 initializeReactions for comment ID:', comment.id, 'content:', comment.content, 'reaction_counts:', comment.reaction_counts)
-  console.log('📋 Full comment data object:', comment)
-  
-  // Load from localStorage instead of relying on backend
-  const storedReactions = getStoredReactions()
-  localUserReaction.value = storedReactions[String(comment.id)] || null
+  if (!comment) return
 
+  // Parse reaction_counts safely
+  let parsedCounts = {}
   if (comment.reaction_counts) {
-    if (typeof comment.reaction_counts === 'object') {
-      localReactionCounts.value = { ...comment.reaction_counts }
-    } else {
+    if (typeof comment.reaction_counts === 'object' && comment.reaction_counts !== null) {
+      parsedCounts = { ...comment.reaction_counts }
+    } else if (typeof comment.reaction_counts === 'string') {
       try {
-        localReactionCounts.value = JSON.parse(comment.reaction_counts)
-      } catch (e) {
-        console.warn('Failed to parse reaction_counts JSON:', e)
-        localReactionCounts.value = {}
+        parsedCounts = JSON.parse(comment.reaction_counts)
+      } catch {
+        parsedCounts = {}
       }
     }
-  } else {
-    localReactionCounts.value = {}
   }
+
+  // Sanitize: only include positive numeric counts
+  const cleanCounts = {}
+  for (const [key, val] of Object.entries(parsedCounts)) {
+    const num = parseInt(val, 10)
+    if (!isNaN(num) && num > 0) {
+      cleanCounts[key] = num
+    }
+  }
+  localReactionCounts.value = cleanCounts
+
+  // Sum of individual reaction counts from backend
+  const backendTotal = Object.entries(cleanCounts)
+    .filter(([k]) => k !== 'total')
+    .reduce((sum, [_, count]) => sum + count, 0)
+
+  // Determine user reaction:
+  // 1. If backend explicitly provides user_reaction, use it
+  let userReact = comment.user_reaction || null
+
+  // 2. If backend didn't provide user_reaction, only check localStorage if backend indicates reactions actually exist!
+  // This completely eliminates ghost reactions on newly posted comments (which have backendTotal === 0).
+  if (!userReact && comment.id && comment.id !== 'undefined' && comment.id !== 'null') {
+    const storedReactions = getStoredReactions()
+    const stored = storedReactions[String(comment.id)]
+    if (stored && backendTotal > 0 && cleanCounts[stored] > 0) {
+      userReact = stored
+    } else if (stored && backendTotal === 0) {
+      // Clean up stale or reused ID reaction
+      saveStoredReaction(comment.id, null)
+    }
+  }
+
+  localUserReaction.value = userReact
 }
 
 onMounted(() => {
@@ -270,24 +365,24 @@ watch(currentUser, () => {
 const totalReactionCount = computed(() => {
   // If the backend provides a direct "total" count, use it.
   if (localReactionCounts.value && typeof localReactionCounts.value.total !== 'undefined') {
-    return parseInt(localReactionCounts.value.total) || 0
+    return parseInt(localReactionCounts.value.total, 10) || 0
   }
   
   // Otherwise, sum the individual reaction counts, excluding "total" if it exists
   return Object.entries(localReactionCounts.value)
     .filter(([key]) => key !== 'total')
-    .reduce((sum, [_, count]) => sum + (parseInt(count) || 0), 0)
+    .reduce((sum, [_, count]) => sum + (parseInt(count, 10) || 0), 0)
 })
-
-const hasReactions = computed(() => totalReactionCount.value > 0)
 
 const topReactionTypes = computed(() => {
   return Object.entries(localReactionCounts.value)
     .filter(([type, count]) => type !== 'total' && count > 0)
-    .sort((a, b) => (parseInt(b[1]) || 0) - (parseInt(a[1]) || 0))
+    .sort((a, b) => (parseInt(b[1], 10) || 0) - (parseInt(a[1], 10) || 0))
     .slice(0, 3)
     .map(([type]) => type)
 })
+
+const hasReactions = computed(() => totalReactionCount.value > 0 && topReactionTypes.value.length > 0)
 
 // --- Reaction Handlers ---
 
@@ -381,12 +476,17 @@ const updateLocalReaction = (newReaction) => {
 
   // Decrease count for old reaction
   if (oldReaction && localReactionCounts.value[oldReaction]) {
-    localReactionCounts.value[oldReaction] = Math.max(0, (parseInt(localReactionCounts.value[oldReaction]) || 0) - 1)
+    const nextCount = (parseInt(localReactionCounts.value[oldReaction], 10) || 0) - 1
+    if (nextCount > 0) {
+      localReactionCounts.value[oldReaction] = nextCount
+    } else {
+      delete localReactionCounts.value[oldReaction]
+    }
   }
   
   // Increase count for new reaction
   if (newReaction) {
-    localReactionCounts.value[newReaction] = (parseInt(localReactionCounts.value[newReaction]) || 0) + 1
+    localReactionCounts.value[newReaction] = (parseInt(localReactionCounts.value[newReaction], 10) || 0) + 1
   }
 
   // Also update the total count if it exists in localReactionCounts
@@ -394,7 +494,12 @@ const updateLocalReaction = (newReaction) => {
     let diff = 0
     if (oldReaction) diff -= 1
     if (newReaction) diff += 1
-    localReactionCounts.value.total = Math.max(0, (parseInt(localReactionCounts.value.total) || 0) + diff)
+    const nextTotal = Math.max(0, (parseInt(localReactionCounts.value.total, 10) || 0) + diff)
+    if (nextTotal > 0) {
+      localReactionCounts.value.total = nextTotal
+    } else {
+      delete localReactionCounts.value.total
+    }
   }
   
   localUserReaction.value = newReaction
@@ -608,11 +713,15 @@ const cancelEdit = () => {
   editContent.value = props.comment.content
 }
 
-const confirmDelete = async () => {
-  if (!confirm('Delete this comment?')) return
+const executeDelete = async () => {
+  confirmingDelete.value = false
+  isDeleting.value = true
   const result = await deleteComment(props.comment.id)
   if (result.success) {
     emit('deleted', props.comment.id)
+  } else {
+    isDeleting.value = false
+    console.error('Failed to delete comment:', result.error)
   }
 }
 

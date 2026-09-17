@@ -12,6 +12,7 @@
         <p class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'Admin' }}</p>
         <div class="flex items-center gap-1.5 flex-wrap">
           <p class="font-mono text-[11px] uppercase tracking-wider text-gray-400">{{ formattedDate || 'Recently' }}</p>
+          <span v-if="isEdited" class="font-mono text-[10px] text-gray-400 lowercase">· (edited)</span>
           <span class="text-xs text-gray-300">·</span>
           <CategoryBadge :category="post.category" size="sm" @click-category="$emit('filter-category', $event)" />
         </div>
@@ -76,125 +77,79 @@
       </button>
     </div>
 
-    <!-- Post Media (Carousel) -->
+    <!-- Post Media (Adaptive Mosaic Gallery) -->
     <div
       v-if="hasMedia"
-      class="relative bg-gray-100"
+      class="px-4 pb-2 relative"
       @dblclick="handleDoubleTap"
     >
-      <div 
-        ref="carouselRef"
-        class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-        @scroll="handleScroll"
-      >
-        <div 
-          v-for="(media, index) in post.media" 
-          :key="media.id"
-          class="flex-shrink-0 w-full snap-center"
-        >
-          <!-- Video -->
-          <video 
-            v-if="media.media_type === 'video'"
-            :src="normalizeUrl(media.media_url)" 
-            class="w-full aspect-square object-cover"
-            controls
-            playsinline
-            preload="metadata"
-          />
-          <!-- Image -->
-          <img 
-            v-else
-            :src="normalizeUrl(media.media_url)" 
-            :alt="`Post image ${index + 1}`"
-            class="w-full aspect-square object-cover"
-            loading="lazy"
-            @error="handleImageError"
-          />
-        </div>
-      </div>
-
-      <!-- Navigation Arrows -->
-      <template v-if="post.media.length > 1">
-        <button 
-          v-if="currentIndex > 0"
-          @click="scrollTo(currentIndex - 1)"
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
-          aria-label="Previous image"
-        >
-          <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button 
-          v-if="currentIndex < post.media.length - 1"
-          @click="scrollTo(currentIndex + 1)"
-          class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
-          aria-label="Next image"
-        >
-          <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        <!-- Dots Indicator -->
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-          <button
-            v-for="(_, index) in post.media"
-            :key="index"
-            @click="scrollTo(index)"
-            class="w-2 h-2 rounded-full transition-all"
-            :class="currentIndex === index ? 'bg-ic-primary' : 'bg-gray-300'"
-            :aria-label="`Go to image ${index + 1}`"
-          />
-        </div>
-      </template>
+      <MediaGallery
+        :media="post.media"
+        :author-name="post.user_name || 'Institute Post'"
+        :author-avatar="authorAvatar"
+        :post-date="formattedDate"
+      />
 
       <!-- Double-tap heart animation -->
       <Transition name="heart-burst">
-        <div v-if="showHeartAnimation" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <svg class="w-20 h-20 text-white drop-shadow-lg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+        <div v-if="showHeartAnimation" class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+          <Heart class="w-20 h-20 text-white fill-white drop-shadow-xl" />
         </div>
       </Transition>
     </div>
 
     <!-- Interaction Bar -->
-    <div class="px-4 py-3 border-t border-gray-100">
+    <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
       <div class="flex items-center gap-4">
         <!-- Heart Button -->
         <button
           @click="toggleReaction"
-          class="flex items-center gap-1.5 group transition-transform active:scale-90"
-          :class="isLiked ? 'text-red-500' : 'text-gray-500 hover:text-gray-700'"
+          class="flex items-center gap-1.5 group transition-transform active:scale-90 cursor-pointer"
+          :class="isLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'"
         >
-          <svg
-            class="w-6 h-6 transition-all"
-            :class="{ 'scale-110': isLiked, 'heart-pop': heartPopping }"
-            :fill="isLiked ? 'currentColor' : 'none'"
-            :stroke="isLiked ? 'none' : 'currentColor'"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+          <Heart
+            class="w-5 h-5 sm:w-6 sm:h-6 transition-all"
+            :class="[
+              isLiked ? 'scale-110 fill-rose-500 text-rose-500' : 'text-gray-500 group-hover:text-rose-500',
+              heartPopping ? 'heart-pop' : ''
+            ]"
+          />
           <span class="font-mono text-xs font-semibold text-gray-700" v-if="localReactionCount > 0">{{ localReactionCount }}</span>
         </button>
 
-        <!-- Comment Button -->
+        <!-- Comment Button (Pops dedicated Post Comment Modal) -->
         <button
-          @click="focusCommentInput"
-          class="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors"
+          @click="openCommentModal"
+          class="flex items-center gap-1.5 group transition-colors cursor-pointer"
+          :class="localDisableComments ? 'text-gray-400 hover:text-gray-500' : 'text-gray-500 hover:text-ic-primary'"
+          :title="localDisableComments ? 'Comments are turned off for this post' : 'Open comments'"
         >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          <span class="font-mono text-xs font-semibold text-gray-700" v-if="localCommentCount > 0">{{ localCommentCount }}</span>
+          <MessageCircleOff
+            v-if="localDisableComments"
+            class="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105 text-gray-400"
+          />
+          <MessageCircle
+            v-else
+            class="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105"
+          />
+          <span 
+            class="font-mono text-xs font-semibold"
+            :class="localDisableComments ? 'text-gray-400' : 'text-gray-700'"
+            v-if="localCommentCount > 0"
+          >
+            {{ localCommentCount }}
+          </span>
+          <span
+            v-if="localDisableComments"
+            class="font-mono text-[9px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider"
+          >
+            Off
+          </span>
         </button>
       </div>
     </div>
 
-    <!-- Post Modal -->
+    <!-- Dedicated Post & Comment Modal (Facebook-style full post dialog) -->
     <PostModal
       :is-open="isModalOpen"
       :post="post"
@@ -213,6 +168,8 @@ import { useAuthStore } from '@/stores/auth'
 import { reactToPost, removeReaction, togglePostComments } from '@/services/postService'
 import PostModal from './PostModal.vue'
 import CategoryBadge from './CategoryBadge.vue'
+import MediaGallery from './MediaGallery.vue'
+import { Heart, MessageCircle, MessageCircleOff } from 'lucide-vue-next'
 
 const props = defineProps({
   post: {
@@ -230,8 +187,6 @@ const emit = defineEmits(['edit', 'delete', 'updated', 'filter-category'])
 const authStore = useAuthStore()
 const currentUser = computed(() => authStore.user)
 
-const carouselRef = ref(null)
-const currentIndex = ref(0)
 const menuOpen = ref(false)
 const expanded = ref(false)
 const isModalOpen = ref(false)
@@ -386,6 +341,21 @@ const formattedDate = computed(() => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 })
 
+const isEdited = computed(() => {
+  const p = props.post
+  if (p.is_edited) return true
+  const createdStr = p.created_at || p.date || p.timestamp
+  const updatedStr = p.updated_at
+  if (createdStr && updatedStr) {
+    const created = new Date(createdStr).getTime()
+    const updated = new Date(updatedStr).getTime()
+    if (!isNaN(created) && !isNaN(updated)) {
+      return (updated - created) > 30000 // 30s threshold
+    }
+  }
+  return false
+})
+
 // --- Reactions ---
 const toggleReaction = async () => {
   // Optimistic update
@@ -433,30 +403,8 @@ const handleDoubleTap = () => {
 }
 
 // --- Comments ---
-const focusCommentInput = () => {
-  if (localDisableComments.value) return
+const openCommentModal = () => {
   isModalOpen.value = true
-}
-
-// --- Carousel ---
-const handleImageError = (event) => {
-  event.target.style.display = 'none'
-}
-
-const handleScroll = () => {
-  if (!carouselRef.value) return
-  const scrollLeft = carouselRef.value.scrollLeft
-  const width = carouselRef.value.offsetWidth
-  currentIndex.value = Math.round(scrollLeft / width)
-}
-
-const scrollTo = (index) => {
-  if (!carouselRef.value) return
-  const width = carouselRef.value.offsetWidth
-  carouselRef.value.scrollTo({
-    left: index * width,
-    behavior: 'smooth'
-  })
 }
 
 // --- Menu Actions ---
