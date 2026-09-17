@@ -1,180 +1,329 @@
 <template>
-  <div>
+  <div class="space-y-6 animate-fade-in-up">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-900 mb-1">Events</h1>
-        <p class="text-sm text-gray-500">{{ totalItems }} events</p>
+        <div class="flex items-center gap-2 mb-1">
+          <h1 class="font-pixel text-2xl sm:text-3xl text-gray-900 lowercase tracking-tight">events</h1>
+          
+        </div>
+        <p class="text-sm text-gray-500">Monitor and view institutional attendance events and schedules</p>
+      </div>
+
+      <!-- Quick Metrics Counter Pill -->
+      <div class="flex items-center gap-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-gray-200 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+          <span class="w-2 h-2 rounded-full bg-ic-primary"></span>
+          <span class="font-mono text-[10px] sm:text-[11px] font-medium text-gray-600 uppercase tracking-wider whitespace-nowrap">
+            {{ totalItems.toLocaleString() }} Events Scheduled
+          </span>
+        </div>
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap items-center gap-2 mb-6">
-      <button 
-        v-for="status in ['all', 'upcoming', 'ongoing', 'completed']"
-        :key="status"
-        @click="filterStatus = status"
-        :class="[
-          'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors capitalize',
-          filterStatus === status ? 'bg-gray-900 text-white' : 'border border-gray-200 hover:bg-gray-50'
-        ]"
-      >
-        {{ status === 'all' ? 'All Events' : status }}
-      </button>
-    </div>
+    <!-- Filter Pills Card -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- Filter Header -->
+        <div class="flex items-center gap-2">
+          <SlidersHorizontal class="w-3.5 h-3.5 text-ic-primary shrink-0" />
+          <span class="font-mono text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+            Filter Status
+          </span>
+        </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading && events.length === 0" class="py-16 text-center">
-      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-ic-primary mx-auto mb-3"></div>
-      <p class="text-sm text-gray-500">Loading events...</p>
+        <!-- Status Filter Pills -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button 
+            v-for="status in ['all', 'upcoming', 'ongoing', 'completed']"
+            :key="status"
+            @click="filterStatus = status"
+            :class="[
+              'px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-all duration-200 cursor-pointer select-none',
+              filterStatus === status 
+                ? 'bg-ic-primary text-white shadow-[0_2px_8px_-2px_rgba(100,13,95,0.4)]' 
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900 border border-gray-200/80'
+            ]"
+          >
+            {{ status === 'all' ? 'All Events' : status }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="py-12 text-center">
-      <svg class="mx-auto h-10 w-10 text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p class="text-sm text-gray-900 font-medium mb-1">Events Unavailable</p>
-      <p class="text-sm text-gray-500 mb-4">{{ error }}</p>
-      <button @click="loadEvents" class="px-4 py-2 bg-ic-primary text-white text-sm font-semibold rounded-lg hover:bg-ic-secondary transition-colors cursor-pointer">
+    <div v-if="error" class="bg-white border border-gray-200 rounded-2xl py-12 px-6 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+      <AlertCircle class="mx-auto h-10 w-10 text-rose-400 mb-3" />
+      <p class="text-sm text-gray-900 font-semibold mb-1">Events Unavailable</p>
+      <p class="text-xs text-gray-500 mb-4 max-w-md mx-auto">{{ error }}</p>
+      <button 
+        @click="loadEvents" 
+        class="px-4 py-2 bg-ic-primary text-white font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl hover:bg-ic-secondary transition-colors cursor-pointer"
+      >
         Try Again
       </button>
     </div>
 
-    <!-- Events List -->
-    <template v-else>
-      <div class="space-y-3" :class="{ 'opacity-60': isLoading }">
-        <div 
-          v-for="event in displayedEvents" 
-          :key="event.id"
-          class="border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition-all cursor-pointer"
-          @click="viewEvent(event)"
-        >
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex items-start gap-4 flex-1 min-w-0">
-              <!-- Event Icon -->
-              <div class="w-11 h-11 shrink-0 rounded-lg bg-purple-50 flex items-center justify-center">
-                <svg class="w-5 h-5 text-ic-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+    <!-- Events List Section -->
+    <div v-else class="space-y-3">
+      <!-- Section Header -->
+      <div class="flex items-center justify-between px-1">
+        <span class="font-pixel text-sm text-gray-400 lowercase">01 — attendance events</span>
+        <span v-if="!isLoading && displayedEvents.length > 0" class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+          {{ displayedEvents.length }} {{ displayedEvents.length === 1 ? 'event' : 'events' }} shown
+        </span>
+        <span v-else-if="isLoading" class="font-mono text-[11px] font-medium text-gray-400 uppercase tracking-wider animate-pulse">
+          loading events...
+        </span>
+      </div>
+
+      <!-- Events Cards Stack -->
+      <div class="space-y-3">
+        <!-- Skeleton Loading Cards -->
+        <template v-if="isLoading">
+          <div 
+            v-for="i in 4" 
+            :key="'event-skel-' + i"
+            class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] animate-pulse"
+          >
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <!-- Left Side: Date Box Skeleton + Details Skeleton -->
+              <div class="flex items-start sm:items-center gap-3.5 sm:gap-4 flex-1 min-w-0">
+                <div class="w-12 h-12 rounded-xl bg-gray-200 shrink-0"></div>
+                <div class="space-y-2 flex-1 min-w-0">
+                  <div class="h-4 bg-gray-200 rounded w-2/5"></div>
+                  <div class="h-3 bg-gray-100 rounded w-3/5"></div>
+                  <div class="h-2.5 bg-gray-100 rounded w-4/5"></div>
+                </div>
               </div>
 
-              <!-- Event Details -->
+              <!-- Right Side: Status Badge Skeleton + Button Skeleton -->
+              <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                <div class="h-6 w-20 bg-gray-200 rounded-full"></div>
+                <div class="h-3.5 w-14 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- Event Cards List -->
+        <template v-else-if="displayedEvents.length > 0">
+          <div 
+            v-for="event in displayedEvents" 
+            :key="event.id"
+            @click="viewEvent(event)"
+            class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group"
+          >
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <!-- Left Side: Date Badge + Details -->
+            <div class="flex items-start sm:items-center gap-3.5 sm:gap-4 flex-1 min-w-0">
+              <!-- Date Block Badge -->
+              <div class="w-12 h-12 rounded-xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center shrink-0 select-none group-hover:border-ic-accent/40 group-hover:bg-purple-50/40 transition-colors">
+                <span class="font-mono text-[9px] font-semibold text-ic-secondary tracking-wider leading-none uppercase">
+                  {{ getEventDateInfo(event).month }}
+                </span>
+                <span class="font-pixel text-base text-gray-900 leading-tight mt-0.5">
+                  {{ getEventDateInfo(event).day }}
+                </span>
+              </div>
+
+              <!-- Main Details -->
               <div class="flex-1 min-w-0">
-                <h3 class="text-base font-semibold text-gray-900 mb-1">{{ getEventName(event) }}</h3>
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
-                  <span v-if="formatDateRange(event)">{{ formatDateRange(event) }}</span>
-                  <span v-if="event.academic_year" class="flex items-center gap-1">
-                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                    AY {{ event.academic_year }}
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-ic-primary transition-colors truncate">
+                    {{ getEventName(event) }}
+                  </h3>
+                </div>
+
+                <!-- Metadata Row -->
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-gray-400">
+                  <span v-if="formatDateRange(event)" class="text-gray-600 font-medium">
+                    {{ formatDateRange(event) }}
                   </span>
-                  <span v-if="event.semester" class="flex items-center gap-1">
+                  <span v-if="event.academic_year" class="flex items-center gap-1.5">
                     <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                    {{ event.semester }} Semester
+                    <span>AY {{ event.academic_year }}</span>
+                  </span>
+                  <span v-if="event.semester" class="flex items-center gap-1.5">
+                    <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                    <span>{{ event.semester }} Sem</span>
                   </span>
                 </div>
-                <p v-if="getDescription(event)" class="text-sm text-gray-500 mt-1.5 line-clamp-1">{{ getDescription(event) }}</p>
+
+                <p v-if="getDescription(event)" class="text-xs text-gray-500 mt-1.5 line-clamp-1">
+                  {{ getDescription(event) }}
+                </p>
               </div>
             </div>
 
-            <!-- Status Badge -->
-            <span 
-              :class="['inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full shrink-0 capitalize', getStatusClass(event)]"
-            >
-              {{ getEventStatus(event) }}
-            </span>
+            <!-- Right Side: Status Badge + Action Link -->
+            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+              <!-- Status Badge -->
+              <span 
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[10px] font-medium uppercase tracking-wider whitespace-nowrap"
+                :class="getStatusBadgeClasses(event)"
+              >
+                <span class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(event)"></span>
+                {{ getEventStatus(event) }}
+              </span>
+
+              <!-- Action Link -->
+              <button 
+                class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary group-hover:text-ic-secondary transition-colors inline-flex items-center gap-1 focus:outline-none cursor-pointer"
+              >
+                <span>details</span>
+                <span class="text-[10px] transition-transform group-hover:translate-x-0.5">→</span>
+              </button>
+            </div>
           </div>
+        </div>
+        </template>
+
+        <!-- Empty State -->
+        <div v-if="displayedEvents.length === 0 && !isLoading" class="bg-white border border-gray-200 rounded-2xl py-16 text-center shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]">
+          <CalendarIcon class="w-10 h-10 text-gray-300 mx-auto mb-2" />
+          <p class="font-pixel text-sm text-gray-400 lowercase">no {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
+          <p class="text-xs text-gray-400 mt-1">There are no events currently recorded under this filter.</p>
         </div>
       </div>
 
-      <!-- Empty State -->
-      <div v-if="displayedEvents.length === 0 && !isLoading" class="text-center py-16 border border-gray-200 rounded-lg">
-        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <p class="text-sm text-gray-500">No {{ filterStatus !== 'all' ? filterStatus : '' }} events found</p>
-      </div>
-
-      <!-- Pagination -->
-      <div v-if="totalPages > 1" class="flex items-center justify-between mt-6">
-        <p class="text-sm text-gray-500">Page {{ currentPage }} of {{ totalPages }}</p>
+      <!-- Pagination Controls -->
+      <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 px-1">
+        <p class="font-mono text-[11px] text-gray-400 uppercase tracking-wider">
+          Page {{ currentPage }} of {{ totalPages }} · {{ totalItems }} Total Records
+        </p>
         <div class="flex items-center gap-2">
           <button 
             @click="goToPage(currentPage - 1)"
             :disabled="currentPage <= 1 || isLoading"
-            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-700 disabled:opacity-40 transition-colors cursor-pointer inline-flex items-center gap-1 select-none"
           >
-            Previous
+            <span class="text-[10px]">←</span>
+            <span>Prev</span>
           </button>
+          <span class="font-mono text-xs text-gray-600 px-1 font-semibold">{{ currentPage }} / {{ totalPages }}</span>
           <button 
             @click="goToPage(currentPage + 1)"
             :disabled="currentPage >= totalPages || isLoading"
-            class="px-3 py-1.5 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-3.5 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wider border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-700 disabled:opacity-40 transition-colors cursor-pointer inline-flex items-center gap-1 select-none"
           >
-            Next
+            <span>Next</span>
+            <span class="text-[10px]">→</span>
           </button>
         </div>
-      </div>
-    </template>
-
-    <!-- View Event Modal -->
-    <div 
-      v-if="selectedEvent && showViewModal"
-      class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showViewModal = false"
-    >
-      <div class="bg-white rounded-xl max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-xl font-semibold">Event Details</h2>
-          <button @click="showViewModal = false" class="p-1 hover:bg-gray-50 rounded-lg">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="space-y-4">
-          <div>
-            <span :class="['inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full capitalize', getStatusClass(selectedEvent)]">
-              {{ getEventStatus(selectedEvent) }}
-            </span>
-          </div>
-
-          <h3 class="text-lg font-semibold">{{ getEventName(selectedEvent) }}</h3>
-
-          <div class="space-y-3 text-sm">
-            <div v-if="formatDateRange(selectedEvent)" class="flex items-center gap-3 text-gray-600">
-              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{{ formatDateRange(selectedEvent) }}</span>
-            </div>
-            <div v-if="selectedEvent.academic_year" class="flex items-center gap-3 text-gray-600">
-              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-              </svg>
-              <span>AY {{ selectedEvent.academic_year }} · {{ selectedEvent.semester }} Semester</span>
-            </div>
-            <div v-if="getDescription(selectedEvent)" class="pt-3 border-t border-gray-100">
-              <p class="text-gray-600 leading-relaxed">{{ getDescription(selectedEvent) }}</p>
-            </div>
-          </div>
-        </div>
-
-        <button 
-          @click="showViewModal = false"
-          class="w-full mt-6 px-4 py-2 text-sm font-medium border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          Close
-        </button>
       </div>
     </div>
+
+    <!-- View Event Modal -->
+    <Teleport to="body">
+      <Transition name="modal-fade">
+        <div 
+          v-if="selectedEvent && showViewModal"
+          class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-[200]"
+          @click.self="showViewModal = false"
+        >
+          <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl border border-gray-100 relative animate-modal-pop">
+            <!-- Modal Header Banner -->
+            <div class="bg-ic-primary p-5 text-white relative">
+              <button 
+                @click="showViewModal = false" 
+                class="absolute top-4 right-4 text-white/80 hover:text-white hover:bg-white/10 rounded-full p-1.5 transition-colors focus:outline-none cursor-pointer"
+                aria-label="Close modal"
+              >
+                <X class="w-5 h-5" />
+              </button>
+              
+              <div class="flex items-center gap-3.5 pr-8">
+                <div class="w-12 h-12 rounded-xl bg-white/20 flex flex-col items-center justify-center border border-white/30 shrink-0 select-none">
+                  <span class="font-mono text-[9px] text-white/90 leading-none uppercase">
+                    {{ getEventDateInfo(selectedEvent).month }}
+                  </span>
+                  <span class="font-pixel text-lg leading-tight mt-0.5">
+                    {{ getEventDateInfo(selectedEvent).day }}
+                  </span>
+                </div>
+                <div class="min-w-0">
+                  <h4 class="font-semibold text-base leading-tight truncate">
+                    {{ getEventName(selectedEvent) }}
+                  </h4>
+                  <p class="font-mono text-[11px] text-white/80 mt-0.5 uppercase tracking-wider truncate">
+                    <span v-if="selectedEvent.academic_year">AY {{ selectedEvent.academic_year }}</span>
+                    <span v-if="selectedEvent.academic_year && selectedEvent.semester"> · </span>
+                    <span v-if="selectedEvent.semester">{{ selectedEvent.semester }} Semester</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="p-6 space-y-4">
+              <!-- Status Pill -->
+              <div>
+                <span 
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[10px] font-medium uppercase tracking-wider"
+                  :class="getStatusBadgeClasses(selectedEvent)"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" :class="getStatusDotClass(selectedEvent)"></span>
+                  {{ getEventStatus(selectedEvent) }}
+                </span>
+              </div>
+
+              <!-- Description -->
+              <div v-if="getDescription(selectedEvent)">
+                <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</h5>
+                <p class="text-sm text-gray-700 leading-relaxed">{{ getDescription(selectedEvent) }}</p>
+              </div>
+
+              <!-- Academic Info Grid -->
+              <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                <div>
+                  <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Semester</h5>
+                  <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
+                    <GraduationCap class="w-3.5 h-3.5 text-ic-secondary shrink-0" />
+                    <span>{{ selectedEvent.semester ? `${selectedEvent.semester} Sem` : '—' }}</span>
+                  </p>
+                </div>
+                <div>
+                  <h5 class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Academic Year</h5>
+                  <p class="text-sm text-gray-800 font-semibold flex items-center gap-1.5">
+                    <CalendarIcon class="w-3.5 h-3.5 text-ic-primary shrink-0" />
+                    <span>{{ selectedEvent.academic_year ? `AY ${selectedEvent.academic_year}` : '—' }}</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Schedule Range -->
+              <div v-if="formatDateRange(selectedEvent)" class="border-t border-gray-100 pt-4">
+                <span class="font-mono text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1">Event Schedule</span>
+                <span class="text-xs text-gray-700 font-semibold font-mono">{{ formatDateRange(selectedEvent) }}</span>
+              </div>
+            </div>
+
+            <!-- Modal Action Button -->
+            <div class="px-6 pb-6 pt-1">
+              <button 
+                @click="showViewModal = false" 
+                class="w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-mono text-[11px] font-medium uppercase tracking-wider rounded-xl transition-colors focus:outline-none cursor-pointer"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import {
+  Calendar as CalendarIcon,
+  SlidersHorizontal,
+  AlertCircle,
+  X,
+  GraduationCap
+} from 'lucide-vue-next'
 
 const filterStatus = ref('all')
 const currentPage = ref(1)
@@ -197,6 +346,17 @@ const getDescription = (event) => {
   return event.attendance_event?.description || event.description || null
 }
 
+const getEventDateInfo = (event) => {
+  const start = event.start_date ? new Date(event.start_date) : null
+  if (!start || isNaN(start.getTime())) {
+    return { day: '--', month: 'EVT' }
+  }
+  return {
+    day: String(start.getDate()).padStart(2, '0'),
+    month: start.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
+  }
+}
+
 const getEventStatus = (event) => {
   // Prioritize date-based calculation over backend event_status
   const now = new Date()
@@ -210,11 +370,22 @@ const getEventStatus = (event) => {
   return 'upcoming'
 }
 
-const getStatusClass = (event) => {
+const getStatusBadgeClasses = (event) => {
   const status = getEventStatus(event)
-  if (status === 'upcoming') return 'bg-blue-50 text-blue-600'
-  if (status === 'ongoing') return 'bg-green-50 text-green-600'
-  return 'bg-gray-100 text-gray-600'
+  if (status === 'upcoming') {
+    return 'bg-blue-50 text-blue-700 border border-blue-200/60'
+  }
+  if (status === 'ongoing') {
+    return 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+  }
+  return 'bg-gray-100 text-gray-600 border border-gray-200'
+}
+
+const getStatusDotClass = (event) => {
+  const status = getEventStatus(event)
+  if (status === 'upcoming') return 'bg-blue-500'
+  if (status === 'ongoing') return 'bg-emerald-500 animate-pulse'
+  return 'bg-gray-400'
 }
 
 const formatDateRange = (event) => {
@@ -289,3 +460,24 @@ onMounted(() => {
   loadEvents()
 })
 </script>
+
+<style scoped>
+@keyframes modalPop {
+  0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.animate-modal-pop {
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+</style>
