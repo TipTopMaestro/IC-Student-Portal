@@ -13,10 +13,24 @@
           class="w-full h-full object-contain"
           controls
           playsinline
+          muted
+          loop
           preload="metadata"
           @play="handleVideoPlay"
           @pause="handleVideoPause"
+          @volumechange="handleVolumeChange"
         />
+
+        <!-- Quick Mute/Unmute Overlay Button -->
+        <button
+          @click.stop="toggleMute"
+          type="button"
+          :title="isMuted ? 'Unmute' : 'Mute'"
+          class="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-xs transition-all duration-200 shadow-sm cursor-pointer"
+        >
+          <VolumeX v-if="isMuted" class="w-4 h-4" />
+          <Volume2 v-else class="w-4 h-4" />
+        </button>
       </div>
 
       <!-- Single Image -->
@@ -402,7 +416,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import {
   Play,
   ChevronLeft,
@@ -410,7 +424,9 @@ import {
   X,
   ExternalLink,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Volume2,
+  VolumeX
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -562,20 +578,51 @@ const handleGlobalKeydown = (e) => {
   if (e.key === 'ArrowRight') nextMedia()
 }
 
-// Video IntersectionObserver for scroll-past auto-pause & resume
+// Video IntersectionObserver for scroll-into-view autoplay & scroll-past pause
 const singleVideoRef = ref(null)
-const wasPlayingBeforeScroll = ref(false)
 const userPausedManually = ref(false)
+const isMuted = ref(true)
 let videoObserver = null
+let isAutoPausing = false
+let isAutoPlaying = false
 
 const handleVideoPlay = () => {
-  userPausedManually.value = false
+  if (!isAutoPlaying) {
+    userPausedManually.value = false
+  }
+  // Coordinate across multiple feed videos so only one active video plays at once
+  if (singleVideoRef.value && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('portal:video-play', { detail: singleVideoRef.value }))
+  }
 }
 
 const handleVideoPause = () => {
-  // If paused while visible, mark as manually paused by user
-  if (!wasPlayingBeforeScroll.value) {
+  if (!isAutoPausing) {
     userPausedManually.value = true
+  }
+}
+
+const handleVolumeChange = () => {
+  if (singleVideoRef.value) {
+    isMuted.value = singleVideoRef.value.muted || singleVideoRef.value.volume === 0
+  }
+}
+
+const toggleMute = () => {
+  if (singleVideoRef.value) {
+    singleVideoRef.value.muted = !singleVideoRef.value.muted
+    isMuted.value = singleVideoRef.value.muted
+  }
+}
+
+const handleGlobalVideoPlay = (e) => {
+  // If another post video starts playing, pause this one
+  if (e.detail !== singleVideoRef.value && singleVideoRef.value && !singleVideoRef.value.paused) {
+    isAutoPausing = true
+    singleVideoRef.value.pause()
+    setTimeout(() => {
+      isAutoPausing = false
+    }, 50)
   }
 }
 
@@ -591,28 +638,58 @@ const setupVideoObserver = () => {
     const video = singleVideoRef.value
     if (!video) return
 
-    if (!entry.isIntersecting) {
-      // Scrolled out of view (>70% hidden)
-      if (!video.paused && !video.ended) {
-        wasPlayingBeforeScroll.value = true
-        video.pause()
+    // Video is at least 35% in view -> Autoplay if not manually paused by user
+    if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+      if (!userPausedManually.value && video.paused) {
+        isAutoPlaying = true
+        video.muted = isMuted.value
+        video.play()
+          .then(() => {
+            isAutoPlaying = false
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('portal:video-play', { detail: video }))
+            }
+          })
+          .catch((err) => {
+            isAutoPlaying = false
+            console.debug('Autoplay prevented by browser:', err)
+          })
       }
-    } else {
-      // Scrolled back into view
-      if (wasPlayingBeforeScroll.value && !userPausedManually.value) {
-        video.play().catch(() => {})
-        wasPlayingBeforeScroll.value = false
+    } else if (!entry.isIntersecting || entry.intersectionRatio < 0.2) {
+      // Scrolled out of view (<20% visible) -> Pause automatically
+      if (!video.paused && !video.ended) {
+        isAutoPausing = true
+        video.pause()
+        setTimeout(() => {
+          isAutoPausing = false
+        }, 50)
+      }
+      // If completely off-screen, reset manual pause so it can autoplay next time user scrolls back
+      if (entry.intersectionRatio === 0) {
+        userPausedManually.value = false
       }
     }
   }, {
-    threshold: 0.25 // triggers when video is at least 25% visible
+    threshold: [0, 0.2, 0.35, 0.6, 0.8]
   })
 
   videoObserver.observe(singleVideoRef.value)
 }
 
+watch(singleVideoRef, (newEl, oldEl) => {
+  if (oldEl && videoObserver) {
+    videoObserver.unobserve(oldEl)
+  }
+  if (newEl) {
+    nextTick(() => {
+      setupVideoObserver()
+    })
+  }
+})
+
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
+  window.addEventListener('portal:video-play', handleGlobalVideoPlay)
   nextTick(() => {
     setupVideoObserver()
   })
@@ -620,6 +697,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
+  window.removeEventListener('portal:video-play', handleGlobalVideoPlay)
   if (videoObserver) {
     videoObserver.disconnect()
     videoObserver = null
