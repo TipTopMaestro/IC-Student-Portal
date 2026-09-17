@@ -5,16 +5,12 @@
       <div class="flex items-center justify-between h-14 px-4">
         <div class="flex items-center gap-1.5 cursor-pointer relative systems-trigger select-none" @click.stop="toggleSystemsMenu">
           <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
-          <span class="text-base font-semibold text-gray-900">ICAP</span>
-          <svg 
+          <span class="font-pixel text-lg text-ic-primary tracking-tight">ICAP</span>
+          <ChevronDown 
             class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            :stroke-width="2"
+          />
 
           <!-- Mobile Systems Dropdown Popover -->
           <Transition
@@ -27,11 +23,11 @@
           >
             <div
               v-if="showSystemsMenu"
-              class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[100] systems-dropdown"
+              class="absolute top-full left-0 mt-2 w-60 bg-white rounded-2xl shadow-[0_16px_36px_-12px_rgba(0,0,0,0.12)] border border-gray-200 overflow-hidden z-[100] systems-dropdown"
               @click.stop
             >
-              <div class="p-3 border-b border-gray-50">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+              <div class="p-3 border-b border-gray-100">
+                <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
               </div>
               <div class="py-1">
                 <button 
@@ -45,15 +41,9 @@
                     <template v-else>
                       <img v-if="sys.imageUrl" :src="sys.imageUrl" :alt="sys.name" class="h-6 w-6 object-contain" />
                       <template v-else>
-                        <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                        <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <CreditCard v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                        <Vote v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                        <KeyRound v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
                       </template>
                     </template>
                   </div>
@@ -66,10 +56,8 @@
             </div>
           </Transition>
         </div>
-        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg ml-auto">
-          <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+        <button @click="showMobileMenu = true" class="p-2 hover:bg-gray-100 rounded-lg ml-auto text-gray-700 transition-colors">
+          <Menu class="w-5 h-5" :stroke-width="2" />
         </button>
       </div>
     </header>
@@ -86,11 +74,9 @@
       >
         <!-- Menu Header -->
         <div class="flex items-center justify-between h-14 px-4 border-b border-gray-200">
-          <span class="text-base font-semibold text-gray-900">Menu</span>
-          <button @click="showMobileMenu = false" class="p-2 hover:bg-gray-100 rounded-lg">
-            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+          <span class="font-pixel text-base text-gray-900 tracking-tight lowercase">menu</span>
+          <button @click="showMobileMenu = false" class="p-2 hover:bg-gray-100 rounded-lg text-gray-700 transition-colors">
+            <X class="w-5 h-5" :stroke-width="2" />
           </button>
         </div>
 
@@ -102,11 +88,13 @@
             :to="item.path"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActiveRoute(item.path) ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActiveRoute(item.path) ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
             <component 
               :is="item.icon" 
               class="w-5 h-5"
+              :stroke-width="isActiveRoute(item.path) ? 2.4 : 1.9"
+              :class="isActiveRoute(item.path) ? [item.activeIconClass || 'fill-current text-ic-primary'] : 'fill-none text-gray-500'"
             />
             <span class="text-sm">{{ item.name }}</span>
           </router-link>
@@ -115,12 +103,12 @@
             to="/admin/profile"
             @click="showMobileMenu = false"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-            :class="isActiveRoute('/admin/profile') ? 'bg-gray-50 font-medium text-ic-primary' : 'text-gray-700'"
+            :class="isActiveRoute('/admin/profile') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <div v-if="userProfilePicture" class="h-5 w-5 rounded-full overflow-hidden">
+            <div v-if="userProfilePicture" class="h-5 w-5 rounded-full overflow-hidden shrink-0" :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
               <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
             </div>
-            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium">
+            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-[10px] font-semibold shrink-0" :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
               {{ userInitials }}
             </div>
             <span class="text-sm">Profile</span>
@@ -131,35 +119,28 @@
           <router-link
             to="/admin/settings"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
-            :class="{ 'bg-gray-50 font-medium text-ic-primary': isActiveRoute('/admin/settings') }"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
+            :class="{ 'font-semibold text-ic-primary': isActiveRoute('/admin/settings') }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <Settings class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Settings</span>
           </router-link>
 
           <button
             @click="openReportProblem(); showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <LifeBuoy class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Report a Problem</span>
           </button>
 
           <router-link
             to="/admin/about"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
-            :class="{ 'bg-gray-50 font-medium text-ic-primary': isActiveRoute('/admin/about') }"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
+            :class="{ 'font-semibold text-ic-primary': isActiveRoute('/admin/about') }"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">About ICSP</span>
           </router-link>
 
@@ -168,24 +149,20 @@
             target="_blank"
             rel="noopener noreferrer"
             @click="showMobileMenu = false"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+            <BookOpen class="w-5 h-5 text-gray-500" :stroke-width="1.9" />
             <span class="text-sm">Documentation</span>
-            <span class="text-xs text-gray-400 ml-auto font-mono">↗</span>
+            <ExternalLink class="w-4 h-4 text-gray-400 ml-auto" :stroke-width="2" />
           </a>
 
           <div class="my-4 border-t border-gray-200"></div>
 
           <button 
             @click="handleLogout" 
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors text-red-500 w-full"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50/70 transition-colors text-red-500 font-medium w-full"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut class="w-5 h-5" :stroke-width="1.9" />
             <span class="text-sm">Log out</span>
           </button>
         </nav>
@@ -203,16 +180,12 @@
           <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
         </div>
         <div class="flex items-center justify-between flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap ml-4">
-          <span class="text-xl font-semibold text-gray-900">ICAP</span>
-          <svg 
-            class="w-4 h-4 text-gray-500 transition-transform duration-200" 
+          <span class="font-pixel text-xl text-ic-primary tracking-tight">ICAP</span>
+          <ChevronDown 
+            class="w-4 h-4 text-gray-400 transition-transform duration-200" 
             :class="{ 'rotate-180': showSystemsMenu }"
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
+            :stroke-width="2"
+          />
         </div>
 
         <!-- Desktop Systems Dropdown Popover -->
@@ -226,11 +199,11 @@
         >
           <div
             v-if="showSystemsMenu"
-            class="absolute top-full left-6 mt-1 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50 systems-dropdown"
+            class="absolute top-full left-6 mt-1 w-64 bg-white rounded-2xl shadow-[0_16px_36px_-12px_rgba(0,0,0,0.12)] border border-gray-200 overflow-hidden z-50 systems-dropdown"
             @click.stop
           >
-            <div class="p-3 border-b border-gray-50">
-              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
+            <div class="p-3 border-b border-gray-100">
+              <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider text-left">Campus Systems</p>
             </div>
             <div class="py-1">
               <button 
@@ -244,15 +217,9 @@
                   <template v-else>
                     <img v-if="sys.imageUrl" :src="sys.imageUrl" :alt="sys.name" class="h-6 w-6 object-contain" />
                     <template v-else>
-                      <svg v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                      <svg v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                      </svg>
-                      <svg v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
+                      <CreditCard v-if="sys.iconType === 'cms'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                      <Vote v-else-if="sys.iconType === 'voting'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
+                      <KeyRound v-else-if="sys.iconType === 'locker'" class="w-4 h-4" :class="sys.textColor" :stroke-width="2" />
                     </template>
                   </template>
                 </div>
@@ -267,38 +234,47 @@
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 px-3 py-2 flex flex-col justify-center space-y-1">
+      <nav class="flex-1 px-3 py-2 flex flex-col justify-center space-y-1.5">
         <router-link
           v-for="item in navItems"
           :key="item.path"
           :to="item.path"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActiveRoute(item.path) }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
             <component 
               :is="item.icon" 
-              class="w-7 h-7"
-              :stroke-width="isActiveRoute(item.path) ? 2.5 : 2"
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="isActiveRoute(item.path) ? 2.4 : 1.9"
+              :class="isActiveRoute(item.path) ? [item.activeIconClass || 'fill-current text-gray-900'] : 'fill-none text-gray-500 group-hover/link:text-gray-900'"
             />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{{ item.name }}</span>
+          <span class="sidebar-label">{{ item.name }}</span>
         </router-link>
 
         <router-link
           to="/admin/profile"
-          class="sidebar-link"
+          class="sidebar-link group/link"
           :class="{ 'sidebar-link-active': isActiveRoute('/admin/profile') }"
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <div v-if="userProfilePicture" class="h-7 w-7 rounded-full overflow-hidden" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
+            <div 
+              v-if="userProfilePicture" 
+              class="h-7 w-7 rounded-full overflow-hidden shrink-0 transition-all duration-200" 
+              :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : 'ring-1 ring-gray-200'"
+            >
               <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
             </div>
-            <div v-else class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-medium" :class="{ 'ring-2 ring-black ring-offset-2': isActiveRoute('/admin/profile') }">
+            <div 
+              v-else 
+              class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-semibold shrink-0 transition-all duration-200" 
+              :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : ''"
+            >
               {{ userInitials }}
             </div>
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profile</span>
+          <span class="sidebar-label">Profile</span>
         </router-link>
       </nav>
 
@@ -315,29 +291,22 @@
         >
           <div
             v-if="showMoreMenu"
-            class="absolute bottom-full left-3 mb-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50"
+            class="absolute bottom-full left-3 mb-2 w-58 bg-white rounded-2xl shadow-[0_12px_36px_-6px_rgba(0,0,0,0.12)] border border-gray-200/90 overflow-hidden z-50 p-1.5 space-y-0.5"
           >
-            <div class="py-2">
-              <router-link to="/admin/settings" @click="showMoreMenu = false" class="more-menu-item w-full text-left">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>Settings</span>
+            <div class="space-y-0.5">
+              <router-link to="/admin/settings" @click="showMoreMenu = false" class="more-menu-item">
+                <Settings class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Settings</span>
               </router-link>
 
-              <a :href="reportProblemUrl" @click="showMoreMenu = false" class="more-menu-item w-full">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>Report a Problem</span>
+              <a :href="reportProblemUrl" @click="showMoreMenu = false" class="more-menu-item">
+                <LifeBuoy class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Report a Problem</span>
               </a>
 
-              <router-link to="/admin/about" @click="showMoreMenu = false" class="more-menu-item w-full text-left">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>About ICSP</span>
+              <router-link to="/admin/about" @click="showMoreMenu = false" class="more-menu-item">
+                <Info class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">About ICSP</span>
               </router-link>
 
               <a
@@ -345,35 +314,37 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 @click="showMoreMenu = false"
-                class="more-menu-item w-full text-left"
+                class="more-menu-item"
               >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <span>Documentation</span>
-                <span class="text-xs text-gray-400 ml-auto font-mono">↗</span>
+                <BookOpen class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
+                <span class="text-xs font-medium text-gray-700">Documentation</span>
+                <ExternalLink class="w-3.5 h-3.5 text-gray-400 ml-auto shrink-0" :stroke-width="2" />
               </a>
             </div>
 
-            <div class="border-t border-gray-100">
-              <button @click="handleLogout" class="more-menu-item w-full text-red-500 hover:bg-red-50!">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Log out</span>
+            <div class="border-t border-gray-100 pt-1 mt-1">
+              <button @click="handleLogout" class="more-menu-item text-rose-600 hover:bg-rose-50/80 hover:text-rose-700 w-full">
+                <LogOut class="w-4.5 h-4.5 shrink-0 text-rose-500" :stroke-width="1.9" />
+                <span class="text-xs font-medium">Log out</span>
               </button>
             </div>
           </div>
         </Transition>
 
         <!-- More Button -->
-        <button @click.stop="showMoreMenu = !showMoreMenu" class="sidebar-link w-full text-left" :class="{ 'bg-gray-50': showMoreMenu }">
+        <button 
+          @click.stop="showMoreMenu = !showMoreMenu" 
+          class="sidebar-link w-full text-left group/link" 
+          :class="{ 'sidebar-link-active': showMoreMenu }"
+        >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <Ellipsis 
+              class="w-[22px] h-[22px] transition-all duration-200" 
+              :stroke-width="showMoreMenu ? 2.4 : 2" 
+              :class="showMoreMenu ? 'fill-current text-gray-900' : 'text-gray-500 group-hover/link:text-gray-900 fill-current'" 
+            />
           </div>
-          <span class="ml-4 text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">More</span>
+          <span class="sidebar-label">More</span>
         </button>
       </div>
     </aside>
@@ -392,11 +363,10 @@
           to="/admin"
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
         >
-          <component 
-            :is="HomeIcon" 
+          <LayoutDashboard 
             class="w-5.5 h-5.5 transition-all duration-300 transform"
-            :stroke-width="isActiveRoute('/admin') ? 2.2 : 1.8"
-            :class="isActiveRoute('/admin') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+            :stroke-width="isActiveRoute('/admin') ? 2.4 : 1.8"
+            :class="isActiveRoute('/admin') ? 'scale-110 text-ic-primary fill-current' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90 fill-none'"
           />
           <span 
             class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
@@ -409,11 +379,10 @@
           to="/admin/students"
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
         >
-          <component 
-            :is="UsersIcon" 
+          <Users 
             class="w-5.5 h-5.5 transition-all duration-300 transform"
-            :stroke-width="isActiveRoute('/admin/students') ? 2.2 : 1.8"
-            :class="isActiveRoute('/admin/students') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+            :stroke-width="isActiveRoute('/admin/students') ? 2.4 : 1.8"
+            :class="isActiveRoute('/admin/students') ? 'scale-110 text-ic-primary fill-current' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90 fill-none'"
           />
           <span 
             class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
@@ -428,9 +397,7 @@
             class="absolute -top-6 w-13 h-13 bg-ic-primary text-white rounded-full flex items-center justify-center shadow-md shadow-ic-primary/30 hover:shadow-lg hover:shadow-ic-primary/40 transition-all duration-200 active:scale-95 hover:-translate-y-0.5 z-20"
             title="Create Post"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus class="w-6 h-6" :stroke-width="2.5" />
           </button>
         </div>
 
@@ -439,11 +406,10 @@
           to="/admin/events"
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
         >
-          <component 
-            :is="CalendarIcon" 
+          <Calendar 
             class="w-5.5 h-5.5 transition-all duration-300 transform"
-            :stroke-width="isActiveRoute('/admin/events') ? 2.2 : 1.8"
-            :class="isActiveRoute('/admin/events') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+            :stroke-width="isActiveRoute('/admin/events') ? 2.4 : 1.8"
+            :class="isActiveRoute('/admin/events') ? 'scale-110 text-ic-primary nav-icon-active-cal' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90 fill-none'"
           />
           <span 
             class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
@@ -456,11 +422,10 @@
           to="/admin/posts"
           class="relative flex-1 flex flex-col items-center justify-center h-full transition-all duration-300 group"
         >
-          <component 
-            :is="PostsIcon" 
+          <Newspaper 
             class="w-5.5 h-5.5 transition-all duration-300 transform"
-            :stroke-width="isActiveRoute('/admin/posts') ? 2.2 : 1.8"
-            :class="isActiveRoute('/admin/posts') ? 'scale-110 text-ic-primary' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90'"
+            :stroke-width="isActiveRoute('/admin/posts') ? 2.4 : 1.8"
+            :class="isActiveRoute('/admin/posts') ? 'scale-110 text-ic-primary nav-icon-active-news' : 'text-gray-400 group-hover:text-gray-600 group-active:scale-90 fill-none'"
           />
           <span 
             class="absolute bottom-1.5 w-4 h-0.75 bg-ic-primary rounded-full transition-all duration-300 transform"
@@ -472,20 +437,44 @@
 
     <!-- Main Content -->
     <main class="md:ml-18 pt-14 pb-20 md:pt-0 md:pb-0">
-      <div class="max-w-233.75 mx-auto px-4 py-6">
+      <div class="max-w-233.75 mx-auto px-4 py-6 animate-fade-in-up">
         <RouterView />
       </div>
     </main>
+
+    <!-- Global Background Post Publishing Status Widget -->
+    <PublishProgressWidget />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, h, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
-
 import { performSSORedirect } from '@/utils/sso'
+import PublishProgressWidget from '@/components/posts/PublishProgressWidget.vue'
+import { 
+  LayoutDashboard, 
+  Users, 
+  Calendar, 
+  Newspaper, 
+  ClipboardCheck, 
+  Ellipsis, 
+  Settings, 
+  LifeBuoy, 
+  Info, 
+  BookOpen, 
+  LogOut, 
+  ChevronDown, 
+  Menu, 
+  X, 
+  ExternalLink, 
+  Plus, 
+  Vote, 
+  KeyRound, 
+  CreditCard 
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -565,18 +554,17 @@ const svgPath = computed(() => {
 
 const handlePlusClick = async () => {
   if (route.path !== '/admin/posts') {
-    await router.push('/admin/posts')
-  }
-  setTimeout(() => {
+    await router.push({ path: '/admin/posts', query: { create: 'true' } })
+  } else {
     window.dispatchEvent(new CustomEvent('open-create-post'))
-  }, 100)
+  }
 }
 
 const reportProblemUrl = computed(() => {
   const email = 'icsp-support@dnsc.edu.ph'
   const subject = encodeURIComponent('ICSP Admin - Report a Problem')
   const body = encodeURIComponent(`Hi ICSP Support,\n\nI'd like to report the following issue:\n\n[Describe your problem here]\n\nBrowser: ${navigator.userAgent}\nPage: ${window.location.href}\n\nThank you.`)
-  return `mailto:${email}?subject=${subject}?body=${body}`
+  return `mailto:${email}?subject=${subject}&body=${body}`
 })
 
 const openReportProblem = () => {
@@ -612,33 +600,12 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateWidth)
 })
 
-// Icons - keeping them simple and clean
-const HomeIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' })
-])
-
-const UsersIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
-])
-
-const CalendarIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' })
-])
-
-const PostsIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' })
-])
-
-const ClipboardIcon = (props) => h('svg', { class: props.class, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'stroke-width': props.strokeWidth || 2 }, [
-  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' })
-])
-
 const navItems = [
-  { name: 'Dashboard', path: '/admin', icon: HomeIcon },
-  { name: 'Students', path: '/admin/students', icon: UsersIcon },
-  { name: 'Events', path: '/admin/events', icon: CalendarIcon },
-  { name: 'Posts', path: '/admin/posts', icon: PostsIcon },
-  { name: 'Attendance', path: '/admin/attendance', icon: ClipboardIcon }
+  { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, activeIconClass: 'fill-current text-gray-900' },
+  { name: 'Students', path: '/admin/students', icon: Users, activeIconClass: 'fill-current text-gray-900' },
+  { name: 'Events', path: '/admin/events', icon: Calendar, activeIconClass: 'nav-icon-active-cal text-gray-900' },
+  { name: 'Posts', path: '/admin/posts', icon: Newspaper, activeIconClass: 'nav-icon-active-news text-gray-900' },
+  { name: 'Attendance', path: '/admin/attendance', icon: ClipboardCheck, activeIconClass: 'nav-icon-active-clipboard text-gray-900' }
 ]
 
 const userName = computed(() => {
@@ -705,15 +672,21 @@ const handleLogout = async () => {
 .sidebar-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem;
-  border-radius: 0.75rem;
-  color: #000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.875rem;
+  color: #4b5563;
+  font-family: var(--font-sans, "Geist", system-ui, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  user-select: none;
 }
 
 .sidebar-link:hover {
-  background-color: #fafafa;
+  background-color: #f9fafb;
+  color: #111827;
 }
 
 .sidebar-link:focus {
@@ -721,23 +694,74 @@ const handleLogout = async () => {
 }
 
 .sidebar-link-active {
+  color: #111827;
   font-weight: 600;
+}
+
+.sidebar-label {
+  margin-left: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: inherit;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .sidebar-label {
+  opacity: 1;
+}
+
+/* Lucide Icon Active Solid States */
+.nav-icon-active-cal {
+  fill: currentColor;
+}
+.nav-icon-active-cal :deep(path:nth-of-type(3)),
+.nav-icon-active-cal path:nth-of-type(3) {
+  stroke: #ffffff;
+}
+
+.nav-icon-active-news {
+  fill: currentColor;
+}
+.nav-icon-active-news :deep(path:nth-of-type(1)),
+.nav-icon-active-news :deep(path:nth-of-type(2)),
+.nav-icon-active-news path:nth-of-type(1),
+.nav-icon-active-news path:nth-of-type(2) {
+  stroke: #ffffff;
+}
+.nav-icon-active-news :deep(rect),
+.nav-icon-active-news rect {
+  fill: #ffffff;
+  stroke: #ffffff;
+}
+
+.nav-icon-active-clipboard {
+  fill: currentColor;
+}
+.nav-icon-active-clipboard :deep(path:nth-of-type(2)),
+.nav-icon-active-clipboard path:nth-of-type(2) {
+  stroke: #ffffff;
 }
 
 .more-menu-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-sans, "Geist", system-ui, sans-serif);
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: #374151;
-  transition: background-color 0.15s ease;
+  border-radius: 0.625rem;
+  transition: all 0.15s ease;
   cursor: pointer;
   text-decoration: none;
 }
 
 .more-menu-item:hover {
   background-color: #f9fafb;
+  color: #111827;
 }
 
 .safe-area-top {
