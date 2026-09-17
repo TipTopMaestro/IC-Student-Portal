@@ -235,51 +235,67 @@ export const useAuthStore = defineStore('auth', () => {
         userData.student.profile_picture = normalizeUrl(userData.student.profile_picture)
       }
 
-      // Map to user_avatar for consistency, prioritizing user-uploaded custom pictures over student records
-      userData.user_avatar = (typeof userData.profile_url === 'string' ? userData.profile_url : '') ||
-                           (typeof userData.profile === 'string' ? userData.profile : '') ||
-                           (typeof userData.profile_picture === 'string' ? userData.profile_picture : '') ||
-                           (typeof userData.user_avatar === 'string' ? userData.user_avatar : '') || 
-                           (typeof userData.avatar === 'string' ? userData.avatar : '') || 
-                           (typeof userData.student?.s_image === 'string' ? userData.student.s_image : '') ||
-                           (typeof userData.student?.profile_picture === 'string' ? userData.student.profile_picture : '') || 
-                           (typeof userData.user_profile === 'string' ? userData.user_profile : '') || 
-                           (typeof userData.picture === 'string' ? userData.picture : '') || 
-                           (typeof userData.google_avatar === 'string' ? userData.google_avatar : '') || 
-                           '/default_profile.png'
-      
-      user.value = userData
+      // If user has no linked student record yet, try to discover it from students endpoint
+      // This applies to both students and admins (who may be student leaders/officers)
+      if (!userData.student && (userData.email || userData.username)) {
+        try {
+          let match = null
 
-      // If user has no linked student record and isn't admin, try to find it
-      // This runs once per login/session so individual pages don't need to
-      if (!user.value.student && user.value.username) {
-        const hasAdminGroup = user.value.groups?.some(
-          g => typeof g === 'string' && g.toLowerCase().includes('admin')
-        )
-        if (!hasAdminGroup && !user.value.is_staff && !user.value.is_superuser) {
-          try {
-            const nameParts = user.value.username.split('.')
-            if (nameParts.length >= 2) {
-              const resp = await api.get('/api/v1/students/', { params: { search: nameParts[0] } })
-              const students = resp.data.data?.data || resp.data.data || []
-              const match = students.find(s => {
-                const fname = (s.s_fname || '').toLowerCase()
-                const lname = (s.s_lname || '').toLowerCase()
-                return (
+          // 1. Match by email first (most reliable)
+          if (userData.email) {
+            const resp = await api.get('/api/v1/students/', { params: { search: userData.email } })
+            const students = resp.data.data?.data || resp.data.data || []
+            match = Array.isArray(students) ? students.find(s => s.s_email?.toLowerCase() === userData.email.toLowerCase()) : null
+          }
+
+          // 2. Match by username / name pattern
+          if (!match && userData.username) {
+            const nameParts = userData.username.split('.')
+            const searchKeyword = nameParts[0] || userData.username
+            const resp = await api.get('/api/v1/students/', { params: { search: searchKeyword } })
+            const students = resp.data.data?.data || resp.data.data || []
+            match = Array.isArray(students) ? students.find(s => {
+              const fname = (s.s_fname || '').toLowerCase()
+              const lname = (s.s_lname || '').toLowerCase()
+              const uFirst = (userData.first_name || '').toLowerCase()
+              const uLast = (userData.last_name || '').toLowerCase()
+              return (
+                (s.s_email && userData.email && s.s_email.toLowerCase() === userData.email.toLowerCase()) ||
+                (s.s_studentID && s.s_studentID.toLowerCase() === userData.username.toLowerCase()) ||
+                (fname && lname && uFirst && uLast && fname === uFirst && lname === uLast) ||
+                (nameParts.length >= 2 && (
                   (lname === nameParts[0]?.toLowerCase() && fname === nameParts[1]?.toLowerCase()) ||
                   (fname === nameParts[0]?.toLowerCase() && lname === nameParts[1]?.toLowerCase())
-                )
-              })
-              if (match) {
-                user.value = { ...user.value, student: match }
-              }
-            }
-          } catch (e) {
-            console.warn('Could not link student record during init:', e)
+                ))
+              )
+            }) : null
           }
+
+          if (match) {
+            if (match.s_image && typeof match.s_image === 'string') {
+              match.s_image = normalizeUrl(match.s_image)
+            }
+            userData.student = match
+          }
+        } catch (e) {
+          console.warn('Could not link student record during init:', e)
         }
       }
+
+      // Map to user_avatar for consistency, prioritizing user-uploaded custom pictures and student records
+      userData.user_avatar = (typeof userData.profile_url === 'string' ? userData.profile_url : '') ||
+                            (typeof userData.profile === 'string' ? userData.profile : '') ||
+                            (typeof userData.profile_picture === 'string' ? userData.profile_picture : '') ||
+                            (typeof userData.student?.s_image === 'string' ? userData.student.s_image : '') ||
+                            (typeof userData.student?.profile_picture === 'string' ? userData.student.profile_picture : '') || 
+                            (typeof userData.user_avatar === 'string' ? userData.user_avatar : '') || 
+                            (typeof userData.avatar === 'string' ? userData.avatar : '') || 
+                            (typeof userData.user_profile === 'string' ? userData.user_profile : '') || 
+                            (typeof userData.picture === 'string' ? userData.picture : '') || 
+                            (typeof userData.google_avatar === 'string' ? userData.google_avatar : '') || 
+                            '/default_profile.png'
       
+      user.value = userData
       localStorage.setItem('user_data', JSON.stringify(user.value))
       
       return user.value
