@@ -40,7 +40,19 @@ const getErrorMessage = (error, fallback = 'Unable to complete request.') => {
   if (!error.response && error.request) {
     return 'Network error. Check your connection.'
   }
-  const msg = error.response?.data?.message
+
+  const errData = error.response?.data
+  if (errData?.errors && typeof errData.errors === 'object') {
+    const firstKey = Object.keys(errData.errors)[0]
+    const val = errData.errors[firstKey]
+    if (Array.isArray(val) && val.length > 0) {
+      return `${firstKey}: ${val[0]}`
+    } else if (typeof val === 'string') {
+      return `${firstKey}: ${val}`
+    }
+  }
+
+  const msg = errData?.detail || errData?.message
   if (typeof msg === 'string' && msg.trim() && !msg.includes('{') && !msg.includes('<') && msg.length < 120) {
     return msg.trim()
   }
@@ -57,8 +69,12 @@ const getErrorMessage = (error, fallback = 'Unable to complete request.') => {
  */
 export const listPosts = async (params = {}) => {
   try {
+    const queryParams = {
+      ordering: '-created_at',
+      ...params
+    }
     const response = await api.get(POSTS_ENDPOINT, { 
-      params,
+      params: queryParams,
       cache: true,
       cacheTTL: 15000 // 15 seconds TTL for posts list to keep it relatively fresh but prevent spamming
     })
@@ -106,9 +122,10 @@ export const getPostById = async (postId) => {
  * @param {string} [postData.visibility='public'] - Post visibility
  * @param {boolean} [postData.disable_comments=false] - Disable comments
  * @param {File[]} [images=[]] - Array of image files to upload
- * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+ * @param {Object} [options={}] - Additional options (onUploadProgress, signal)
+ * @returns {Promise<{success: boolean, data?: Object, error?: string, canceled?: boolean}>}
  */
-export const createPost = async (postData, images = []) => {
+export const createPost = async (postData, images = [], options = {}) => {
   try {
     const formData = new FormData()
     
@@ -125,9 +142,16 @@ export const createPost = async (postData, images = []) => {
       })
     }
 
-    const response = await api.post(POSTS_ENDPOINT, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    const requestConfig = {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      signal: options.signal
+    }
+
+    if (typeof options.onUploadProgress === 'function') {
+      requestConfig.onUploadProgress = options.onUploadProgress
+    }
+
+    const response = await api.post(POSTS_ENDPOINT, formData, requestConfig)
     
     // Invalidate caches
     invalidatePostCaches()
@@ -137,6 +161,13 @@ export const createPost = async (postData, images = []) => {
       data: response.data
     }
   } catch (error) {
+    if (error?.name === 'CanceledError' || error?.message === 'canceled') {
+      return {
+        success: false,
+        canceled: true,
+        error: 'Upload canceled.'
+      }
+    }
     console.error('Error creating post:', error)
     return {
       success: false,
@@ -158,39 +189,40 @@ export const createPost = async (postData, images = []) => {
  */
 export const updatePost = async (postId, postData, newImages = [], removeMediaIds = []) => {
   try {
+    // The backend ViewSet parser_classes strictly requires multipart/form-data
     const formData = new FormData()
-    
-    // Append text fields if provided
-    if (postData.content !== undefined) {
-      formData.append('content', postData.content)
-    }
-    if (postData.visibility !== undefined) {
-      formData.append('visibility', postData.visibility)
-    }
-    if (postData.category !== undefined) {
-      formData.append('category', postData.category)
-    }
-    if (postData.disable_comments !== undefined) {
-      formData.append('disable_comments', postData.disable_comments)
-    }
-    
-    // Append new images if any
-    if (newImages.length > 0) {
+    if (postData.content !== undefined) formData.append('content', postData.content)
+    if (postData.category !== undefined) formData.append('category', postData.category)
+    if (postData.visibility !== undefined) formData.append('visibility', postData.visibility)
+    if (postData.disable_comments !== undefined) formData.append('disable_comments', postData.disable_comments)
+
+    if (newImages && newImages.length > 0) {
       newImages.forEach((image) => {
         formData.append('uploaded_files', image)
       })
     }
-    
-    // Append media IDs to remove
-    if (removeMediaIds.length > 0) {
+
+    if (removeMediaIds && removeMediaIds.length > 0) {
       removeMediaIds.forEach((mediaId) => {
         formData.append('remove_media_ids', mediaId)
       })
     }
 
-    const response = await api.patch(`${POSTS_ENDPOINT}${postId}/`, formData, {
+    const config = {
       headers: { 'Content-Type': 'multipart/form-data' }
-    })
+    }
+
+    let response
+    try {
+      response = await api.patch(`${POSTS_ENDPOINT}${postId}/`, formData, config)
+    } catch (patchErr) {
+      // If PATCH is not allowed (405) or unsupported (415), fallback to PUT with multipart
+      if (patchErr.response?.status === 405 || patchErr.response?.status === 415) {
+        response = await api.put(`${POSTS_ENDPOINT}${postId}/`, formData, config)
+      } else {
+        throw patchErr
+      }
+    }
     
     // Invalidate caches
     invalidatePostCaches()
@@ -312,7 +344,21 @@ export const extractPosts = (result) => {
   const d = result.data?.data || result.data
   const items = d?.data || d
   const posts = Array.isArray(items) ? items : []
-  return posts.map(normalizePostMedia)
+  
+  return posts
+    .map(normalizePostMedia)
+    .sort((a, b) => {
+      const dateA = a.created_at || a.date || a.timestamp || a.created
+      const dateB = b.created_at || b.date || b.timestamp || b.created
+      if (dateA && dateB) {
+        const timeA = new Date(dateA).getTime()
+        const timeB = new Date(dateB).getTime()
+        if (!isNaN(timeA) && !isNaN(timeB) && timeA !== timeB) {
+          return timeB - timeA
+        }
+      }
+      return (Number(b.id) || 0) - (Number(a.id) || 0)
+    })
 }
 
 /**

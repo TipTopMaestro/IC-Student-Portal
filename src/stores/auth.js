@@ -12,31 +12,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Reactive token flag — keeps isAuthenticated truly reactive
   const hasToken = ref(!!localStorage.getItem('accessToken'))
 
-  const setSessionCookie = () => {
-    document.cookie = "session_alive=true; path=/; SameSite=Lax"
-  }
-
-  const clearSessionCookie = () => {
-    document.cookie = "session_alive=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  }
-
-  const checkSessionCookie = () => {
-    const isSessionActive = document.cookie.split(';').some(item => item.trim().startsWith('session_alive='))
-    if (!isSessionActive) {
-      console.log('🚪 Session cookie is missing. Clearing persistent localStorage tokens.')
-      localStorage.removeItem('accessToken')
-      localStorage.removeItem('refreshToken')
-      localStorage.removeItem('user_data')
-      return false
-    }
-    return true
-  }
-
   // Sync reactive flag whenever we modify localStorage tokens
   const setTokens = (access, refresh) => {
     if (access) localStorage.setItem('accessToken', access)
     if (refresh) localStorage.setItem('refreshToken', refresh)
-    setSessionCookie()
     hasToken.value = true
   }
 
@@ -44,7 +23,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user_data')
-    clearSessionCookie()
     hasToken.value = false
   }
 
@@ -348,19 +326,13 @@ export const useAuthStore = defineStore('auth', () => {
   const initialize = async () => {
     if (initialized.value) return
 
-    // Check if session cookie is active. If not, this is a fresh browser run.
-    checkSessionCookie()
-
     const token = localStorage.getItem('accessToken')
     const storedUser = localStorage.getItem('user_data')
     
     if (token) {
       hasToken.value = true
       
-      // Ensure the session cookie remains set / refreshed
-      setSessionCookie()
-      
-      // Restore cached user immediately for fast UI render
+      // Restore cached user immediately for instant UI render
       if (storedUser) {
         try {
           user.value = JSON.parse(storedUser)
@@ -369,12 +341,17 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
       
-      // Always refresh from API to ensure data is current
+      // Attempt background profile verification
       try {
         await fetchCurrentUser()
       } catch (err) {
-        console.error('Failed to initialize auth:', err)
-        await logout()
+        console.warn('⚠️ Network or server error during background profile refresh:', err.message)
+        // Only log out if server explicitly returned 401 Unauthorized or 403 Forbidden
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          console.warn('🔐 Server confirmed invalid session. Logging out.')
+          await logout()
+        }
+        // If offline / network error / timeout, do NOT log out; cached user maintains the session
       }
     } else {
       hasToken.value = false

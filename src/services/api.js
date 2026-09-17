@@ -216,35 +216,53 @@ api.interceptors.response.use(
           )
 
           // Backend wraps response in data object
-          const tokens = response.data.data || response.data
-          const access = tokens.access || tokens.token
+          const tokens = response.data?.data || response.data
+          const access = tokens?.access || tokens?.token
+          const newRefresh = tokens?.refresh
           
-          localStorage.setItem('accessToken', access)
-          originalRequest.headers.Authorization = `Bearer ${access}`
+          if (access) {
+            localStorage.setItem('accessToken', access)
+            if (newRefresh) {
+              localStorage.setItem('refreshToken', newRefresh)
+            }
+            originalRequest.headers.Authorization = `Bearer ${access}`
 
-          console.log('✅ Token refreshed successfully')
-          
-          // Notify all queued requests
-          onRefreshed(access)
-          
-          return api(originalRequest)
+            console.log('✅ Token refreshed successfully')
+            
+            // Notify all queued requests
+            onRefreshed(access)
+            
+            return api(originalRequest)
+          } else {
+            throw new Error('No access token in refresh response')
+          }
         } catch (refreshError) {
           console.error('❌ Token refresh failed:', refreshError)
           
           // Notify all queued requests of failure
           onRefreshFailed(refreshError)
           
-          // Clear auth data and notify app of session expiry
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          localStorage.removeItem('user_data')
-          window.dispatchEvent(new Event('auth:session-expired'))
+          // Only wipe session if the server explicitly rejected the token (401 or 400 invalid/blacklisted token).
+          // Do NOT log the user out on network drops, offline status, or transient 502/504 Cloudflare errors.
+          const status = refreshError.response?.status
+          const responseBody = JSON.stringify(refreshError.response?.data || '').toLowerCase()
+          const isInvalidToken = status === 401 || (status === 400 && responseBody.includes('token'))
+          
+          if (isInvalidToken) {
+            console.warn('🔐 Refresh token is invalid or expired. Session terminated.')
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('refreshToken')
+            localStorage.removeItem('user_data')
+            window.dispatchEvent(new Event('auth:session-expired'))
+          } else {
+            console.warn('⚠️ Network or server glitch during token refresh. Retaining session.')
+          }
           return Promise.reject(refreshError)
         } finally {
           isRefreshing = false
         }
       } else {
-        // No refresh token, notify app of session expiry
+        // No refresh token available, session cannot be restored
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user_data')
