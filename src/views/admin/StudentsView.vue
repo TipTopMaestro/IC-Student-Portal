@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <span class="font-pixel text-xs sm:text-sm text-ic-primary lowercase tracking-wide block mb-1">directory</span>
+        
         <h1 class="font-pixel text-2xl sm:text-3xl text-gray-900 lowercase tracking-tight">students</h1>
         <p class="text-sm text-gray-500 mt-0.5">Manage and view enrolled student records</p>
       </div>

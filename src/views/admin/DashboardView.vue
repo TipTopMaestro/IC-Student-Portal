@@ -269,15 +269,11 @@
             <div class="flex items-center gap-3 min-w-0 flex-1 mr-3">
               <div class="w-11 h-11 rounded-full overflow-hidden border border-gray-200 ring-2 ring-gray-50 bg-gray-50 shrink-0">
                 <img 
-                  v-if="userAvatar && !imageLoadFailed" 
                   :src="userAvatar" 
                   alt="Profile" 
                   @error="handleAvatarError"
                   class="w-full h-full object-cover" 
                 />
-                <div v-else class="w-full h-full bg-ic-primary flex items-center justify-center text-white font-semibold text-sm">
-                  {{ userInitials }}
-                </div>
               </div>
               <div class="min-w-0 flex-1">
                 <p class="text-sm font-semibold text-gray-900 truncate" :title="adminFullName">{{ adminFullName }}</p>
