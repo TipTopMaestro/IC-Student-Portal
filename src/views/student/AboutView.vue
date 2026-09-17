@@ -138,7 +138,7 @@
               <div>
                 <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">IC-LSG</p>
                 <a href="mailto:icsa.helpdesk@dnsc.edu.ph" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium break-all">
-                  wapakokabalo@dnsc.edu.ph
+                  icsa@dnsc.edu.ph
                 </a>
               </div>
               <div class="pt-2 border-t border-gray-100">
