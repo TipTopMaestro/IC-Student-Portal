@@ -105,11 +105,8 @@
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
             :class="isActiveRoute('/admin/profile') ? 'font-semibold text-ic-primary' : 'text-gray-700 font-medium'"
           >
-            <div v-if="userProfilePicture" class="h-5 w-5 rounded-full overflow-hidden shrink-0" :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
-              <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
-            </div>
-            <div v-else class="h-5 w-5 rounded-full bg-ic-primary flex items-center justify-center text-white text-[10px] font-semibold shrink-0" :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
-              {{ userInitials }}
+            <div class="h-5 w-5 rounded-full overflow-hidden shrink-0" :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-ic-primary ring-offset-1' : ''">
+              <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" @error="$event.target.src = '/default_profile.png'" />
             </div>
             <span class="text-sm">Profile</span>
           </router-link>
@@ -260,18 +257,15 @@
         >
           <div class="w-7 h-7 shrink-0 flex items-center justify-center">
             <div 
-              v-if="userProfilePicture" 
               class="h-7 w-7 rounded-full overflow-hidden shrink-0 transition-all duration-200" 
               :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : 'ring-1 ring-gray-200'"
             >
-              <img :src="userProfilePicture" alt="Profile" class="w-full h-full object-cover" />
-            </div>
-            <div 
-              v-else 
-              class="h-7 w-7 rounded-full bg-ic-primary flex items-center justify-center text-white text-xs font-semibold shrink-0 transition-all duration-200" 
-              :class="isActiveRoute('/admin/profile') ? 'ring-2 ring-gray-900 ring-offset-2 scale-105' : ''"
-            >
-              {{ userInitials }}
+              <img 
+                :src="userProfilePicture" 
+                alt="Profile" 
+                class="w-full h-full object-cover" 
+                @error="$event.target.src = '/default_profile.png'" 
+              />
             </div>
           </div>
           <span class="sidebar-label">Profile</span>
@@ -500,12 +494,12 @@ const externalSystems = [
   },
   {
     id: 'voting',
-    name: 'IC Voting System',
-    desc: 'IC Elections Management System',
+    name: 'ICVS',
+    desc: 'IC Voting System',
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
     bg: 'bg-emerald-50',
     textColor: 'text-emerald-600',
-    iconType: 'voting',
+    imageUrl: '/voting-logo.png',
     intendedFor: 'voting-system'
   },
   {

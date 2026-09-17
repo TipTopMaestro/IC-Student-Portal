@@ -142,12 +142,15 @@
                 </a>
               </div>
               <div class="pt-2 border-t border-gray-100">
-                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider">Devs</p>
-                <a href="mailto:osa@dnsc.edu.ph" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium">
-                  froydcarbajosa14@gmail.com
-                  quinesmonch@gmail.com
-
-                </a>
+                <p class="font-mono text-[10px] text-gray-400 uppercase tracking-wider mb-1">Devs</p>
+                <div class="flex flex-col gap-1">
+                  <a href="mailto:froydcarbajosa14@gmail.com" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium break-all">
+                    froydcarbajosa14@gmail.com
+                  </a>
+                  <a href="mailto:quinesmonch@gmail.com" class="font-mono text-xs text-ic-secondary hover:text-ic-primary transition-colors font-medium break-all">
+                    quinesmonch@gmail.com
+                  </a>
+                </div>
               </div>
             </div>
           </div>

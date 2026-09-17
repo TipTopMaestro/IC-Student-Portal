@@ -587,7 +587,7 @@ const externalSystems = [
     url: import.meta.env.VITE_VOTING_URL || 'http://localhost:5175',
     bg: 'bg-emerald-50',
     textColor: 'text-emerald-600',
-    iconType: 'voting',
+    imageUrl: '/voting-logo.png',
     intendedFor: 'voting-system'
   },
   {
