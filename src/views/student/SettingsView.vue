@@ -165,74 +165,8 @@
         </div>
 
         <!-- Appearance Tab -->
-        <div v-if="activeTab === 'appearance'" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300 space-y-6">
-          <div class="border-b border-gray-100 pb-4">
-            <h2 class="font-pixel text-lg text-gray-900 lowercase tracking-tight">appearance & theme</h2>
-            <p class="text-xs text-gray-500 mt-0.5">Customize your layout preferences and interface contrast</p>
-          </div>
-
-          <!-- Theme Presets -->
-          <div class="space-y-3">
-            <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider">Interface Theme</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button 
-                @click="isDarkMode = false"
-                class="flex items-center gap-3 p-4 border rounded-xl text-left transition-all cursor-pointer"
-                :class="!isDarkMode ? 'border-ic-primary bg-purple-50/30 ring-1 ring-ic-primary/20' : 'border-gray-200 hover:border-gray-300'"
-              >
-                <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-900 font-mono uppercase tracking-wider">Light Theme (Active)</p>
-                  <p class="text-xs text-gray-400 mt-0.5">High-contrast minimalist canvas</p>
-                </div>
-              </button>
-
-              <button 
-                @click="toggleDarkMode"
-                class="flex items-center gap-3 p-4 border rounded-xl text-left transition-all cursor-pointer border-gray-200 hover:border-gray-300"
-              >
-                <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-gray-900 font-mono uppercase tracking-wider">Dark Theme</p>
-                  <p class="text-xs text-gray-400 mt-0.5">Dimmed palette for low-light</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Color Presets -->
-          <div class="space-y-3 border-t border-gray-100 pt-5">
-            <p class="font-mono text-[10px] font-medium text-gray-400 uppercase tracking-wider">Brand Accent</p>
-            <div class="flex items-center gap-3">
-              <button class="w-7 h-7 rounded-full bg-gradient-to-br from-ic-primary to-ic-accent ring-2 ring-offset-2 ring-ic-primary transition-all scale-105" title="DNSC Plum"></button>
-              <button @click="toggleDarkMode" class="w-7 h-7 rounded-full bg-emerald-500 hover:scale-105 active:scale-95 transition-all cursor-pointer" title="Forest Accent"></button>
-              <button @click="toggleDarkMode" class="w-7 h-7 rounded-full bg-cyan-500 hover:scale-105 active:scale-95 transition-all cursor-pointer" title="Ocean Breeze"></button>
-              <button @click="toggleDarkMode" class="w-7 h-7 rounded-full bg-indigo-500 hover:scale-105 active:scale-95 transition-all cursor-pointer" title="Royal Violet"></button>
-            </div>
-          </div>
-
-          <!-- Coming Soon Toast -->
-          <Transition
-            enter-active-class="transition duration-200 ease-out"
-            enter-from-class="opacity-0 -translate-y-1"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition duration-150 ease-in"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 -translate-y-1"
-          >
-            <div v-if="showDarkModeToast" class="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200/80 rounded-xl text-amber-900 font-mono text-xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-              <span>Dark theme customization will be available in the upcoming release.</span>
-            </div>
-          </Transition>
+        <div v-if="activeTab === 'appearance'" class="bg-white border border-gray-200 rounded-2xl p-6 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
+          <AppearanceSettings />
         </div>
       </div>
     </div>
@@ -243,13 +177,12 @@
 import { ref, computed, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AppearanceSettings from '@/components/settings/AppearanceSettings.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const activeTab = ref('account')
-const isDarkMode = ref(false)
-const showDarkModeToast = ref(false)
 
 const activeTabTitle = computed(() => {
   if (activeTab.value === 'account') return 'account info'
@@ -303,15 +236,6 @@ const tabs = [
   { id: 'security', name: 'Security', icon: ShieldIcon },
   { id: 'appearance', name: 'Appearance', icon: PaletteIcon }
 ]
-
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  showDarkModeToast.value = true
-  setTimeout(() => {
-    showDarkModeToast.value = false
-    isDarkMode.value = false
-  }, 3500)
-}
 
 const clearLocalData = async () => {
   if (confirm('This will clear all cached data and sign you out. Continue?')) {
