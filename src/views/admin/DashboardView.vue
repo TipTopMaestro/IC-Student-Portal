@@ -238,7 +238,6 @@
               :key="post.id"
               :post="post"
               :show-actions="false"
-              class="border border-gray-200! shadow-xs!"
             />
 
             <!-- More Link -->

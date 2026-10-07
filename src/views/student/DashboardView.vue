@@ -283,7 +283,6 @@
               :key="post.id"
               :post="post"
               :show-actions="false"
-              class="border border-gray-200! shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]! rounded-2xl!"
             />
 
             <!-- More Link -->

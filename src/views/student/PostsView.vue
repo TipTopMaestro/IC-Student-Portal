@@ -88,14 +88,13 @@
       </div>
 
       <!-- Feed List -->
-      <div v-else class="space-y-5">
+      <div v-else class="space-y-3">
         <PostFeedItem
           v-for="post in filteredPosts"
           :key="post.id"
           :post="post"
           :show-actions="false"
           @filter-category="selectedCategory = $event"
-          class="border border-gray-200! shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]! hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)]! rounded-2xl! transition-all duration-300"
         />
 
         <!-- Infinite Scroll Sentinel & Feed Indicators -->

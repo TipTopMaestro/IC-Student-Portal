@@ -1,86 +1,107 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] transition-all duration-300">
-    <!-- Post Header -->
-    <div class="flex items-center gap-3 p-4">
-      <div v-if="authorAvatar" class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-gray-100">
-        <img :src="authorAvatar" :alt="post.user_name" class="w-full h-full object-cover" />
-      </div>
-      <div v-else class="w-10 h-10 rounded-full bg-gradient-to-br from-ic-primary to-purple-500 flex items-center justify-center text-white text-sm font-medium ring-2 ring-gray-100">
-        {{ authorInitials }}
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'Admin' }}</p>
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <p class="font-mono text-[11px] uppercase tracking-wider text-gray-400">{{ formattedDate || 'Recently' }}</p>
-          <span v-if="isEdited" class="font-mono text-[10px] text-gray-400 lowercase">· (edited)</span>
-          <span class="text-xs text-gray-300">·</span>
-          <CategoryBadge :category="post.category" size="sm" @click-category="$emit('filter-category', $event)" />
+  <div class="bg-transparent border-none shadow-none pb-8 last:pb-0 transition-all duration-200">
+    <!-- 1. Post Header (Instagram Web inspired) -->
+    <div class="flex items-center justify-between gap-3 pb-3 px-0.5">
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Avatar -->
+        <div v-if="authorAvatar" class="w-[38px] h-[38px] rounded-full overflow-hidden ring-1 ring-gray-200/80 shrink-0">
+          <img :src="authorAvatar" :alt="post.user_name" class="w-full h-full object-cover" />
+        </div>
+        <div v-else class="w-[38px] h-[38px] rounded-full bg-gradient-to-br from-ic-primary to-purple-600 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-gray-200/80 shrink-0">
+          {{ authorInitials }}
+        </div>
+
+        <!-- Author Meta & Category -->
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5 leading-tight">
+            <span class="text-sm font-semibold text-gray-900 truncate">{{ post.user_name || 'Admin' }}</span>
+            <span class="text-gray-300 text-xs font-bold select-none">·</span>
+            <span class="font-mono text-[11px] uppercase tracking-wider text-gray-400 shrink-0">{{ formattedDate || 'recently' }}</span>
+            <span v-if="isEdited" class="font-mono text-[10px] text-gray-400 lowercase shrink-0">· (edited)</span>
+          </div>
+          <div class="mt-1 flex items-center gap-1.5">
+            <CategoryBadge :category="post.category" size="sm" @click-category="$emit('filter-category', $event)" />
+          </div>
         </div>
       </div>
       
-      <!-- Actions Menu (for admin) -->
-      <div v-if="showActions" class="relative">
+      <!-- Actions Menu (for author / admin) -->
+      <div v-if="showActions" class="relative shrink-0">
         <button 
           @click="toggleMenu"
-          class="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+          type="button"
+          class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           aria-label="Post actions"
         >
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-          </svg>
+          <MoreHorizontal class="w-5 h-5" />
         </button>
         
         <!-- Dropdown Menu -->
-        <div 
-          v-if="menuOpen"
-          class="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10"
+        <Transition
+          enter-active-class="transition duration-100 ease-out"
+          enter-from-class="transform scale-95 opacity-0"
+          enter-to-class="transform scale-100 opacity-100"
+          leave-active-class="transition duration-75 ease-in"
+          leave-from-class="transform scale-100 opacity-100"
+          leave-to-class="transform scale-95 opacity-0"
         >
-          <button 
-            @click="handleEdit"
-            class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+          <div 
+            v-if="menuOpen"
+            class="absolute right-0 top-full mt-1 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-1 z-20 text-xs font-sans"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            Edit post
-          </button>
-          <button 
-            @click="handleToggleComments"
-            class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-            {{ localDisableComments ? 'Enable comments' : 'Disable comments' }}
-          </button>
-          <button 
-            @click="handleDelete"
-            class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-            Delete
-          </button>
-        </div>
+            <button 
+              @click="handleEdit"
+              type="button"
+              class="w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+            >
+              <Edit class="w-3.5 h-3.5 text-gray-500" />
+              <span>Edit post</span>
+            </button>
+            <button 
+              @click="handleToggleComments"
+              type="button"
+              class="w-full px-3 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+            >
+              <MessageCircleOff v-if="!localDisableComments" class="w-3.5 h-3.5 text-gray-500" />
+              <MessageCircle v-else class="w-3.5 h-3.5 text-gray-500" />
+              <span>{{ localDisableComments ? 'Enable comments' : 'Disable comments' }}</span>
+            </button>
+            <div class="my-1 border-t border-gray-100"></div>
+            <button 
+              @click="handleDelete"
+              type="button"
+              class="w-full px-3 py-2 text-left text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+            >
+              <Trash2 class="w-3.5 h-3.5 text-rose-600" />
+              <span>Delete post</span>
+            </button>
+          </div>
+        </Transition>
       </div>
     </div>
 
-    <!-- Post Content -->
-    <div v-if="post.content" class="px-4 pb-3">
-      <p 
-        class="text-sm text-gray-800 whitespace-pre-wrap"
+    <!-- 2. Post Caption / Announcement Text (Positioned at TOP with preserved line breaks) -->
+    <div v-if="post.content" class="px-0.5 pb-3">
+      <div 
+        class="text-xs sm:text-sm text-gray-800 leading-relaxed font-sans whitespace-pre-line break-words"
         :class="{ 'line-clamp-3': !expanded && isLongContent }"
       >
         {{ post.content }}
-      </p>
+      </div>
       <button 
         v-if="isLongContent"
         @click="expanded = !expanded"
-        class="font-mono text-[11px] font-medium uppercase tracking-wider text-ic-primary hover:text-ic-secondary mt-1.5 cursor-pointer"
+        type="button"
+        class="text-gray-400 hover:text-gray-600 font-medium text-xs mt-1 inline-block cursor-pointer select-none"
       >
-        {{ expanded ? 'Show less' : 'Show more' }}
+        {{ expanded ? 'show less' : '... more' }}
       </button>
     </div>
 
-    <!-- Post Media (Adaptive Mosaic Gallery) -->
+    <!-- 3. Post Media (Positioned below caption when attached) -->
     <div
       v-if="hasMedia"
-      class="px-4 pb-2 relative"
+      class="relative w-full overflow-hidden rounded-xl sm:rounded-2xl"
       @dblclick="handleDoubleTap"
     >
       <MediaGallery
@@ -90,7 +111,7 @@
         :post-date="formattedDate"
       />
 
-      <!-- Double-tap heart animation -->
+      <!-- Double-tap heart animation burst -->
       <Transition name="heart-burst">
         <div v-if="showHeartAnimation" class="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
           <Heart class="w-20 h-20 text-white fill-white drop-shadow-xl" />
@@ -98,58 +119,72 @@
       </Transition>
     </div>
 
-    <!-- Interaction Bar -->
-    <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+    <!-- 4. Action Bar (Directly below Media or Caption) -->
+    <div class="px-0.5 pt-3 pb-1 flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <!-- Heart Button -->
+        <!-- Like Button -->
         <button
           @click="toggleReaction"
-          class="flex items-center gap-1.5 group transition-transform active:scale-90 cursor-pointer"
-          :class="isLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'"
+          type="button"
+          class="group transition-transform active:scale-90 cursor-pointer text-gray-700 hover:text-rose-500"
+          :aria-label="isLiked ? 'Unlike post' : 'Like post'"
         >
           <Heart
-            class="w-5 h-5 sm:w-6 sm:h-6 transition-all"
+            class="w-6 h-6 transition-all"
             :class="[
-              isLiked ? 'scale-110 fill-rose-500 text-rose-500' : 'text-gray-500 group-hover:text-rose-500',
+              isLiked ? 'fill-rose-500 text-rose-500 scale-105' : 'group-hover:text-rose-500',
               heartPopping ? 'heart-pop' : ''
             ]"
           />
-          <span class="font-mono text-xs font-semibold text-gray-700" v-if="localReactionCount > 0">{{ localReactionCount }}</span>
         </button>
 
-        <!-- Comment Button (Pops dedicated Post Comment Modal) -->
+        <!-- Comment Button -->
         <button
           @click="openCommentModal"
-          class="flex items-center gap-1.5 group transition-colors cursor-pointer"
-          :class="localDisableComments ? 'text-gray-400 hover:text-gray-500' : 'text-gray-500 hover:text-ic-primary'"
-          :title="localDisableComments ? 'Comments are turned off for this post' : 'Open comments'"
+          type="button"
+          class="group transition-transform active:scale-90 cursor-pointer text-gray-700 hover:text-ic-primary"
+          :title="localDisableComments ? 'Comments are turned off' : 'Open comments'"
+          aria-label="Comments"
         >
           <MessageCircleOff
             v-if="localDisableComments"
-            class="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105 text-gray-400"
+            class="w-6 h-6 text-gray-400 group-hover:text-gray-500"
           />
           <MessageCircle
             v-else
-            class="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-105"
+            class="w-6 h-6 group-hover:text-ic-primary"
           />
-          <span 
-            class="font-mono text-xs font-semibold"
-            :class="localDisableComments ? 'text-gray-400' : 'text-gray-700'"
-            v-if="localCommentCount > 0"
-          >
-            {{ localCommentCount }}
-          </span>
-          <span
-            v-if="localDisableComments"
-            class="font-mono text-[9px] font-semibold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full uppercase tracking-wider"
-          >
-            Off
-          </span>
         </button>
       </div>
     </div>
 
-    <!-- Dedicated Post & Comment Modal (Facebook-style full post dialog) -->
+    <!-- 5. Likes Count & Comment Prompts -->
+    <div class="px-0.5 pt-1 space-y-1">
+      <!-- Likes Count -->
+      <p v-if="localReactionCount > 0" class="text-xs font-semibold text-gray-900 font-sans">
+        {{ localReactionCount }} {{ localReactionCount === 1 ? 'like' : 'likes' }}
+      </p>
+
+      <!-- Comments Link -->
+      <div class="pt-0.5">
+        <button
+          v-if="!localDisableComments && localCommentCount > 0"
+          @click="openCommentModal"
+          type="button"
+          class="text-xs text-gray-400 hover:text-gray-600 transition-colors cursor-pointer select-none"
+        >
+          View all {{ localCommentCount }} {{ localCommentCount === 1 ? 'comment' : 'comments' }}
+        </button>
+        <span
+          v-else-if="localDisableComments"
+          class="font-mono text-[10px] text-gray-400 uppercase tracking-wider"
+        >
+          Comments are turned off
+        </span>
+      </div>
+    </div>
+
+    <!-- Dedicated Full Post & Comments Modal -->
     <PostModal
       :is-open="isModalOpen"
       :post="post"
@@ -169,7 +204,14 @@ import { reactToPost, removeReaction, togglePostComments } from '@/services/post
 import PostModal from './PostModal.vue'
 import CategoryBadge from './CategoryBadge.vue'
 import MediaGallery from './MediaGallery.vue'
-import { Heart, MessageCircle, MessageCircleOff } from 'lucide-vue-next'
+import { 
+  Heart, 
+  MessageCircle, 
+  MessageCircleOff, 
+  MoreHorizontal, 
+  Edit, 
+  Trash2 
+} from 'lucide-vue-next'
 
 const props = defineProps({
   post: {
@@ -225,7 +267,6 @@ const saveLikedState = (postId, liked) => {
 
 // Initialize from post data
 const initializeState = () => {
-  // Parse reaction_counts — API may return as JSON string or object
   let counts = props.post.reaction_counts || {}
   if (typeof counts === 'string') {
     try { counts = JSON.parse(counts) } catch { counts = {} }
@@ -234,13 +275,11 @@ const initializeState = () => {
     ? (counts.like || 0) + (counts.heart || 0) + (counts.haha || 0) + (counts.sad || 0) + (counts.angry || 0)
     : (typeof counts === 'number' ? counts : 0)
 
-  // Parse comments_count — API returns as string
   const cc = props.post.comments_count
   localCommentCount.value = typeof cc === 'string' ? parseInt(cc, 10) || 0 : cc || 0
 
   localDisableComments.value = props.post.disable_comments || false
 
-  // Restore liked state from localStorage (persists across reloads)
   const likedPosts = getLikedPosts()
   isLiked.value = likedPosts.includes(String(props.post.id))
 }
@@ -250,14 +289,14 @@ initializeState()
 const hasMedia = computed(() => props.post.media && props.post.media.length > 0)
 
 const isLongContent = computed(() => {
-  return props.post.content && props.post.content.length > 200
+  if (!props.post.content) return false
+  return props.post.content.length > 180 || props.post.content.split('\n').length > 3
 })
 
 // Normalize URL to use HTTPS
 const normalizeUrl = (url) => {
   if (!url || typeof url !== 'string') return ''
   
-  // Handle local frontend assets
   if (
     url === '/default_profile.png' || 
     url === '/ic-building.png' || 
@@ -287,11 +326,9 @@ const normalizeUrl = (url) => {
 
 // Get author avatar
 const authorAvatar = computed(() => {
-  // Prioritize post.user_avatar or post.user_profile as they should be provided by the backend and normalized
   const avatar = props.post.user_avatar || props.post.user_profile
   if (avatar) return normalizeUrl(avatar)
 
-  // Fallback to current user profile pic if the current user is the author
   const user = currentUser.value
   if (user) {
     const isAuthor = 
@@ -306,7 +343,6 @@ const authorAvatar = computed(() => {
     }
   }
   
-  // Default fallback
   return '/default_profile.png'
 })
 
@@ -318,7 +354,6 @@ const authorInitials = computed(() => {
   }
   return name.substring(0, 2).toUpperCase()
 })
-
 
 const formattedDate = computed(() => {
   const p = props.post
@@ -338,7 +373,7 @@ const formattedDate = computed(() => {
   if (diffDays < 7) return `${diffDays}d`
   if (diffWeeks < 52) return `${diffWeeks}w`
   
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 })
 
 const isEdited = computed(() => {
@@ -358,46 +393,37 @@ const isEdited = computed(() => {
 
 // --- Reactions ---
 const toggleReaction = async () => {
-  // Optimistic update
   const wasLiked = isLiked.value
   isLiked.value = !wasLiked
   localReactionCount.value += wasLiked ? -1 : 1
   localReactionCount.value = Math.max(0, localReactionCount.value)
 
-  // Pop animation
   if (!wasLiked) {
     heartPopping.value = true
     setTimeout(() => { heartPopping.value = false }, 400)
   }
 
-  // API call in background
   const result = wasLiked
     ? await removeReaction(props.post.id)
     : await reactToPost(props.post.id, 'heart')
 
-  // Rollback on failure, otherwise persist
   if (!result.success) {
     isLiked.value = wasLiked
     localReactionCount.value += wasLiked ? 1 : -1
   } else {
-    // If we liked it but the backend says it was already recorded, undo the optimistic +1
     const status = result.data?.data?.status
     if (!wasLiked && status === 'unchanged') {
       localReactionCount.value -= 1
     }
-    
-    // Persist liked state to localStorage so it survives reloads
     saveLikedState(props.post.id, isLiked.value)
   }
 }
 
 const handleDoubleTap = () => {
-  if (isLiked.value) return // Already liked
+  if (isLiked.value) return
 
-  // Trigger like
   toggleReaction()
 
-  // Show heart burst animation on image
   showHeartAnimation.value = true
   setTimeout(() => { showHeartAnimation.value = false }, 800)
 }
@@ -431,7 +457,6 @@ const handleToggleComments = async () => {
   }
 }
 
-// Close menu when clicking outside
 const handleClickOutside = (e) => {
   if (menuOpen.value && !e.target.closest('.relative')) {
     menuOpen.value = false
@@ -448,41 +473,36 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Heart pop animation */
-.heart-pop {
-  animation: heartPop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49);
-}
 @keyframes heartPop {
   0% { transform: scale(1); }
-  25% { transform: scale(1.3); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1.1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 
-/* Heart burst animation on double-tap */
+.heart-pop {
+  animation: heartPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 .heart-burst-enter-active {
-  animation: heartBurst 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+  animation: heartBurst 0.75s ease-out forwards;
 }
-.heart-burst-leave-active {
-  animation: heartFade 0.3s ease-out;
-}
+
 @keyframes heartBurst {
-  0% { opacity: 0; transform: scale(0.2); }
-  15% { opacity: 1; transform: scale(1.2); }
-  30% { transform: scale(0.95); }
-  45% { transform: scale(1.05); }
-  100% { opacity: 0; transform: scale(1); }
-}
-@keyframes heartFade {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  30% {
+    opacity: 0.95;
+    transform: scale(1.2);
+  }
+  70% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
 }
 </style>

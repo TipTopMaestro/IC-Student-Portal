@@ -4,13 +4,13 @@
     <!-- ============================================== -->
     <!-- 1 ITEM LAYOUT -->
     <!-- ============================================== -->
-    <div v-if="media.length === 1" class="relative overflow-hidden rounded-xl bg-neutral-900 border border-neutral-200/80 group">
+    <div v-if="media.length === 1" class="relative overflow-hidden rounded-xl sm:rounded-2xl border border-gray-200/80 group">
       <!-- Single Video -->
-      <div v-if="media[0].media_type === 'video'" class="relative w-full aspect-video bg-black flex items-center justify-center">
+      <div v-if="media[0].media_type === 'video'" class="relative w-full bg-black flex items-center justify-center">
         <video
           ref="singleVideoRef"
           :src="normalizeUrl(media[0].media_url)"
-          class="w-full h-full object-contain"
+          class="w-full max-h-[580px] object-contain"
           controls
           playsinline
           muted
@@ -37,15 +37,14 @@
       <div
         v-else
         @click="openLightbox(0)"
-        class="cursor-pointer overflow-hidden max-h-[520px] flex items-center justify-center bg-neutral-950"
+        class="cursor-pointer overflow-hidden flex items-center justify-center bg-gray-50/40"
       >
         <img
           :src="normalizeUrl(media[0].media_url)"
           :alt="media[0].alt_text || 'Post image'"
-          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.015]"
+          class="w-full h-auto max-h-[640px] object-contain transition-opacity duration-300 hover:opacity-95"
           loading="lazy"
         />
-        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors pointer-events-none"></div>
       </div>
     </div>
 

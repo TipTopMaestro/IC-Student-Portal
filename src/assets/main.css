@@ -77,6 +77,12 @@ body {
   }
 }
 
+html.reduce-motion *,
+html.reduce-motion .animate-fade-in-up {
+  animation: none !important;
+  transition-duration: 0.001ms !important;
+}
+
 /* Custom slim scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
