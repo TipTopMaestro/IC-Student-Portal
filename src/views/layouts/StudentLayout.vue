@@ -4,7 +4,7 @@
     <header class="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 safe-area-top">
       <div class="flex items-center justify-between h-14 px-4">
         <div class="flex items-center gap-1.5 cursor-pointer relative systems-trigger select-none" @click.stop="toggleSystemsMenu">
-          <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6" />
+          <img src="/icsp-logo.png" alt="ICSP" class="h-7 w-7 object-contain scale-170" />
           <span class="font-pixel text-lg text-ic-primary tracking-tight">ICSP</span>
           <ChevronDown 
             class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200" 
@@ -209,7 +209,7 @@
         class="flex items-center px-6 py-3 cursor-pointer hover:bg-gray-50 transition-colors relative systems-trigger select-none"
       >
         <div class="w-7 h-7 shrink-0 flex items-center justify-center">
-          <img src="/icsa_logo.png" alt="ICSA" class="h-7 w-7" />
+          <img src="/icsp-logo.png" alt="ICSP" class="h-7 w-7 object-contain scale-200" />
         </div>
         <div class="flex items-center justify-between flex-1 min-w-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap ml-4">
           <span class="font-pixel text-xl text-ic-primary tracking-tight">ICSP</span>

@@ -56,7 +56,7 @@
           </div>
           
           <div class="flex items-center gap-2.5 mt-5 pt-3.5 border-t border-gray-100">
-            <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6 object-contain" />
+            <img src="/icsp-logo.png" alt="ICSP" class="h-8 w-8 object-contain scale-110" /> 
             <span class="font-mono text-[10px] font-bold text-ic-primary uppercase tracking-wider">IC Student Portal</span>
           </div>
         </div>

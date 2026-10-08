@@ -20,7 +20,7 @@
               <!-- Origin: IC Portal -->
               <div class="flex flex-col items-center gap-1.5 min-w-[72px]">
                 <div class="relative w-12 h-12 rounded-xl bg-white border border-gray-200 p-2 shadow-xs flex items-center justify-center">
-                  <img src="/icsa_logo.png" alt="IC Portal" class="w-7 h-7 object-contain" />
+                  <img src="/icsp-logo.png" alt="IC Portal" class="w-7 h-7 object-contain" />
                   <span class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
                 </div>
                 <span class="font-mono text-[10px] font-semibold text-gray-600 uppercase tracking-wider">IC Portal</span>

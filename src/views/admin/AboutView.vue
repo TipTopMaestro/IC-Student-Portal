@@ -56,7 +56,7 @@
           </div>
           
           <div class="flex items-center gap-2.5 mt-5 pt-3.5 border-t border-gray-100">
-            <img src="/icsa_logo.png" alt="ICSA" class="h-6 w-6 object-contain" />
+            <img src="/icsp-logo.png" alt="ICSP" class="h-8 w-8 object-contain scale-110" /> 
             <span class="font-mono text-[10px] font-bold text-ic-primary uppercase tracking-wider">IC Admin Console</span>
           </div>
         </div>
@@ -125,7 +125,7 @@
             </div>
             <div class="p-4 bg-gray-50/60 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
               <p class="text-sm font-semibold text-gray-900">Monch Quines</p>
-              <p class="font-mono text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">BSIT - 2B</p>
+              <p class="font-mono text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">BSIT - 3B</p>
             </div>
           </div>
         </div>
