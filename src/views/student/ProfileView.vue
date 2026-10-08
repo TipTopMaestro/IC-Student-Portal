@@ -309,6 +309,7 @@ const normalizeUrl = (url) => {
   if (
     url === '/default_profile.png' || 
     url === '/ic-building.png' || 
+    url === '/icsp-logo.png' || 
     url === '/icsa_logo.png' || 
     url.startsWith('/src/') || 
     url.startsWith('/assets/') || 

@@ -157,6 +157,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (
       url === '/default_profile.png' || 
       url === '/ic-building.png' || 
+      url === '/favicon.png' || 
+      url === '/icsp-logo-white-tight.png' || 
+      url === '/icsp-logo-white.png' || 
+      url === '/icsp-logo-tight.png' || 
+      url === '/icsp-logo.png' || 
       url === '/icsa_logo.png' || 
       url.startsWith('/src/') || 
       url.startsWith('/assets/') || 
