@@ -136,9 +136,9 @@
             <!-- Logo -->
             <div class="mb-8 flex justify-center animate-float">
               <img 
-                src="/icsp-logo-white-tight.png" 
+                src="/icsp-logo-white.png" 
                 alt="ICSP Logo" 
-                class="h-44 w-44 object-contain drop-shadow-[0_10px_25px_rgba(0,0,0,0.35)]" 
+                class="h-44 w-44 object-contain scale-160 drop-shadow-[0_10px_25px_rgba(0,0,0,0.35)]" 
               />
             </div>
 
