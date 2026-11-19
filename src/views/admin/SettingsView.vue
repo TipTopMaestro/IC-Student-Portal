@@ -266,9 +266,13 @@ const tabs = [
 
 const clearLocalData = async () => {
   if (confirm('This will clear all cached data and sign you out. Continue?')) {
+    const savedTheme = localStorage.getItem('icsp_theme')
     await authStore.logout()
     sessionStorage.clear()
     localStorage.clear()
+    if (savedTheme) {
+      localStorage.setItem('icsp_theme', savedTheme)
+    }
     router.push('/login')
   }
 }

@@ -2,7 +2,11 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
+import { bootstrapTheme } from './stores/theme'
 import './assets/main.css'
+
+// Apply theme before Vue mounts to prevent flash of unstyled content
+bootstrapTheme()
 
 import vue3GoogleLogin from 'vue3-google-login';
 

@@ -40,6 +40,87 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
   --font-pixel: 'Geist Pixel', 'Geist Pixel Square', 'Geist Mono', monospace;
+
+  /* Semantic Theme Tokens — overridden by [data-theme] selectors below */
+  --color-theme-bg: var(--t-bg);
+  --color-theme-surface: var(--t-surface);
+  --color-theme-surface-alt: var(--t-surface-alt);
+  --color-theme-border: var(--t-border);
+  --color-theme-border-subtle: var(--t-border-subtle);
+  --color-theme-text: var(--t-text);
+  --color-theme-text-secondary: var(--t-text-secondary);
+  --color-theme-text-muted: var(--t-text-muted);
+  --color-theme-accent: var(--t-accent);
+  --color-theme-accent-hover: var(--t-accent-hover);
+  --color-theme-accent-soft: var(--t-accent-soft);
+  --color-theme-accent-text: var(--t-accent-text);
+}
+
+/* ─── Theme Definitions ─────────────────────────────────────────────── */
+
+/* Light — DNSC Plum (Default) */
+:root,
+[data-theme="light"] {
+  --t-bg: #ffffff;
+  --t-surface: #ffffff;
+  --t-surface-alt: #f9fafb;
+  --t-border: #e5e7eb;
+  --t-border-subtle: #f3f4f6;
+  --t-text: #111827;
+  --t-text-secondary: #6b7280;
+  --t-text-muted: #9ca3af;
+  --t-accent: #640D5F;
+  --t-accent-hover: #520B4D;
+  --t-accent-soft: rgba(100, 13, 95, 0.06);
+  --t-accent-text: #640D5F;
+}
+
+/* Dark — IC Midnight */
+[data-theme="dark"] {
+  --t-bg: #121118;
+  --t-surface: #1c1926;
+  --t-surface-alt: #241f30;
+  --t-border: #2e2840;
+  --t-border-subtle: #231e32;
+  --t-text: #f0edf5;
+  --t-text-secondary: #9e95b0;
+  --t-text-muted: #6b6280;
+  --t-accent: #a07bcb;
+  --t-accent-hover: #8556bc;
+  --t-accent-soft: rgba(160, 123, 203, 0.12);
+  --t-accent-text: #c4a8e0;
+}
+
+/* Bloom — Rose Soft */
+[data-theme="bloom"] {
+  --t-bg: #FFF7F5;
+  --t-surface: #ffffff;
+  --t-surface-alt: #FFF0ED;
+  --t-border: #f5ddd8;
+  --t-border-subtle: #fbe8e4;
+  --t-text: #2d1a1a;
+  --t-text-secondary: #8c6b6b;
+  --t-text-muted: #b89e9e;
+  --t-accent: #D91656;
+  --t-accent-hover: #b81248;
+  --t-accent-soft: rgba(217, 22, 86, 0.07);
+  --t-accent-text: #D91656;
+}
+
+/* Bloom Dark — Plum Night */
+[data-theme="bloom-dark"] {
+  --t-bg: #1a1018;
+  --t-surface: #241a22;
+  --t-surface-alt: #2e2029;
+  --t-border: #3d2838;
+  --t-border-subtle: #312230;
+  --t-text: #f5edf2;
+  --t-text-secondary: #a8899e;
+  --t-text-muted: #7a6572;
+  --t-accent: #EE66A6;
+  --t-accent-hover: #F43F5E;
+  --t-accent-soft: rgba(238, 102, 166, 0.12);
+  --t-accent-text: #f9a0c8;
 }
 
 * {
@@ -47,10 +128,11 @@
 }
 
 body {
-  background-color: #fafafa;
-  color: #2d3748;
+  background-color: var(--t-bg, #ffffff);
+  color: var(--t-text, #111827);
   font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 /* Page entrance animations */

@@ -55,35 +55,13 @@
               ></div>
             </div>
 
-            <!-- Center Content Block / Active Checkmark Badge -->
-            <div class="relative flex items-center justify-between w-full my-auto">
+            <!-- Center Content Block -->
+            <div class="flex items-center justify-between w-full my-auto">
               <!-- Left Mini Avatar / Post Block -->
               <div 
                 class="w-7 h-7 rounded-lg transition-colors shrink-0" 
                 :class="theme.preview.blockClass"
               ></div>
-
-              <!-- Center Checkmark Overlay (when active) -->
-              <Transition
-                enter-active-class="transition duration-200 ease-out"
-                enter-from-class="opacity-0 scale-75"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-75"
-              >
-                <div 
-                  v-if="currentTheme === theme.id" 
-                  class="absolute inset-0 flex items-center justify-center pointer-events-none"
-                >
-                  <div 
-                    class="w-6 h-6 rounded-full flex items-center justify-center text-white shadow-sm ring-2 ring-white/90"
-                    :class="theme.preview.accentButtonClass"
-                  >
-                    <Check class="w-3.5 h-3.5 stroke-[2.5]" />
-                  </div>
-                </div>
-              </Transition>
 
               <!-- Mini Mockup Secondary Line -->
               <div class="space-y-1.5 flex-1 ml-3 max-w-[50%]">
@@ -104,6 +82,28 @@
                 :class="theme.preview.accentButtonClass"
               ></div>
             </div>
+
+            <!-- Active Checkmark Overlay (covers entire card) -->
+            <Transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="opacity-0 scale-75"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-75"
+            >
+              <div 
+                v-if="currentTheme === theme.id" 
+                class="absolute inset-0 z-10 flex items-center justify-center rounded-2xl pointer-events-none"
+              >
+                <div 
+                  class="w-6 h-6 rounded-full flex items-center justify-center text-white shadow-md ring-2 ring-white/90"
+                  :class="theme.preview.accentButtonClass"
+                >
+                  <Check class="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
+              </div>
+            </Transition>
           </div>
 
           <!-- Theme Label & Subtitle -->
@@ -133,8 +133,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { Check, Info } from 'lucide-vue-next'
+import { useThemeStore } from '@/stores/theme'
+
+const themeStore = useThemeStore()
+
+// Initialize theme store on mount (reads localStorage)
+onMounted(() => {
+  themeStore.initTheme()
+})
+
+// Reactive binding to store state
+const currentTheme = computed(() => themeStore.currentTheme)
+
+const selectTheme = (themeId) => {
+  themeStore.setTheme(themeId)
+}
 
 // Theme Presets Configuration (4 Themes: Light, Dark, Bloom, Bloom Dark)
 const themes = [
@@ -156,14 +171,14 @@ const themes = [
     id: 'dark',
     name: 'Dark',
     subtitle: 'IC Midnight · Low light',
-    activeTextClass: 'text-[#EE66A6]',
+    activeTextClass: 'text-[#a07bcb]',
     preview: {
       canvasClass: 'bg-[#121118]',
-      skeletonClass: 'bg-neutral-800',
-      blockClass: 'bg-neutral-800/80 border border-neutral-700/60',
-      accentButtonClass: 'bg-[#EE66A6]',
-      activeBorderClass: 'border-[#EE66A6]',
-      activeRingClass: 'ring-[#EE66A6]/40'
+      skeletonClass: 'bg-[#2e2840]',
+      blockClass: 'bg-[#241f30] border border-[#2e2840]',
+      accentButtonClass: 'bg-[#a07bcb]',
+      activeBorderClass: 'border-[#a07bcb]',
+      activeRingClass: 'ring-[#a07bcb]/40'
     }
   },
   {
@@ -184,21 +199,16 @@ const themes = [
     id: 'bloom-dark',
     name: 'Bloom Dark',
     subtitle: 'Plum Night · Deep Rose',
-    activeTextClass: 'text-[#F43F5E]',
+    activeTextClass: 'text-[#EE66A6]',
     preview: {
-      canvasClass: 'bg-[#21141F]',
-      skeletonClass: 'bg-[#361E32]',
-      blockClass: 'bg-[#2E182A] border border-pink-950/80',
-      accentButtonClass: 'bg-[#F43F5E]',
-      activeBorderClass: 'border-[#F43F5E]',
-      activeRingClass: 'ring-[#F43F5E]/40'
+      canvasClass: 'bg-[#1a1018]',
+      skeletonClass: 'bg-[#3d2838]',
+      blockClass: 'bg-[#2e2029] border border-[#3d2838]',
+      accentButtonClass: 'bg-[#EE66A6]',
+      activeBorderClass: 'border-[#EE66A6]',
+      activeRingClass: 'ring-[#EE66A6]/40'
     }
   }
 ]
-
-const currentTheme = ref('light')
-
-const selectTheme = (themeId) => {
-  currentTheme.value = themeId
-}
 </script>
+
