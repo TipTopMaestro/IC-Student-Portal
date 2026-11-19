@@ -293,10 +293,10 @@
                 <span class="text-xs font-medium text-gray-700">Settings</span>
               </router-link>
 
-              <a :href="reportProblemUrl" @click="showMoreMenu = false" class="more-menu-item">
+              <button type="button" @click="openReportProblem(); showMoreMenu = false" class="more-menu-item w-full text-left cursor-pointer">
                 <LifeBuoy class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
                 <span class="text-xs font-medium text-gray-700">Report a Problem</span>
-              </a>
+              </button>
 
               <router-link to="/admin/about" @click="showMoreMenu = false" class="more-menu-item">
                 <Info class="w-4.5 h-4.5 text-gray-500 shrink-0" :stroke-width="1.9" />
@@ -438,6 +438,9 @@
 
     <!-- Global Background Post Publishing Status Widget -->
     <PublishProgressWidget />
+
+    <!-- Report Problem Modal -->
+    <ReportProblemModal v-model="showReportModal" />
   </div>
 </template>
 
@@ -448,6 +451,7 @@ import { useAuthStore } from '@/stores/auth'
 import { authService } from '@/services/authService'
 import { performSSORedirect } from '@/utils/sso'
 import PublishProgressWidget from '@/components/posts/PublishProgressWidget.vue'
+import ReportProblemModal from '@/components/common/ReportProblemModal.vue'
 import { 
   LayoutDashboard, 
   Users, 
@@ -480,6 +484,7 @@ const showMoreMenu = ref(false)
 const moreMenuContainer = ref(null)
 const showSystemsMenu = ref(false)
 const isRedirectingSystemId = ref(null)
+const showReportModal = ref(false)
 
 const externalSystems = [
   {
@@ -562,7 +567,7 @@ const reportProblemUrl = computed(() => {
 })
 
 const openReportProblem = () => {
-  window.location.href = reportProblemUrl.value
+  showReportModal.value = true
 }
 
 const handleNavigate = (path) => {
